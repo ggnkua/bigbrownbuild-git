@@ -21,7 +21,16 @@ then
     unset NICE
     unset J4
 fi
+if [ `uname -o` == "Cygwin" ]
+then
+    # Disable -j4 and sudo for cygwin as well
+    unset J4
+    unset SUDO
+fi
 
+#
+# Startup message
+#
 echo "Ohai!"
 echo ""
 echo "I'll try to make building this heap of junk as painless as possible!"
