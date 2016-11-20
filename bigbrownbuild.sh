@@ -1,6 +1,10 @@
 set -e			#stop on any error encountered
 #set -x         #echo all commands
 
+#
+# Setup stuff
+#
+
 # sed_inplace(regex, file_to_replace)
 sed_inplace()
 {
@@ -31,6 +35,7 @@ fi
 #
 # Startup message
 #
+
 echo "Ohai!"
 echo ""
 echo "I'll try to make building this heap of junk as painless as possible!"
@@ -510,13 +515,13 @@ fi
 # *** create local build dir
 
 cd $HOMEDIR/gcc-6.2.0
-mkdir -p build
-cd build
+#mkdir -p build
+#cd build
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Patch libstdc++v3's configure scripts?" -n 1 -r
+    read -p "Patch libstdc++v3 at the source level (meaning the gcc-6.2.0 files will be tinkered)?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -539,37 +544,50 @@ then
     #  as_echo_n "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
     sed_inplace "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  as_echo \"lolol\"/gI" $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
 
+    #*** remove the contents of cow-stdexcept.cc
+    #
+    #gcc-6.2.0\libstdc++-v3\src\c++11\cow_stdexcept.cc
+    #
+    ##if (0)
+    #...everything...
+    ##endif
+
+    echo "#if (0)" > $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+    cat $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+    echo "#endif" >> $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+    mv $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc
+
 fi
 
 #*** configure libstdc++-v3
 
-if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-    REPLY=Y
-else    
-    read -p "Configure libstdc++v3?" -n 1 -r
-    echo
-fi
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    sh ../libstdc++-v3/configure \
-     --host=m68k-ossom-elf \
-     --prefix=/usr \
-     --disable-multilib \
-     --disable-nls \
-     --disable-clocale \
-     --disable-libstdcxx-threads \
-     --disable-libstdcxx-pch \
-     --disable-wchar_t \
-     --disable-libstdcxx-filesystem-ts \
-     --enable-cxx-flags='-fomit-frame-pointer -fno-exceptions -fno-rtti -fleading-underscore' \
-     --with-gxx-include-dir=/usr/m68k-ossom-elf/6.2.0/include
-fi
+#if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+#    REPLY=Y
+#else    
+#    read -p "Configure libstdc++v3?" -n 1 -r
+#    echo
+#fi
+#if [[ $REPLY =~ ^[Yy]$ ]]
+#then
+#    sh ../libstdc++-v3/configure \
+#     --host=m68k-ossom-elf \
+#     --prefix=/usr \
+#     --disable-multilib \
+#     --disable-nls \
+#     --disable-clocale \
+#     --disable-libstdcxx-threads \
+#     --disable-libstdcxx-pch \
+#     --disable-wchar_t \
+#     --disable-libstdcxx-filesystem-ts \
+#     --enable-cxx-flags='-fomit-frame-pointer -fno-exceptions -fno-rtti -fleading-underscore' \
+#     --with-gxx-include-dir=/usr/m68k-ossom-elf/6.2.0/include
+#fi
 
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Patch libstdc++v3 at the source level (meaning the gcc-6.2.0 files will be tinkered)?" -n 1 -r
+    read -p "Patch libstdc++v3's configure scripts?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -584,7 +602,8 @@ then
     #	$(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
     #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
     
-    sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
+    #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
+    sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/src/Makefile
     
     #*** fix type_traits to avoid macro collision: convert '_CTp' to '_xCTp' because ctypes.h defines _CTp as 0x20
     #*** note: need to investigate why ctypes.h is even present
@@ -597,35 +616,70 @@ then
     #      typedef common_type<typename _xCTp::type, _Args...> type;
     #    };
     
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-6.2.0/build/include/type_traits
-    
+    #sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-6.2.0/build/include/type_traits
+
+    # Patch all multilib instances
+    # TODO: replace this with a grep or find command
+    #       (yeah right, that will happen soon)
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mcpu32/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5407/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m54455/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m51qe/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206e/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5208/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5307/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5329/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/include/type_traits
+
+
     #*** fix c++config.h to remove conflicts for sized fundamental types
     #	
     #gcc-6.2.0\build\include\m68k-ossom-elf\bits\c++config.h
     #
     ##undef _GLIBCXX_USE_C99_STDINT_TR1
     
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/gcc-6.2.0/build/include/m68k-ossom-elf/bits/c++config.h
-    
-    
-    #*** remove the contents of cow-stdexcept.cc
-    #
-    #gcc-6.2.0\libstdc++-v3\src\c++11\cow_stdexcept.cc
-    #
-    ##if (0)
-    #...everything...
-    ##endif
+    #sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/gcc-6.2.0/build/include/m68k-ossom-elf/bits/c++config.h
 
-    echo "#if (0)" > $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-    cat $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-    echo "#endif" >> $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-    mv $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc
+    # Patch all multilib instances
+    # TODO: yeah yeah quite possibly not going to do
+    #       something simpler, ever. Bite me.
+    
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/mfidoa/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5475/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68060/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68040/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68040/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68060/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/mcpu32/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m51qe/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5206/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5206e/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5208/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5307/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5329/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5407/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m54455/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5475/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
     
 fi
 
 ###############################################################################################
 #build stdlib++ from inside build-gcc folder:
-# remove std=gnu++98A
+# remove std=gnu++98
 # make all-target-libstdc++-v3
 ###############################################################################################
 
