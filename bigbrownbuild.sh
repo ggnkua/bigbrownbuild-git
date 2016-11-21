@@ -82,6 +82,14 @@ then
     ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=/usr --target=m68k-ossom-elf
     make
     $SUDO make install
+
+    # Package up binutils
+
+    make install DESTDIR=$PWD/binary-package
+    cd binary-package
+    strip usr/bin/*
+    gzip -9 usr/share/man/*/*.1    
+    tar --owner=0 --group=0 -jcvf m68k-ossom-elf.tar.bz2 usr/
 fi
 
 # home directory
@@ -603,8 +611,8 @@ then
     #	$(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
     #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
     
-    #cd $HOMDIR/build-gcc
-    #make configure-target-libstdc++-v3
+    cd $HOMDIR/build-gcc
+    make configure-target-libstdc++-v3
  
     #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
     sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/src/Makefile
