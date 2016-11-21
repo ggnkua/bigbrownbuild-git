@@ -740,10 +740,10 @@ fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     cd binary-package
-    rm -r include
-    rm    lib/*.a
-    rm -r share/info
-    rm -r share/man/man7
+    #rm -r include
+    #rm    lib/*.a
+    #rm -r share/info
+    #rm -r share/man/man7
     strip usr/bin/*
     strip usr/libexec/gcc/m68k-ossom-elf/6.2.0/*
     strip usr/libexec/gcc/m68k-ossom-elf/6.2.0/install-tools/*
