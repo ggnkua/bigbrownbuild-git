@@ -611,7 +611,7 @@ then
     #	$(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
     #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
     
-    cd $HOMDIR/build-gcc
+    cd $HOMEDIR/build-gcc
     make configure-target-libstdc++-v3
  
     #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
