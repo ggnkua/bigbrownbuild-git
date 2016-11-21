@@ -156,6 +156,7 @@ then
     $NICE make all-gcc $J4
     $SUDO make install-gcc
 fi                                                                         
+# LDFLAGS_FOR_TARGET="--emit-relocs"
 
 #
 # Mintlib (or any C lib, dunno)
@@ -602,6 +603,9 @@ then
     #	$(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
     #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
     
+    #cd $HOMDIR/build-gcc
+    #make configure-target-libstdc++-v3
+ 
     #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
     sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/src/Makefile
     
@@ -655,25 +659,25 @@ then
     # TODO: yeah yeah quite possibly not going to do
     #       something simpler, ever. Bite me.
     
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/mfidoa/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5475/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68060/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68040/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68040/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68060/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/mcpu32/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m51qe/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5206/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5206e/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5208/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5307/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5329/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5407/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m54455/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m5475/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" build-gcc/m68k-ossom-elf/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mcpu32/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m51qe/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206e/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5208/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5307/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5329/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5407/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m54455/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
     
 fi
 
@@ -695,7 +699,8 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    make clean; make
+    cd $HOMEDIR/build-gcc
+    make all-target-libstdc++-v3 $J4
     $SUDO make install
 fi
 # gcc build dir
@@ -711,7 +716,7 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then    
-    make
+    make all $J4
     
     make install DESTDIR=$PWD/binary-package
 fi
