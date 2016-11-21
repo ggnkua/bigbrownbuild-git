@@ -506,7 +506,7 @@ then
 
     cd $MINTLIBDIR
 
-    make SHELL=/bin/bash $J4
+    make SHELL=/bin/bash
     #make SHELL=/bin/bash
 
     # Install the lib.
@@ -686,7 +686,8 @@ then
     sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
     sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
     sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h 
+
 fi
 
 ###############################################################################################
