@@ -710,7 +710,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd $HOMEDIR/build-gcc
     make all-target-libstdc++-v3 $J4
-    $SUDO make install
+    $SUDO make install-target-libstdc++-v3
 fi
 # gcc build dir
 # build everything else
