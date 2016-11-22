@@ -42,9 +42,9 @@ echo "I'll try to make building this heap of junk as painless as possible!"
 echo ""
 echo "First of all, I'm going to assume that the following files are in the"
 echo "same directory this script is running:"
-echo "gcc-6.2.0.tar.bz2"
-echo "binutils-2.27.tar.bz2"
-echo "mintlib-CVS-20160320.tar.gz"
+echo "gcc-6.2.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org/mirrors.html)"
+echo "binutils-2.27.tar.bz2 (download from http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2)"
+echo "mintlib-CVS-20160320.tar.gz (download from http://vincent.riviere.free.fr/soft/m68k-atari-mint/archives/mintlib-CVS-20160320.tar.gz)"
 echo ""
 read -p "Press Enter when you've made sure (or 'a' if you don't want any prompts again)..." -n 1 -r
 echo
@@ -167,30 +167,6 @@ fi
 # LDFLAGS_FOR_TARGET="--emit-relocs"
 
 #
-# Mintlib (or any C lib, dunno)
-#
-
-# undecided for now, so botchy botch time
-
-#copy vincent's mintlib source code from the source tarball and libs to /usr/include and /usr/libs (i.e. mingw/msys/1.0/m68k-ossom-elf)
-#- from mintlib-CVS-20160320-bin-cygwin-20160320.tar.bz2 copy the include and lib folders to mingw/msys/1.0/m68k-ossom-elf
-#- from mintlib-CVS-20160320.tar.gz copy the include folder to mingw/msys/1.0/m68k-ossom-elf - don't replace existing files.
-
-#cd $HOMEDIR
-#read -p "Unpack pre-built mintlib to /usr/?" -n 1 -r
-#echo
-#if [[ $REPLY =~ ^[Yy]$ ]]
-#then
-#    tar --wildcards -jxvf $HOMEDIR/mintlib-CVS-20160320-bin-cygwin-20160320.tar.bz2 opt/cross-mint/m68k-atari-mint/include/*
-#    tar --wildcards -jxvf $HOMEDIR/mintlib-CVS-20160320-bin-cygwin-20160320.tar.bz2 opt/cross-mint/m68k-atari-mint/lib/*
-#    sudo mv $HOMEDIR/opt/cross-mint/m68k-atari-mint/* /usr/m68k-ossom-elf
-#    rm -rf $HOMEDIR/opt
-#    tar --wildcards -jxvf $HOMEDIR/mintlib-CVS-20160320.tar.gz /mintlib-CVS-20160320/include/*
-#    sudo mv $HOMEDIR/mintlib-CVS-20160320/m68k-atari-mint/* /usr/m68k-ossom-elf
-#    rm -rf $HOMEDIR/opt
-#fi
-
-#
 # Build/install libgcc
 #
 
@@ -207,6 +183,10 @@ then
     $NICE make all-target-libgcc $J4
     $SUDO make install-target-libgcc
 fi
+
+#
+# Mintlib (or any C lib, dunno)
+#
 
 # Patch mintlib at the source level
 cd $HOMEDIR
@@ -228,12 +208,12 @@ then
     if [ `uname -o` == "Msys" ]
     then
 
-#   Convert
-#	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }'`; \
-#   into:
-#	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
-#   .....
-#   I need a drink:
+    #   Because MinGW/Msys has mixed forward/backward slashs in paths, convert
+    #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }'`; \
+    #   to:
+    #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
+    #   .....
+    #   I need a drink...
         sed_inplace $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
     fi
 
@@ -690,14 +670,6 @@ then
 
 fi
 
-###############################################################################################
-#build stdlib++ from inside build-gcc folder:
-# remove std=gnu++98
-# make all-target-libstdc++-v3
-###############################################################################################
-
-
-
 #*** build it
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -710,10 +682,12 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd $HOMEDIR/build-gcc
     make all-target-libstdc++-v3 $J4
-    $SUDO make install-target-libstdc++-v3
+    #$SUDO make install-target-libstdc++-v3
 fi
+
 # gcc build dir
 # build everything else
+# (which doesn't amount to much)
 
 cd $HOMEDIR/build-gcc
 
