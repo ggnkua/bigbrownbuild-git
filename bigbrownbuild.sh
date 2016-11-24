@@ -163,8 +163,9 @@ then
         CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
     $NICE make all-gcc $J4
     $SUDO make install-gcc
-fi                                                                         
-# LDFLAGS_FOR_TARGET="--emit-relocs"
+fi
+# CFLAGS_FOR_TARGET="m68000
+# LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 
 #
 # Build/install libgcc
