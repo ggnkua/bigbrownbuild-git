@@ -79,7 +79,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     mkdir -p $HOMEDIR/build-binutils
     cd $HOMEDIR/build-binutils
-    ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=/usr --target=m68k-ossom-elf
+    ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=/usr --target=m68k-ataribrown-elf
     make
     $SUDO make install
 
@@ -89,7 +89,7 @@ then
     cd binary-package
     strip usr/bin/*
     gzip -9 usr/share/man/*/*.1    
-    tar --owner=0 --group=0 -jcvf m68k-ossom-elf.tar.bz2 usr/
+    tar --owner=0 --group=0 -jcvf m68k-ataribrown-elf.tar.bz2 usr/
 fi
 
 # home directory
@@ -133,7 +133,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 #    mkdir -p $HOMEDIR/build-gcc
 #    cd $HOMEDIR/build-gcc
 #    ../gcc-6.2.0/configure \
-#        --target=m68k-ossom-elf \
+#        --target=m68k-ataribrown-elf \
 #        --disable-nls \
 #        --enable-languages=c,c++ \
 #        --disable-multilib \
@@ -147,7 +147,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 #        --disable-wchar_t \
 #        --disable-libstdcxx-filesystem-ts \
 #        --enable-cxx-flags='-fomit-frame-pointer -fno-exceptions -fno-rtti -fleading-underscore' \
-#        --with-gxx-include-dir=/usr/m68k-ossom-elf/6.2.0/include
+#        --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
 #        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
 #        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
 #    $NICE make all-gcc -j4
@@ -157,7 +157,7 @@ then
     mkdir -p $HOMEDIR/build-gcc
     cd $HOMEDIR/build-gcc
     ../gcc-6.2.0/configure \
-        --target=m68k-ossom-elf \
+        --target=m68k-ataribrown-elf \
         --disable-nls \
         --enable-languages=c,c++ \
         --enable-lto \
@@ -234,7 +234,7 @@ then
 
     # Set cross compiler
     sed_inplace "s/#CROSS=yes/CROSS=yes/gI" $MINTLIBDIR/configvars
-    sed_inplace "s/m68k-atari-mint/m68k-ossom-elf/gI" $MINTLIBDIR/configvars
+    sed_inplace "s/m68k-atari-mint/m68k-ataribrown-elf/gI" $MINTLIBDIR/configvars
 
     # Convert syntax into new gcc/gas format
 
@@ -505,7 +505,7 @@ then
     # For some reason math.h isn't installed so we do it by hand
     # ¯\_(ツ)_/¯ 
     $SUDO make install
-    $SUDO cp include/math.h /usr/m68k-ossom-elf/include
+    $SUDO cp include/math.h /usr/m68k-ataribrown-elf/include
 
 fi
 
@@ -571,7 +571,7 @@ fi
 #if [[ $REPLY =~ ^[Yy]$ ]]
 #then
 #    sh ../libstdc++-v3/configure \
-#     --host=m68k-ossom-elf \
+#     --host=m68k-ataribrown-elf \
 #     --prefix=/usr \
 #     --disable-multilib \
 #     --disable-nls \
@@ -581,7 +581,7 @@ fi
 #     --disable-wchar_t \
 #     --disable-libstdcxx-filesystem-ts \
 #     --enable-cxx-flags='-fomit-frame-pointer -fno-exceptions -fno-rtti -fleading-underscore' \
-#     --with-gxx-include-dir=/usr/m68k-ossom-elf/6.2.0/include
+#     --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
 #fi
 
 
@@ -607,7 +607,7 @@ then
     make configure-target-libstdc++-v3
  
     #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
-    sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/src/Makefile
+    sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/libstdc++-v3/src/Makefile
     
     #*** fix type_traits to avoid macro collision: convert '_CTp' to '_xCTp' because ctypes.h defines _CTp as 0x20
     #*** note: need to investigate why ctypes.h is even present
@@ -625,60 +625,60 @@ then
     # Patch all multilib instances
     # TODO: replace this with a grep or find command
     #       (yeah right, that will happen soon)
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mcpu32/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5407/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m54455/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m51qe/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206e/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5208/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5307/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5329/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mcpu32/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5407/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m54455/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m51qe/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206e/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5208/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5307/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5329/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68000/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/libstdc++-v3/include/type_traits
 
 
     #*** fix c++config.h to remove conflicts for sized fundamental types
     #	
-    #gcc-6.2.0\build\include\m68k-ossom-elf\bits\c++config.h
+    #gcc-6.2.0\build\include\m68k-ataribrown-elf\bits\c++config.h
     #
     ##undef _GLIBCXX_USE_C99_STDINT_TR1
     
-    #sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/gcc-6.2.0/build/include/m68k-ossom-elf/bits/c++config.h
+    #sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/gcc-6.2.0/build/include/m68k-ataribrown-elf/bits/c++config.h
 
     # Patch all multilib instances
     # TODO: yeah yeah quite possibly not going to do
     #       something simpler, ever. Bite me.
     
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68040/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68060/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mcpu32/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m51qe/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5206e/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5208/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5307/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5329/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5407/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m54455/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m5475/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/mfidoa/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/m68000/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ossom-elf/softfp/libstdc++-v3/include/m68k-ossom-elf/bits/c++config.h 
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mcpu32/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m51qe/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206e/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5208/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5307/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5329/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5407/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m54455/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68000/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
+    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h 
 
 fi
 
@@ -731,10 +731,10 @@ then
     #rm -r share/info
     #rm -r share/man/man7
     strip usr/bin/*
-    strip usr/libexec/gcc/m68k-ossom-elf/6.2.0/*
-    strip usr/libexec/gcc/m68k-ossom-elf/6.2.0/install-tools/*
-    find usr/m68k-ossom-elf/lib -name '*.a' -print -exec m68k-ossom-elf-strip -S -x '{}' ';'
-    find usr/lib/gcc/m68k-ossom-elf/* -name '*.a' -print -exec m68k-ossom-elf-strip -S -x '{}' ';'
+    strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/*
+    strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/install-tools/*
+    find usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    find usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
 fi
 
 echo "All done - thank you, drive through!"
