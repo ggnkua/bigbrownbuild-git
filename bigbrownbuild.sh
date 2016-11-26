@@ -103,7 +103,7 @@ cd $HOMEDIR
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Placebo patch stlibc++ configure (not sure if it's needed)?" -n 1 -r
+    read -p "Placebo patch libstdc++-v3 configure (not sure if it's needed)?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -129,30 +129,6 @@ else
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
-#then
-#    mkdir -p $HOMEDIR/build-gcc
-#    cd $HOMEDIR/build-gcc
-#    ../gcc-6.2.0/configure \
-#        --target=m68k-ataribrown-elf \
-#        --disable-nls \
-#        --enable-languages=c,c++ \
-#        --disable-multilib \
-#        --enable-lto \
-#        --disable-clocale \
-#        --prefix=/usr \
-#        --disable-libssp \
-#        --enable-softfloat \
-#        --disable-libstdcxx-threads \
-#        --disable-libstdcxx-pch \
-#        --disable-wchar_t \
-#        --disable-libstdcxx-filesystem-ts \
-#        --enable-cxx-flags='-fomit-frame-pointer -fno-exceptions -fno-rtti -fleading-underscore' \
-#        --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
-#        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
-#        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
-#    $NICE make all-gcc -j4
-#    $SUDO make install-gcc
-#fi
 then                                                                       
     mkdir -p $HOMEDIR/build-gcc
     cd $HOMEDIR/build-gcc
@@ -169,14 +145,18 @@ then
         --disable-libstdcxx-threads \
         --disable-libstdcxx-filesystem-ts \
         --disable-libquadmath \
-        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000" \
-        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000" \
+        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
+        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
         LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     $NICE make all-gcc $J4
     $SUDO make install-gcc
 fi
-# CFLAGS_FOR_TARGET="m68000
-# LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
+# TODO:
+# Other candidates to pass to configure:
+#        --disable-multilib \
+#        --disable-wchar_t \
+#        --enable-cxx-flags='-fno-exceptions -fno-rtti' \
+#        --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
 
 #
 # Build/install libgcc
@@ -197,7 +177,7 @@ then
 fi
 
 #
-# Mintlib (or any C lib, dunno)
+# Mintlib 
 #
 
 # Patch mintlib at the source level
@@ -226,7 +206,7 @@ then
     #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
     #   .....
     #   I need a drink...
-        sed_inplace $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
+    sed_inplace $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
     fi
 
     # Set C standard to avoid shit blow up
@@ -484,6 +464,7 @@ then
 
     # Even though -fleading-underscore is enforced in gcc, it still needs setting in these makefiles
     # Go. Figure.
+    # (TODO: unless of course it doesn't any more)
     sed_inplace "s/srcdir)\/time/srcdir)\/time -fleading-underscore/gI" $MINTLIBDIR/tz/Makefile
     sed_inplace "s/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT -fleading-underscore/gI" $MINTLIBDIR/checkrules
     sed_inplace "s/-std=gnu89/-std=gnu89 -fleading-underscore/gI" $MINTLIBDIR/configvars
@@ -561,29 +542,6 @@ then
 fi
 
 #*** configure libstdc++-v3
-
-#if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-#    REPLY=Y
-#else    
-#    read -p "Configure libstdc++v3?" -n 1 -r
-#    echo
-#fi
-#if [[ $REPLY =~ ^[Yy]$ ]]
-#then
-#    sh ../libstdc++-v3/configure \
-#     --host=m68k-ataribrown-elf \
-#     --prefix=/usr \
-#     --disable-multilib \
-#     --disable-nls \
-#     --disable-clocale \
-#     --disable-libstdcxx-threads \
-#     --disable-libstdcxx-pch \
-#     --disable-wchar_t \
-#     --disable-libstdcxx-filesystem-ts \
-#     --enable-cxx-flags='-fomit-frame-pointer -fno-exceptions -fno-rtti -fleading-underscore' \
-#     --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
-#fi
-
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
