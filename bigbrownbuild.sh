@@ -116,6 +116,12 @@ fi
 # Configure, build and install gcc without any libs for now
 #
 
+# Export flags for target compiler as well as pass them on configuration time.
+# Who knows, maybe one of the two will actually work!
+export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000"
+export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000"
+export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
+
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
@@ -159,8 +165,13 @@ then
         --disable-libssp \
         --enable-softfloat \
         --disable-libstdcxx-pch \
-        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
-        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
+        --disable-clocale \
+        --disable-libstdcxx-threads \
+        --disable-libstdcxx-filesystem-ts \
+        --disable-libquadmath \
+        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000" \
+        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000" \
+        LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     $NICE make all-gcc $J4
     $SUDO make install-gcc
 fi
@@ -683,7 +694,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd $HOMEDIR/build-gcc
     make all-target-libstdc++-v3 $J4
-    #$SUDO make install-target-libstdc++-v3
+    $SUDO make install-target-libstdc++-v3
 fi
 
 # gcc build dir
