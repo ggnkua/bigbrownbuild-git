@@ -45,6 +45,8 @@ echo "same directory this script is running:"
 echo "gcc-6.2.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org/mirrors.html)"
 echo "binutils-2.27.tar.bz2 (download from http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2)"
 echo "mintlib-CVS-20160320.tar.gz (download from http://vincent.riviere.free.fr/soft/m68k-atari-mint/archives/mintlib-CVS-20160320.tar.gz)"
+echo
+echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC"
 echo ""
 read -p "Press Enter when you've made sure (or 'a' if you don't want any prompts again)..." -n 1 -r
 echo
