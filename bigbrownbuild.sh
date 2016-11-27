@@ -28,7 +28,7 @@ fi
 if [ `uname -o` == "Cygwin" ]
 then
     # Disable -j4 and sudo for cygwin as well
-    unset J4
+#    unset J4
     unset SUDO
 fi
 
@@ -120,8 +120,8 @@ fi
 
 # Export flags for target compiler as well as pass them on configuration time.
 # Who knows, maybe one of the two will actually work!
-export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000"
-export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -m68000"
+export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fleading-underscore"
+export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
 export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -147,8 +147,9 @@ then
         --disable-libstdcxx-threads \
         --disable-libstdcxx-filesystem-ts \
         --disable-libquadmath \
-        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
-        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
+        --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fleading-underscore" \
+        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
         LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     $NICE make all-gcc $J4
     $SUDO make install-gcc
@@ -208,7 +209,7 @@ then
     #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
     #   .....
     #   I need a drink...
-    sed_inplace $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
+        sed_inplace $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
     fi
 
     # Set C standard to avoid shit blow up
