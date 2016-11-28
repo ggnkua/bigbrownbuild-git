@@ -6,17 +6,20 @@ set -e			#stop on any error encountered
 #
 
 # sed_inplace(regex, file_to_replace)
+# TODO: When this script was first written it used a very old
+#       version of sed that didn't have the in-place switch
+#       (-i). So probably replace this function with sed -i?
 sed_inplace()
 {
     sed -e "$1" $2 > $2.orig
     mv $2.orig $2
 }
 
+# Some global stuff that are platform dependent
 HOMEDIR=$PWD
 SUDO=sudo
 NICE='nice -20'
 J4=-j4
-# TODO: add sudo -S case
 if [ `uname -o` == "Msys" ]
 then
     # Msys has no idea what "sudo" and "nice" are.
@@ -59,13 +62,14 @@ cd $HOMEDIR
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Unpack gcc and binutils?" -n 1 -r
+    read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     tar -jxvf gcc-6.2.0.tar.bz2
     tar -jxvf binutils-2.27.tar.bz2
+    tar -zxvf $HOMEDIR/mintlib-CVS-20160320.tar.gz
 fi
 
 # binutils build dir
@@ -97,21 +101,23 @@ fi
 # home directory
 cd $HOMEDIR
 
+# XXX: Moved to libstdc++v3 section and commented out here - re-enable it
+#      if it causes problems
 # Comment out errors we don't care about much
 
 # edit file gcc-6.2.0/libstdc++-v3/configure - comment out the line:
 ##as_fn_error "No support for this host/target combination." "$LINENO" 5
 
-if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-    REPLY=Y
-else    
-    read -p "Placebo patch libstdc++-v3 configure (not sure if it's needed)?" -n 1 -r
-    echo
-fi
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
-fi
+#if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+#    REPLY=Y
+#else    
+#    read -p "Placebo patch libstdc++-v3 configure (not sure if it's needed)?" -n 1 -r
+#    echo
+#fi
+#if [[ $REPLY =~ ^[Yy]$ ]]
+#then
+#    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
+#fi
 
 #
 # gcc build dir
@@ -123,6 +129,8 @@ fi
 export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fleading-underscore"
 export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
 export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
+# TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
+#export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -153,21 +161,21 @@ then
         LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     $NICE make all-gcc $J4
     $SUDO make install-gcc
-    # In some linux distros (linux mint for example) it was observed
-    # that make install-gcc didn't set the read permission for users
-    # so gcc couldn't work properly. No idea how to fix this propery
-    # which means - botch time!
-#    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/
-#    $SUDO chmod 755 -R /usr/libexec/gcc/m68k-ataribrown-elf/
-#    $SUDO chmod 755 -R /usr/lib/gcc/m68k-ataribrown-elf/
 
 fi
 # TODO:
 # Other candidates to pass to configure:
+# This probably won't be used:
 #        --disable-multilib \
+# Dunno, does anyone NEED unicode for building ST applications?
 #        --disable-wchar_t \
+# These are very likely to go in:
 #        --enable-cxx-flags='-fno-exceptions -fno-rtti' \
+# Probably not needed?
 #        --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
+# This ditches all coldfire lib building stuff:
+#        --with-arch=m68k
+
 
 #
 # Build/install libgcc
@@ -202,7 +210,6 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    tar -zxvf $HOMEDIR/mintlib-CVS-20160320.tar.gz
 
     MINTLIBDIR=$HOMEDIR/mintlib-CVS-20160320
 
@@ -497,7 +504,6 @@ then
     sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
 
-
     cd $MINTLIBDIR
 
     make SHELL=/bin/bash $J4
@@ -533,6 +539,11 @@ fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
 
+    # edit file gcc-6.2.0/libstdc++-v3/configure - comment out the line:
+    ##as_fn_error "No support for this host/target combination." "$LINENO" 5
+
+    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
+    
     # *** hack configure to remove dlopen stuff
     
     # # Libtool setup.
@@ -699,9 +710,8 @@ then
     
     make all $J4
 
-    make install DESTDIR=$PWD/binary-package
+    make install DESTDIR=$PWD/binary-package $J4
 fi
-
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
