@@ -157,9 +157,9 @@ then
     # that make install-gcc didn't set the read permission for users
     # so gcc couldn't work properly. No idea how to fix this propery
     # which means - botch time!
-    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/
-    $SUDO chmod 755 -R /usr/libexec/gcc/m68k-ataribrown-elf/
-    $SUDO chmod 755 -R /usr/lib/gcc/m68k-ataribrown-elf/
+#    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/
+#    $SUDO chmod 755 -R /usr/libexec/gcc/m68k-ataribrown-elf/
+#    $SUDO chmod 755 -R /usr/lib/gcc/m68k-ataribrown-elf/
 
 fi
 # TODO:
@@ -518,8 +518,11 @@ fi
 # *** create local build dir
 
 cd $HOMEDIR/gcc-6.2.0
-#mkdir -p build
-#cd build
+
+# Some more permissions need to be fixed here
+#    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/include/
+#    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/share/
+
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -690,8 +693,12 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then    
-    make all $J4
+    # I dunno why this must be done.
+    # It happens on linux mint
+    $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
     
+    make all $J4
+
     make install DESTDIR=$PWD/binary-package
 fi
 
