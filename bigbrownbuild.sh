@@ -485,12 +485,22 @@ then
     sed_inplace "s/\tsp/\t%sp/gI" $MINTLIBDIR/mintlib/checkcpu.S
     
     sed_inplace "s/,sp/,%%sp/gI" $MINTLIBDIR/include/compiler.h
-    sed_inplace "s/,sp/,%%sp/gI" $MINTLIBDIR/syscall/traps.c
-    sed_inplace "s/sp@(/%%sp@(/gI" $MINTLIBDIR/syscall/traps.c
+    sed_inplace "s/,sp/,%%%%sp/gI" $MINTLIBDIR/syscall/traps.c
+    sed_inplace "s/sp@(/%%%%sp@(/gI" $MINTLIBDIR/syscall/traps.c
+
+    # Extra things (clobbered reg lists etc)
+    sed -i -e 's/\\"d0\\"/\\"%%%d0\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/\\"d1\\"/\\"%%%%d1\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/\\"d2\\"/\\"%%%%d2\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
+
 
     cd $MINTLIBDIR
 
-    make SHELL=/bin/bash
+    make SHELL=/bin/bash $J4
     #make SHELL=/bin/bash
 
     # Install the lib.
