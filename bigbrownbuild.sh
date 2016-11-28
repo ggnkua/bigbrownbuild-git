@@ -153,6 +153,14 @@ then
         LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     $NICE make all-gcc $J4
     $SUDO make install-gcc
+    # In some linux distros (linux mint for example) it was observed
+    # that make install-gcc didn't set the read permission for users
+    # so gcc couldn't work properly. No idea how to fix this propery
+    # which means - botch time!
+    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/
+    $SUDO chmod 755 -R /usr/libexec/gcc/m68k-ataribrown-elf/
+    $SUDO chmod 755 -R /usr/lib/gcc/m68k-ataribrown-elf/
+
 fi
 # TODO:
 # Other candidates to pass to configure:
