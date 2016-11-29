@@ -162,6 +162,15 @@ then
     $NICE make all-gcc $J4
     $SUDO make install-gcc
 
+    # In some linux distros (linux mint for example) it was observed
+    # that make install-gcc didn't set the read permission for users
+    # so gcc couldn't work properly. No idea how to fix this propery
+    # which means - botch time!                                     
+    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/                   
+    $SUDO chmod 755 -R /usr/libexec/gcc/m68k-ataribrown-elf/       
+    $SUDO chmod 755 -R /usr/lib/gcc/m68k-ataribrown-elf/           
+
+
 fi
 # TODO:
 # Other candidates to pass to configure:
@@ -201,6 +210,9 @@ fi
 
 # Patch mintlib at the source level
 cd $HOMEDIR
+
+# Some extra permissions
+$SUDO chmod 755 -R /usr/libexec/            
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -526,8 +538,8 @@ fi
 cd $HOMEDIR/gcc-6.2.0
 
 # Some more permissions need to be fixed here
-#    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/include/
-#    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/share/
+    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/include/
+    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/share/
 
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
