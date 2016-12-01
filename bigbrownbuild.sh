@@ -49,7 +49,8 @@ echo "gcc-6.2.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org
 echo "binutils-2.27.tar.bz2 (download from http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2)"
 echo "mintlib-CVS-20160320.tar.gz (download from http://vincent.riviere.free.fr/soft/m68k-atari-mint/archives/mintlib-CVS-20160320.tar.gz)"
 echo
-echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC"
+echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC for gcc building"
+echo "                                                            bison-bin,flex-bin,flex-dev for mintlib"
 echo ""
 read -p "Press Enter when you've made sure (or 'a' if you don't want any prompts again)..." -n 1 -r
 echo
@@ -225,8 +226,18 @@ then
 
     MINTLIBDIR=$HOMEDIR/mintlib-CVS-20160320
 
-    #Requires packages bison-bin,flex-bin,flex-dev
-    #
+    # Create a 020_soft target (i.e. 020 build without fpu support)
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_soft
+    # Change build rules for 020_soft
+    sed -i -e "s/instdir = m68020-60/instdir = m68020-60_soft/gI" \
+           -e "s/cflags = -m68020-60/cflags = -m68020-60 -msoft-float/gI " $MINTLIBDIR/lib020_soft/Makefile
+    # Add 020_soft to main makefile
+    sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\nifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
+    sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
+
+
+
+    
     if [ `uname -o` == "Msys" ]
     then
 
