@@ -235,8 +235,8 @@ then
     sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\nifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
 
-
-
+    # Force 68000 mode in the default lib since our gcc defaults to 68020
+    sed -i -e "s/cflags = /cflags = -m68000/gI " $MINTLIBDIR/lib/Makefile
     
     if [ `uname -o` == "Msys" ]
     then
