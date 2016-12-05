@@ -88,13 +88,15 @@ then
     ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=/usr --target=m68k-ataribrown-elf
     make
     $SUDO make install
+    sudo strip /usr/bin/*ataribrown*
+    sudo gzip -9 /usr/share/man/*/*.1
 
     # Package up binutils
 
     make install DESTDIR=$PWD/binary-package
     cd binary-package
     strip usr/bin/*
-    gzip -9 usr/share/man/*/*.1    
+    gzip -9 usr/share/man/*/*.1
     tar --owner=0 --group=0 -jcvf m68k-ataribrown-elf.tar.bz2 usr/
 fi
 
@@ -721,6 +723,12 @@ then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
     
     make all $J4
+    make install
+    sudo strip /usr/bin/*ataribrown*
+    sudo strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/*
+    sudo strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/install-tools/*
+    sudo find /usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    sudo find /usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
 
     make install DESTDIR=$PWD/binary-package $J4
 fi
