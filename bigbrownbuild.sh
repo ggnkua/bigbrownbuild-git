@@ -27,6 +27,20 @@ then
     unset SUDO
     unset NICE
     unset J4
+    # Inform the user that a ramdisk will speed compilation up
+    echo "Before we begin...."
+    echo
+    echo "It seems that you're running this script from Msys/MinGW."
+    echo "Be warned that the compilation can take a very very VERY long time!"
+    echo "If you can spare the RAM, we really recommend using a RAM drive!"
+    echo "Our tests have shown that imdisk (http://www.ltr-data.se/opencode.html/#ImDisk)"
+    echo "works fine."
+    echo "Of course take notice that you're doing this on your own, we won't"
+    echo "accept any liability if something goes wrong with that!!!!"
+    echo
+    read -p "With that out of the way, press any key to continue" -n 1 -r
+    echo
+    echo
 fi
 if [ `uname -o` == "Cygwin" ]
 then
