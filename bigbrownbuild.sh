@@ -104,6 +104,7 @@ then
     make
     $SUDO make install
     sudo strip /usr/bin/*ataribrown*
+    sudo strip /usr/m68k-ataribrown-elf/bin/*
     sudo gzip -9 /usr/share/man/*/*.1
 
     # Package up binutils
@@ -111,6 +112,7 @@ then
     make install DESTDIR=$PWD/binary-package
     cd binary-package
     strip usr/bin/*
+    strip usr/m68k-ataribrown-elf/bin/*
     gzip -9 usr/share/man/*/*.1
     tar --owner=0 --group=0 -jcvf m68k-ataribrown-elf.tar.bz2 usr/
 fi
