@@ -1,5 +1,15 @@
 set -e			#stop on any error encountered
-#set -x         #echo all commands
+#set -x                  #echo all commands
+
+#
+# Make sure this is being run under bash
+# Very bad things happen on other shells (like sh)
+#
+
+if [ -z "$BASH_VERSION"  ]; then
+    echo "Please run this script under bash!"
+    exit
+fi
 
 #
 # Setup stuff
@@ -59,9 +69,12 @@ echo "I'll try to make building this heap of junk as painless as possible!"
 echo ""
 echo "First of all, I'm going to assume that the following files are in the"
 echo "same directory this script is running:"
+echo "---------------------------"
 echo "gcc-6.2.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org/mirrors.html)"
 echo "binutils-2.27.tar.bz2 (download from http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2)"
 echo "mintlib-CVS-20160320.tar.gz (download from http://vincent.riviere.free.fr/soft/m68k-atari-mint/archives/mintlib-CVS-20160320.tar.gz)"
+echo "(note that this file is a .tar, not a .tar.gz as it claims, please gzip it first!"
+echo "---------------------------"
 echo
 echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC for gcc building"
 echo "                                                            bison-bin,flex-bin,flex-dev for mintlib"
@@ -93,7 +106,7 @@ fi
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Configure and build binutils?" -n 1 -r
+    read -p "Configure build, install and package up binutils?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -103,9 +116,9 @@ then
     ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=/usr --target=m68k-ataribrown-elf
     make
     $SUDO make install
-    sudo strip /usr/bin/*ataribrown*
-    sudo strip /usr/m68k-ataribrown-elf/bin/*
-    sudo gzip -9 /usr/share/man/*/*.1
+    $SUDO strip /usr/bin/*ataribrown*
+    $SUDO strip /usr/m68k-ataribrown-elf/bin/*
+    $SUDO gzip -f -9 /usr/share/man/*/*.1
 
     # Package up binutils
 
@@ -113,8 +126,8 @@ then
     cd binary-package
     strip usr/bin/*
     strip usr/m68k-ataribrown-elf/bin/*
-    gzip -9 usr/share/man/*/*.1
-    tar --owner=0 --group=0 -jcvf m68k-ataribrown-elf.tar.bz2 usr/
+    gzip -f -9 usr/share/man/*/*.1
+    tar --owner=0 --group=0 -jcvf binutils-2.27-ataribrown-bin.tar.bz2 usr/
 fi
 
 # home directory
@@ -221,6 +234,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     $NICE make all-target-libgcc $J4
     $SUDO make install-target-libgcc
+
+    # Some extra permissions
+    $SUDO chmod 755 -R /usr/libexec/            
+
 fi
 
 #
@@ -229,9 +246,6 @@ fi
 
 # Patch mintlib at the source level
 cd $HOMEDIR
-
-# Some extra permissions
-$SUDO chmod 755 -R /usr/libexec/            
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -248,7 +262,8 @@ then
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_soft
     # Change build rules for 020_soft
     sed -i -e "s/instdir = m68020-60/instdir = m68020-60_soft/gI" \
-           -e "s/cflags = -m68020-60/cflags = -m68020-60 -msoft-float/gI " $MINTLIBDIR/lib020_soft/Makefile
+           -e "s/cflags = -m68020-60/cflags = -m68020-60 -msoft-float/gI " \
+           -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib020_soft/Makefile
     # Add 020_soft to main makefile
     sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\nifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
@@ -537,13 +552,14 @@ then
     sed_inplace "s/sp@(/%%%%sp@(/gI" $MINTLIBDIR/syscall/traps.c
 
     # Extra things (clobbered reg lists etc)
-    sed -i -e 's/\\"d0\\"/\\"%%%d0\\"/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/\\"d0\\"/\\"%%%%d0\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"d1\\"/\\"%%%%d1\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"d2\\"/\\"%%%%d2\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
+    sed -i -e 's/m68k-atari-mint/m68k-ataribrown-elf/gI' $MINTLIBDIR/buildrules
 
     cd $MINTLIBDIR
 
@@ -555,6 +571,9 @@ then
     # ¯\_(ツ)_/¯ 
     $SUDO make install
     $SUDO cp include/math.h /usr/m68k-ataribrown-elf/include
+
+    # Create lib binary package
+    make bin-dist
 
 fi
 
@@ -740,7 +759,7 @@ cd $HOMEDIR/build-gcc
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Build the rest?" -n 1 -r
+    read -p "Build and install the rest?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -750,35 +769,36 @@ then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
     
     make all $J4
-    make install
-    sudo strip /usr/bin/*ataribrown*
-    sudo strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/*
-    sudo strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/install-tools/*
-    sudo find /usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    sudo find /usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-
-    make install DESTDIR=$PWD/binary-package $J4
+    $SUDO make install
+    $SUDO strip /usr/bin/*ataribrown*
+    $SUDO strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    $SUDO find /usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    $SUDO find /usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
 fi
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Package up binaries?" -n 1 -r
+    read -p "Package up gcc binaries?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then    
+    make install DESTDIR=$PWD/binary-package $J4
     cd binary-package
     #rm -r include
     #rm    lib/*.a
     #rm -r share/info
     #rm -r share/man/man7
     strip usr/bin/*
-    strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/*
-    strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/install-tools/*
+    $SUDO strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
     find usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
     find usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    tar --owner=0 --group=0 -jcvf gcc-6.2-ataribrown-bin.tar.bz2 usr/
 fi
 
-echo "All done - thank you, drive through!"
- 
+echo "All done!"
+echo
+echo "If all went well there should be .tar.bz2 files inside"
+echo """build-binutils"" and ""build-gcc"" folders"
+echo "and mintlib-0.60.1-bin.tar.gz inside ""mintlib-CVS-20160320"" folder!"
