@@ -258,15 +258,43 @@ then
 
     MINTLIBDIR=$HOMEDIR/mintlib-CVS-20160320
 
-    # Create a 020_soft target (i.e. 020 build without fpu support)
+    # Create missing targets
+    cp -R $MINTLIBDIR/lib/ $MINTLIBDIR/lib_mshort
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_soft
-    # Change build rules for 020_soft
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_60
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_60_soft
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib040
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib060
+    # Change build rules for targets
+    sed -i -e "s/instdir =/instdir = m68020_Mshort/gI" \
+           -e "s/cflags =/cflags = -m68000 -mshort/gI " \
+           -e "s/subdir = lib/subdir = lib_mshort/gI" $MINTLIBDIR/lib_mshort/Makefile
+    sed -i -e "s/instdir = m68020-60/instdir = m68020/gI" \
+           -e "s/cflags = -m68020-60/cflags = -m68020/gI " \
+           -e "s/subdir = lib020/subdir = lib020/gI" $MINTLIBDIR/lib020/Makefile
+    sed -i -e "s/instdir = m68020-60/instdir = m68020-20_soft/gI" \
+           -e "s/cflags = -m68020-60/cflags = -m68020 -msoft-float/gI " \
+           -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib020_soft/Makefile
     sed -i -e "s/instdir = m68020-60/instdir = m68020-60_soft/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68020-60 -msoft-float/gI " \
-           -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib020_soft/Makefile
-    # Add 020_soft to main makefile
-    sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\nifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
-    sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
+           -e "s/subdir = lib020/subdir = lib020_60_soft/gI" $MINTLIBDIR/lib020_60_soft/Makefile
+    sed -i -e "s/instdir = m68020-60/instdir = m68040/gI" \
+           -e "s/cflags = -m68020-60/cflags = -m68040/gI " \
+           -e "s/subdir = lib020/subdir = lib040/gI" $MINTLIBDIR/lib040/Makefile
+    sed -i -e "s/instdir = m68020-60/instdir = m68060/gI" \
+           -e "s/cflags = -m68020-60/cflags = -m68060/gI " \
+           -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib060/Makefile
+    # Add targets to main makefile
+    sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\n\
+ifeq (\$(WITH_000MSHORT_LIB), yes)\n  SUBDIRS += lib_mshort\n  DIST_SUBDIRS += lib_mshort\nendif\n\n\
+ifeq (\$(WITH_020_060_LIB), yes)\n  SUBDIRS += lib020_60\n  DIST_SUBDIRS += lib020_60\nendif\n\n\
+ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020_60_soft\n  DIST_SUBDIRS += lib020_60_soft\nendif\n\n\
+ifeq (\$(WITH_040_LIB), yes)\n  SUBDIRS += lib040\n  DIST_SUBDIRS += lib040\nendif\n\n\
+ifeq (\$(WITH_060_LIB), yes)\n  SUBDIRS += lib060\n  DIST_SUBDIRS += lib060\nendif\n\n\
+ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
+#    sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=yes\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
+    # It's probably not possible to build mintlib with mshort....
+    sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=no\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
 
     # Force 68000 mode in the default lib since our gcc defaults to 68020
     sed -i -e "s/cflags = /cflags = -m68000/gI " $MINTLIBDIR/lib/Makefile
