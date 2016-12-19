@@ -250,7 +250,7 @@ cd $HOMEDIR
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Unpack, source patch and build mintlib?" -n 1 -r
+    read -p "Source patch and build mintlib?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -261,8 +261,8 @@ then
     # Create missing targets
     cp -R $MINTLIBDIR/lib/ $MINTLIBDIR/lib_mshort
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_soft
-    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_60
-    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_60_soft
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020-60
+    cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020-60_soft
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib040
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib060
     # Change build rules for targets
@@ -277,18 +277,19 @@ then
            -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib020_soft/Makefile
     sed -i -e "s/instdir = m68020-60/instdir = m68020-60_soft/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68020-60 -msoft-float/gI " \
-           -e "s/subdir = lib020/subdir = lib020_60_soft/gI" $MINTLIBDIR/lib020_60_soft/Makefile
+           -e "s/subdir = lib020/subdir = lib020-60_soft/gI" $MINTLIBDIR/lib020-60_soft/Makefile
     sed -i -e "s/instdir = m68020-60/instdir = m68040/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68040/gI " \
            -e "s/subdir = lib020/subdir = lib040/gI" $MINTLIBDIR/lib040/Makefile
     sed -i -e "s/instdir = m68020-60/instdir = m68060/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68060/gI " \
            -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib060/Makefile
+    sed -i -e "s/subdir = lib020/subdir = lib020-60/gI" $MINTLIBDIR/lib020-60/Makefile
     # Add targets to main makefile
     sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\n\
 ifeq (\$(WITH_000MSHORT_LIB), yes)\n  SUBDIRS += lib_mshort\n  DIST_SUBDIRS += lib_mshort\nendif\n\n\
-ifeq (\$(WITH_020_060_LIB), yes)\n  SUBDIRS += lib020_60\n  DIST_SUBDIRS += lib020_60\nendif\n\n\
-ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020_60_soft\n  DIST_SUBDIRS += lib020_60_soft\nendif\n\n\
+ifeq (\$(WITH_020_060_LIB), yes)\n  SUBDIRS += lib020-60\n  DIST_SUBDIRS += lib020-60\nendif\n\n\
+ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020-60_soft\n  DIST_SUBDIRS += lib020-60_soft\nendif\n\n\
 ifeq (\$(WITH_040_LIB), yes)\n  SUBDIRS += lib040\n  DIST_SUBDIRS += lib040\nendif\n\n\
 ifeq (\$(WITH_060_LIB), yes)\n  SUBDIRS += lib060\n  DIST_SUBDIRS += lib060\nendif\n\n\
 ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
