@@ -79,6 +79,8 @@ cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
 # we don't bother with LC versions of 040/060 so...
 rm -rf $LIBCXX/m68040/softfp 
 rm -rf $LIBCXX/m68060/softfp 
+rm -rf $LIBGCC/m68040/softfp 
+rm -rf $LIBGCC/m68060/softfp 
 
 # crt0.o, gcrt0.o are 68k asm and don't need relocated
 
