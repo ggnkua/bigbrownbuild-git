@@ -796,7 +796,8 @@ then
     # I dunno why this must be done.
     # It happens on linux mint
 if [ `uname -o` == "Cygwin" ]
-then
+    # nope
+else    
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
 fi    
     make all $J4
