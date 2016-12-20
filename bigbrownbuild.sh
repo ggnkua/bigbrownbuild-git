@@ -587,7 +587,7 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
+    #sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/m68k-atari-mint/m68k-ataribrown-elf/gI' $MINTLIBDIR/buildrules
 
     cd $MINTLIBDIR
@@ -795,8 +795,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     # I dunno why this must be done.
     # It happens on linux mint
+if [ `uname -o` == "Cygwin" ]
+then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
-    
+fi    
     make all $J4
     $SUDO make install
     $SUDO strip /usr/bin/*ataribrown*
