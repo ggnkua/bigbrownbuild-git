@@ -795,11 +795,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     # I dunno why this must be done.
     # It happens on linux mint
-if [ `uname -o` == "Cygwin" ]
-    # nope
-else    
+if [ `uname -o` != "Cygwin" ]
+then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
-fi    
+fi
     make all $J4
     $SUDO make install
     $SUDO strip /usr/bin/*ataribrown*
