@@ -802,7 +802,12 @@ fi
     make all $J4
     $SUDO make install
     $SUDO strip /usr/bin/*ataribrown*
-    $SUDO strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    if [ `uname -o` == "Cygwin" ]
+    then
+        $SUDO strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    else
+        $SUDO strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    fi
     $SUDO find /usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
     $SUDO find /usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
 fi
@@ -822,7 +827,13 @@ then
     #rm -r share/info
     #rm -r share/man/man7
     strip usr/bin/*
-    $SUDO strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    if [ `uname -o` == "Cygwin" ]
+    then
+        $SUDO strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    else
+        $SUDO strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+    fi
+
     find usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
     find usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
     tar --owner=0 --group=0 -jcvf gcc-6.2-ataribrown-bin.tar.bz2 usr/
