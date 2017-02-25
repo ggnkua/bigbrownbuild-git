@@ -27,9 +27,17 @@ sed_inplace()
 
 # Some global stuff that are platform dependent
 HOMEDIR=$PWD
-SUDO=sudo
 NICE='nice -20'
 J4=-j4
+BINPACKAGE_DIR=$PWD/binary-package
+
+# Administrator mode
+SUDO=sudo
+INSTALL_PREFIX=/usr/
+# User mode
+#SUDO=
+#INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
+
 if [ `uname -o` == "Msys" ]
 then
     # Msys has no idea what "sudo" and "nice" are.
@@ -79,6 +87,15 @@ echo
 echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC for gcc building"
 echo "                                                            bison-bin,flex-bin,flex-dev for mintlib"
 echo ""
+echo "Finally, this script will install things to /usr and needs root privileges."
+echo "If this is not to your liking then edit this script and change INSTALL_PREFIX"
+echo "to the path you would like to install to (including home folder) and SUDO to"
+echo "nothing if you don't need root rights."
+echo ""
+echo "The bulk of the script was written by George 'GGN' Nakos"
+echo "With enhancements by Douglas 'DML' Little"
+echo "                     Patrice 'PMANDIN' Mandin"
+echo ""
 read -p "Press Enter when you've made sure (or 'a' if you don't want any prompts again)..." -n 1 -r
 echo
 GLOBAL_OVERRIDE=$REPLY
@@ -113,21 +130,21 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     mkdir -p $HOMEDIR/build-binutils
     cd $HOMEDIR/build-binutils
-    ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=/usr --target=m68k-ataribrown-elf
+    ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-ataribrown-elf
     make
     $SUDO make install
-    $SUDO strip /usr/bin/*ataribrown*
-    $SUDO strip /usr/m68k-ataribrown-elf/bin/*
-    $SUDO gzip -f -9 /usr/share/man/*/*.1
+    $SUDO strip $INSTALL_PREFIX/bin/*ataribrown*
+    $SUDO strip $INSTALL_PREFIX/m68k-ataribrown-elf/bin/*
+    $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
 
     # Package up binutils
 
-    make install DESTDIR=$PWD/binary-package
-    cd binary-package
-    strip usr/bin/*
-    strip usr/m68k-ataribrown-elf/bin/*
-    gzip -f -9 usr/share/man/*/*.1
-    tar --owner=0 --group=0 -jcvf binutils-2.27-ataribrown-bin.tar.bz2 usr/
+    make install DESTDIR=$BINPACKAGE_DIR
+    cd $BINPACKAGE_DIR
+    strip .$INSTALL_PREFIX/bin/*
+    strip .$INSTALL_PREFIX/m68k-ataribrown-elf/bin/*
+    gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
+    tar --owner=0 --group=0 -jcvf binutils-2.27-ataribrown-bin.tar.bz2 .$INSTALL_PREFIX
 fi
 
 # home directory
@@ -179,7 +196,7 @@ then
         --disable-nls \
         --enable-languages=c,c++ \
         --enable-lto \
-        --prefix=/usr \
+        --prefix=$INSTALL_PREFIX \
         --disable-libssp \
         --enable-softfloat \
         --disable-libstdcxx-pch \
@@ -198,9 +215,9 @@ then
     # that make install-gcc didn't set the read permission for users
     # so gcc couldn't work properly. No idea how to fix this propery
     # which means - botch time!                                     
-    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/                   
-    $SUDO chmod 755 -R /usr/libexec/gcc/m68k-ataribrown-elf/       
-    $SUDO chmod 755 -R /usr/lib/gcc/m68k-ataribrown-elf/           
+    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrown-elf/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-ataribrown-elf/
 
 
 fi
@@ -218,7 +235,7 @@ fi
 #        --with-arch=m68k
 
 
-#
+#INSTALL_PREFIX
 # Build/install libgcc
 #
 
@@ -236,7 +253,7 @@ then
     $SUDO make install-target-libgcc
 
     # Some extra permissions
-    $SUDO chmod 755 -R /usr/libexec/            
+    $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
 
 fi
 
@@ -246,6 +263,7 @@ fi
 
 # Patch mintlib at the source level
 cd $HOMEDIR
+export PATH=${INSTALL_PREFIX}/bin:$PATH
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -316,7 +334,9 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed_inplace "s/-O2 -fomit-frame-pointer/-O2 -fomit-frame-pointer -std=gnu89/gI" $MINTLIBDIR/configvars
 
     # Set cross compiler
+    sed_inplace "s/AM_DEFAULT_VERBOSITY = 1/AM_DEFAULT_VERBOSITY = 0/gI" $MINTLIBDIR/configvars
     sed_inplace "s/#CROSS=yes/CROSS=yes/gI" $MINTLIBDIR/configvars
+    sed_inplace "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-ataribrown-elf|gI" $MINTLIBDIR/configvars
     sed_inplace "s/m68k-atari-mint/m68k-ataribrown-elf/gI" $MINTLIBDIR/configvars
 
     # Convert syntax into new gcc/gas format
@@ -599,7 +619,7 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     # For some reason math.h isn't installed so we do it by hand
     # ¯\_(ツ)_/¯ 
     $SUDO make install
-    $SUDO cp include/math.h /usr/m68k-ataribrown-elf/include
+    $SUDO cp include/math.h $INSTALL_PREFIX/m68k-ataribrown-elf/include
 
     # Create lib binary package
     make bin-dist
@@ -615,8 +635,8 @@ fi
 cd $HOMEDIR/gcc-6.2.0
 
 # Some more permissions need to be fixed here
-    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/include/
-    $SUDO chmod 755 -R /usr/m68k-ataribrown-elf/share/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrown-elf/include/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrown-elf/share/
 
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -801,15 +821,27 @@ then
 fi
     make all $J4
     $SUDO make install
-    $SUDO strip /usr/bin/*ataribrown*
+    $SUDO strip $INSTALL_PREFIX/bin/*ataribrown*
     if [ `uname -o` == "Cygwin" ]
     then
-        $SUDO strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
     else
-        $SUDO strip /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 /usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
     fi
-    $SUDO find /usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    $SUDO find /usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    $SUDO find $INSTALL_PREFIX/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    
 fi
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -822,21 +854,34 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     make install DESTDIR=$PWD/binary-package $J4
     cd binary-package
+    make install DESTDIR=$BINPACKAGE_DIR $J4
+    cd $BINPACKAGE_DIR    
     #rm -r include
     #rm    lib/*.a
     #rm -r share/info
     #rm -r share/man/man7
-    strip usr/bin/*
+    strip .$INSTALL_PREFIX/bin/*
     if [ `uname -o` == "Cygwin" ]
     then
-        $SUDO strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper        
     else
-        $SUDO strip usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 usr/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
     fi
 
-    find usr/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    find usr/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    tar --owner=0 --group=0 -jcvf gcc-6.2-ataribrown-bin.tar.bz2 usr/
+    find .$INSTALL_PREFIX/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    find .$INSTALL_PREFIX/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    tar --owner=0 --group=0 -jcvf gcc-6.2-ataribrown-bin.tar.bz2 .$INSTALL_PREFIX
 fi
 
 echo "All done!"
