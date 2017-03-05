@@ -608,7 +608,7 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
     #sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/m68k-atari-mint/m68k-ataribrown-elf/gI' $MINTLIBDIR/buildrules
+    sed -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-ataribrown-elf|gI" $MINTLIBDIR/buildrules
 
     cd $MINTLIBDIR
 
