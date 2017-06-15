@@ -28,12 +28,12 @@ sed_inplace()
 # Some global stuff that are platform dependent
 HOMEDIR=$PWD
 NICE='nice -20'
-J4=-j4
+JMULT=-j8
 BINPACKAGE_DIR=$PWD/binary-package
 
 # Administrator mode
 SUDO=sudo
-INSTALL_PREFIX=/usr/
+INSTALL_PREFIX=/usr
 # User mode
 #SUDO=
 #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
@@ -44,7 +44,7 @@ then
     # Also, it's not liking parallel builds that much.
     unset SUDO
     unset NICE
-    unset J4
+    unset JMULT
     # Inform the user that a ramdisk will speed compilation up
     echo "Before we begin...."
     echo
@@ -62,9 +62,9 @@ then
 fi
 if [ `uname -o` == "Cygwin" ]
 then
-    # Disable -j4 and sudo for cygwin as well
-#    unset J4
+    # Disable some stuff for cygwin as well
     unset SUDO
+    unset NICE
 fi
 
 #
@@ -78,7 +78,7 @@ echo ""
 echo "First of all, I'm going to assume that the following files are in the"
 echo "same directory this script is running:"
 echo "---------------------------"
-echo "gcc-6.2.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org/mirrors.html)"
+echo "gcc-7.1.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org/mirrors.html)"
 echo "binutils-2.27.tar.bz2 (download from http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2)"
 echo "mintlib-CVS-20160320.tar.gz (download from http://vincent.riviere.free.fr/soft/m68k-atari-mint/archives/mintlib-CVS-20160320.tar.gz)"
 echo "(note that this file is a .tar, not a .tar.gz as it claims, please gzip it first!"
@@ -112,7 +112,7 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    tar -jxvf gcc-6.2.0.tar.bz2
+    tar -jxvf gcc-7.1.0.tar.bz2
     tar -jxvf binutils-2.27.tar.bz2
     tar -zxvf $HOMEDIR/mintlib-CVS-20160320.tar.gz
 fi
@@ -130,11 +130,11 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     mkdir -p $HOMEDIR/build-binutils
     cd $HOMEDIR/build-binutils
-    ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-ataribrown-elf
+    ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-ataribrowner-elf
     make
     $SUDO make install
     $SUDO strip $INSTALL_PREFIX/bin/*ataribrown*
-    $SUDO strip $INSTALL_PREFIX/m68k-ataribrown-elf/bin/*
+    $SUDO strip $INSTALL_PREFIX/m68k-ataribrowner-elf/bin/*
     $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
 
     # Package up binutils
@@ -142,9 +142,9 @@ then
     make install DESTDIR=$BINPACKAGE_DIR
     cd $BINPACKAGE_DIR
     strip .$INSTALL_PREFIX/bin/*
-    strip .$INSTALL_PREFIX/m68k-ataribrown-elf/bin/*
+    strip .$INSTALL_PREFIX/m68k-ataribrowner-elf/bin/*
     gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-    tar --owner=0 --group=0 -jcvf binutils-2.27-ataribrown-bin.tar.bz2 .$INSTALL_PREFIX
+    tar --owner=0 --group=0 -jcvf binutils-2.27-ataribrownerbin.tar.bz2 .$INSTALL_PREFIX
 fi
 
 # home directory
@@ -154,7 +154,7 @@ cd $HOMEDIR
 #      if it causes problems
 # Comment out errors we don't care about much
 
-# edit file gcc-6.2.0/libstdc++-v3/configure - comment out the line:
+# edit file gcc-7.1.0/libstdc++-v3/configure - comment out the line:
 ##as_fn_error "No support for this host/target combination." "$LINENO" 5
 
 #if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -165,7 +165,7 @@ cd $HOMEDIR
 #fi
 #if [[ $REPLY =~ ^[Yy]$ ]]
 #then
-#    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
+#    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-7.1.0/libstdc++-v3/configure
 #fi
 
 #
@@ -191,8 +191,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then                                                                       
     mkdir -p $HOMEDIR/build-gcc
     cd $HOMEDIR/build-gcc
-    ../gcc-6.2.0/configure \
-        --target=m68k-ataribrown-elf \
+    ../gcc-7.1.0/configure \
+        --target=m68k-ataribrowner-elf \
         --disable-nls \
         --enable-languages=c,c++ \
         --enable-lto \
@@ -208,17 +208,18 @@ then
         CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fleading-underscore" \
         CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
         LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
-    $NICE make all-gcc $J4
-    $SUDO make install-gcc
+    $NICE make clean-gcc $JMULT && $NICE make all-gcc $JMULT && $SUDO make install-gcc
 
     # In some linux distros (linux mint for example) it was observed
     # that make install-gcc didn't set the read permission for users
     # so gcc couldn't work properly. No idea how to fix this propery
     # which means - botch time!                                     
-    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrown-elf/
-    $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/
-    $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-ataribrown-elf/
-
+if [ `uname -o` != "Cygwin" ]
+then
+    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-ataribrowner-elf/
+fi
 
 fi
 # TODO:
@@ -230,7 +231,7 @@ fi
 # These are very likely to go in:
 #        --enable-cxx-flags='-fno-exceptions -fno-rtti' \
 # Probably not needed?
-#        --with-gxx-include-dir=/usr/m68k-ataribrown-elf/6.2.0/include
+#        --with-gxx-include-dir=/usr/m68k-ataribrowner-elf/7.1.0/include
 # This ditches all coldfire lib building stuff:
 #        --with-arch=m68k
 
@@ -249,12 +250,13 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    $NICE make all-target-libgcc $J4
-    $SUDO make install-target-libgcc
+    $NICE make clean-target-libgcc $JMULT && make all-target-libgcc && $SUDO make install-target-libgcc
 
     # Some extra permissions
+if [ `uname -o` != "Cygwin" ]
+then
     $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
-
+fi
 fi
 
 #
@@ -336,8 +338,8 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     # Set cross compiler
     sed_inplace "s/AM_DEFAULT_VERBOSITY = 1/AM_DEFAULT_VERBOSITY = 0/gI" $MINTLIBDIR/configvars
     sed_inplace "s/#CROSS=yes/CROSS=yes/gI" $MINTLIBDIR/configvars
-    sed_inplace "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-ataribrown-elf|gI" $MINTLIBDIR/configvars
-    sed_inplace "s/m68k-atari-mint/m68k-ataribrown-elf/gI" $MINTLIBDIR/configvars
+    sed_inplace "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-ataribrowner-elf|gI" $MINTLIBDIR/configvars
+    sed_inplace "s/m68k-atari-mint/m68k-ataribrowner-elf/gI" $MINTLIBDIR/configvars
 
     # Convert syntax into new gcc/gas format
 
@@ -608,18 +610,18 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
     #sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-ataribrown-elf|gI" $MINTLIBDIR/buildrules
+    sed -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-ataribrowner-elf|gI" $MINTLIBDIR/buildrules
 
     cd $MINTLIBDIR
 
-    make SHELL=/bin/bash $J4
-    #make SHELL=/bin/bash
+    # can't safely use -j with mintlib due to bison/flex dependency ordering woe
+    make SHELL=/bin/bash
 
     # Install the lib.
     # For some reason math.h isn't installed so we do it by hand
     # ¯\_(ツ)_/¯ 
     $SUDO make install
-    $SUDO cp include/math.h $INSTALL_PREFIX/m68k-ataribrown-elf/include
+    $SUDO cp include/math.h $INSTALL_PREFIX/m68k-ataribrowner-elf/include
 
     # Create lib binary package
     make bin-dist
@@ -632,26 +634,28 @@ fi
 
 # *** create local build dir
 
-cd $HOMEDIR/gcc-6.2.0
+cd $HOMEDIR/gcc-7.1.0
 
 # Some more permissions need to be fixed here
-    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrown-elf/include/
-    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrown-elf/share/
-
+if [ `uname -o` != "Cygwin" ] && [ `uname -o` != "Msys" ]
+then
+    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/include/
+    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/share/
+fi
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
-    read -p "Patch libstdc++v3 at the source level (meaning the gcc-6.2.0 files will be tinkered)?" -n 1 -r
+    read -p "Patch libstdc++v3 at the source level (meaning the gcc-7.1.0 files will be tinkered)?" -n 1 -r
     echo
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
 
-    # edit file gcc-6.2.0/libstdc++-v3/configure - comment out the line:
+    # edit file gcc-7.1.0/libstdc++-v3/configure - comment out the line:
     ##as_fn_error "No support for this host/target combination." "$LINENO" 5
 
-    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
+    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-7.1.0/libstdc++-v3/configure
     
     # *** hack configure to remove dlopen stuff
     
@@ -660,7 +664,7 @@ then
     #-  AC_LIBTOOL_DLOPEN
     #+#  AC_LIBTOOL_DLOPEN
     # fi
-    sed_inplace "s/  AC_LIBTOOL_DLOPEN/#  AC_LIBTOOL_DLOPEN/gI" $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure.ac
+    sed_inplace "s/  AC_LIBTOOL_DLOPEN/#  AC_LIBTOOL_DLOPEN/gI" $HOMEDIR/gcc-7.1.0/libstdc++-v3/configure.ac
     
     #libstdc++-v3/configure:
     #
@@ -668,20 +672,20 @@ then
     #*** change to as_echo_n so the configure doesn't halt on this error
     #
     #  as_echo_n "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
-    sed_inplace "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" $HOMEDIR/gcc-6.2.0/libstdc++-v3/configure
+    sed_inplace "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" $HOMEDIR/gcc-7.1.0/libstdc++-v3/configure
 
     #*** remove the contents of cow-stdexcept.cc
     #
-    #gcc-6.2.0\libstdc++-v3\src\c++11\cow_stdexcept.cc
+    #gcc-7.1.0\libstdc++-v3\src\c++11\cow_stdexcept.cc
     #
     ##if (0)
     #...everything...
     ##endif
 
-    echo "#if (0)" > $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-    cat $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-    echo "#endif" >> $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-    mv $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-6.2.0/libstdc++-v3/src/c++11/cow-stdexcept.cc
+    echo "#if (0)" > $HOMEDIR/gcc-7.1.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+    cat $HOMEDIR/gcc-7.1.0/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-7.1.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+    echo "#endif" >> $HOMEDIR/gcc-7.1.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+    mv $HOMEDIR/gcc-7.1.0/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-7.1.0/libstdc++-v3/src/c++11/cow-stdexcept.cc
 
 fi
 
@@ -697,7 +701,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     #*** remove -std=gnu++98 from the toplevel makefile - it gets combined with the c++11 Makefile and causes problems
     #
-    #gcc-6.2.0/build/src/Makefile:
+    #gcc-7.1.0/build/src/Makefile:
     #
     #AM_CXXFLAGS = \
     #	-std=gnu++98 ******** remove this ********
@@ -706,15 +710,16 @@ then
     #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
     
     cd $HOMEDIR/build-gcc
-    make configure-target-libstdc++-v3
+    $NICE make configure-target-libstdc++-v3
  
-    #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-6.2.0/build/src/Makefile
-    sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/libstdc++-v3/src/Makefile
+    #sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/gcc-7.1.0/build/src/Makefile
+    sed_inplace "s/-std=gnu++98//gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/libstdc++-v3/src/Makefile
+
     
     #*** fix type_traits to avoid macro collision: convert '_CTp' to '_xCTp' because ctypes.h defines _CTp as 0x20
     #*** note: need to investigate why ctypes.h is even present
     #
-    #gcc-6.2.0/build/include/type_traits:
+    #gcc-7.1.0/build/include/type_traits:
     #
     #  template<typename _xCTp, typename... _Args>
     #    struct __expanded_common_type_wrapper
@@ -722,65 +727,61 @@ then
     #      typedef common_type<typename _xCTp::type, _Args...> type;
     #    };
     
-    #sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-6.2.0/build/include/type_traits
+    #sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-7.1.0/build/include/type_traits
 
     # Patch all multilib instances
     # TODO: replace this with a grep or find command
     #       (yeah right, that will happen soon)
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mcpu32/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5407/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m54455/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/softfp/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m51qe/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206e/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5208/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5307/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5329/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68000/libstdc++-v3/include/type_traits
-    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68060/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68060/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/mcpu32/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/mfidoa/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5407/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m54455/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5475/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5475/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68040/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68040/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m51qe/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5206/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5206e/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5208/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5307/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5329/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68000/libstdc++-v3/include/type_traits
+    sed_inplace "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/libstdc++-v3/include/type_traits
 
-
-    #*** fix c++config.h to remove conflicts for sized fundamental types
-    #	
-    #gcc-6.2.0\build\include\m68k-ataribrown-elf\bits\c++config.h
+    #*** fix type_traits to favour <cstdint> over those partially-defined wierd builtin int_leastXX, int_fastXX types
+    #*** note: this causes multiply defined std:: or missing :: types depending on _GLIBCXX_USE_C99_STDINT_TR1 1/0
     #
-    ##undef _GLIBCXX_USE_C99_STDINT_TR1
-    
-    #sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/gcc-6.2.0/build/include/m68k-ataribrown-elf/bits/c++config.h
+
+    #sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/gcc-7.1.0/build/include/type_traits
 
     # Patch all multilib instances
-    # TODO: yeah yeah quite possibly not going to do
-    #       something simpler, ever. Bite me.
-    
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68040/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68060/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mcpu32/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m51qe/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5206e/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5208/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5307/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5329/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5407/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m54455/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m5475/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/mfidoa/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/m68000/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h
-    sed_inplace "s/#define.*_GLIBCXX_USE_C99_STDINT_TR1/\/\/# disabled/gI" $HOMEDIR/build-gcc/m68k-ataribrown-elf/softfp/libstdc++-v3/include/m68k-ataribrown-elf/bits/c++config.h 
+    # TODO: replace this with a grep or find command
+    #       (yeah right, that will happen soon)
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68060/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68060/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/mcpu32/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/mfidoa/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5407/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m54455/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5475/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5475/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68040/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68040/softfp/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m51qe/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5206/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5206e/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5208/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5307/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m5329/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68000/libstdc++-v3/include/type_traits
+    sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/libstdc++-v3/include/type_traits
 
 fi
 
@@ -795,8 +796,7 @@ fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd $HOMEDIR/build-gcc
-    make all-target-libstdc++-v3 $J4
-    $SUDO make install-target-libstdc++-v3
+    make all-target-libstdc++-v3 $JMULT && $SUDO make install-target-libstdc++-v3
 fi
 
 # gcc build dir
@@ -815,32 +815,31 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     # I dunno why this must be done.
     # It happens on linux mint
-if [ `uname -o` != "Cygwin" ]
+if [ `uname -o` != "Cygwin" ] && [ `uname -o` == "Msys" ]
 then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
 fi
-    make all $J4
-    $SUDO make install
-    $SUDO strip $INSTALL_PREFIX/bin/*ataribrown*
-    if [ `uname -o` == "Cygwin" ]
+    $NICE make all $JMULT && $SUDO make install
+    $SUDO strip $INSTALL_PREFIX/bin/*ataribrowner*
+    if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
     then
-        $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/collect2* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper*
     else
-        $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/collect2* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/liblto_plugin.so \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/liblto_plugin.so.0 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/liblto_plugin.so.0.0.0 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1 \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper
     fi
-    $SUDO find $INSTALL_PREFIX/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
+    $SUDO find $INSTALL_PREFIX/m68k-ataribrowner-elf/lib -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
+    $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-ataribrowner-elf/* -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
     
 fi
 
@@ -852,36 +851,40 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then    
-    make install DESTDIR=$PWD/binary-package $J4
-    cd binary-package
-    make install DESTDIR=$BINPACKAGE_DIR $J4
-    cd $BINPACKAGE_DIR    
+    #make install DESTDIR=$PWD/binary-package $JMULT
+    make install DESTDIR=$BINPACKAGE_DIR $JMULT
+    #cd binary-package
+    cd $BINPACKAGE_DIR
+    # Since make install uses the non-patched type_traits file let's patch them here too
+    # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
+    for i in `find . -name type_traits`; do echo Patching $i; sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
+
     #rm -r include
     #rm    lib/*.a
     #rm -r share/info
     #rm -r share/man/man7
     strip .$INSTALL_PREFIX/bin/*
-    if [ `uname -o` == "Cygwin" ]
+    if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
     then
-        $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper        
+        $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/collect2* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper*
     else
-        $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/cc1plus* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/collect2* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0 \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/liblto_plugin.so.0.0.0 \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto1 \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrown-elf/6.2.0/lto-wrapper
+        $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/collect2* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/liblto_plugin.so \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/liblto_plugin.so.0 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/liblto_plugin.so.0.0.0 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1 \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper
     fi
 
-    find .$INSTALL_PREFIX/m68k-ataribrown-elf/lib -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    find .$INSTALL_PREFIX/lib/gcc/m68k-ataribrown-elf/* -name '*.a' -print -exec m68k-ataribrown-elf-strip -S -x '{}' ';'
-    tar --owner=0 --group=0 -jcvf gcc-6.2-ataribrown-bin.tar.bz2 .$INSTALL_PREFIX
+    find .$INSTALL_PREFIX/m68k-ataribrowner-elf/lib -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
+    find .$INSTALL_PREFIX/lib/gcc/m68k-ataribrowner-elf/* -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
+    tar --owner=0 --group=0 -jcvf gcc-7.1-ataribrownerbin.tar.bz2 .$INSTALL_PREFIX
 fi
 
 echo "All done!"

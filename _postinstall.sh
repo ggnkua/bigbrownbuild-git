@@ -11,8 +11,8 @@
 # m68060/		assumes internal fpu
 
 
-LIBGCC=/lib/gcc/m68k-ataribrown-elf/6.2.0
-LIBCXX=/usr/m68k-ataribrown-elf/lib
+LIBGCC=/lib/gcc/m68k-ataribrowner-elf/7.1.0
+LIBCXX=/usr/m68k-ataribrowner-elf/lib
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
