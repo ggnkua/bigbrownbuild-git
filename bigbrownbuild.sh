@@ -33,7 +33,7 @@ BINPACKAGE_DIR=$PWD/binary-package
 
 # Administrator mode
 SUDO=sudo
-INSTALL_PREFIX=/usr/
+INSTALL_PREFIX=/usr
 # User mode
 #SUDO=
 #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
@@ -637,7 +637,7 @@ fi
 cd $HOMEDIR/gcc-7.1.0
 
 # Some more permissions need to be fixed here
-if [ `uname -o` != "Cygwin" ]
+if [ `uname -o` != "Cygwin" ] && [ `uname -o` != "Msys" ]
 then
     $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/include/
     $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/share/
@@ -815,19 +815,19 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     # I dunno why this must be done.
     # It happens on linux mint
-if [ `uname -o` != "Cygwin" ]
+if [ `uname -o` != "Cygwin" ] && [ `uname -o` == "Msys" ]
 then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
 fi
-    $NICE make clean $JMULT && $NICE make all $JMULT && $SUDO make install
-    $SUDO strip $INSTALL_PREFIX/bin/*ataribrown*
-    if [ `uname -o` == "Cygwin" ]
+    $NICE make all $JMULT && $SUDO make install
+    $SUDO strip $INSTALL_PREFIX/bin/*ataribrowner*
+    if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
     then
         $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
 			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
 			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/collect2* \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1 \
-			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1* \
+			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper*
     else
         $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
 			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
@@ -864,13 +864,13 @@ then
     #rm -r share/info
     #rm -r share/man/man7
     strip .$INSTALL_PREFIX/bin/*
-    if [ `uname -o` == "Cygwin" ]
+    if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
     then
         $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
 			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
 			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/collect2* \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1 \
-			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper        
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto1* \
+			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/lto-wrapper*
     else
         $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
 			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
