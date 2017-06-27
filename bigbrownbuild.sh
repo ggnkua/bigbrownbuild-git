@@ -28,7 +28,7 @@ sed_inplace()
 # Some global stuff that are platform dependent
 HOMEDIR=$PWD
 NICE='nice -20'
-JMULT=-j8
+JMULT=-j4
 BINPACKAGE_DIR=$PWD/binary-package
 
 # Administrator mode
@@ -175,7 +175,7 @@ cd $HOMEDIR
 
 # Export flags for target compiler as well as pass them on configuration time.
 # Who knows, maybe one of the two will actually work!
-export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fleading-underscore"
+export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
 export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
 export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
@@ -194,7 +194,7 @@ then
     ../gcc-7.1.0/configure \
         --target=m68k-ataribrowner-elf \
         --disable-nls \
-        --enable-languages=c,c++ \
+        --enable-languages=c,c++,fortran \
         --enable-lto \
         --prefix=$INSTALL_PREFIX \
         --disable-libssp \
@@ -205,10 +205,10 @@ then
         --disable-libstdcxx-filesystem-ts \
         --disable-libquadmath \
         --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
-        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fleading-underscore" \
+        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
         CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
         LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
-    $NICE make clean-gcc $JMULT && $NICE make all-gcc $JMULT && $SUDO make install-gcc
+    $NICE make all-gcc $JMULT && $SUDO make install-gcc
 
     # In some linux distros (linux mint for example) it was observed
     # that make install-gcc didn't set the read permission for users
@@ -250,7 +250,7 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    $NICE make clean-target-libgcc $JMULT && make all-target-libgcc && $SUDO make install-target-libgcc
+    make all-target-libgcc && $SUDO make install-target-libgcc
 
     # Some extra permissions
 if [ `uname -o` != "Cygwin" ]
@@ -783,6 +783,29 @@ then
     sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/m68000/libstdc++-v3/include/type_traits
     sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc/m68k-ataribrowner-elf/libstdc++-v3/include/type_traits
 
+fi
+
+if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+    REPLY=Y
+else    
+    read -p "Configure, source patch and build glibfortran?" -n 1 -r
+    echo
+fi
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    # From what I could see libgfortran only has some function re-declarations
+    # This might be possible to fix by passing proper configuration options
+    # during configuration, but lolwtfwhocares - let's patch some files! 
+    sed_inplace "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-7.1.0/libgfortran/intrinsics/c99_functions.c
+    sed_inplace "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/intrinsics/date_and_time.c
+    sed_inplace "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/intrinsics/time_1.h
+    sed_inplace "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/runtime/string.c
+    sed_inplace "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/runtime/string.c
+    sed_inplace "s/--emit-relocs//gI" $HOMEDIR/build-gcc/Makefile
+
+    make configure-target-libgfortran
+    $NICE make $JMULT all-target-libgfortran
+    make install-target-libgfortran
 fi
 
 #*** build it
