@@ -70,7 +70,6 @@ _start:			xdef		_start
 *-------------------------------------------------------*
 *	Begone
 *-------------------------------------------------------*
-;	bra		*
 	clr.w		-(sp)				; Pterm0
 	trap		#1
 
@@ -212,7 +211,8 @@ _memcpy:
 	
 	move.b		(a1)+,(a0)+
 	subq.l		#1,d1
-;	beq		.done		; we'll assume for now (!) nobody calls a 1-byte mem??? op
+	beq		.done
+	move.w		d1,.sp_size+2(sp)
 	
 	lsr.l		#4,d1					; num 16-byte blocks total
 	move.l		d1,d0
@@ -310,6 +310,7 @@ _memcpy:
 ; --------------------------------------------------------------
 _memset:
 ; --------------------------------------------------------------	
+
 ;	move.l		d2,-(sp)
 	move.l		d2,a1
 	
@@ -332,7 +333,8 @@ _memset:
 	beq.s		.aligned
 	move.b		d2,(a0)+
 	subq.l		#1,d1
-;	beq		.done		; we'll assume for now (!) nobody calls a 1-byte mem??? op
+	beq		.done
+	move.w		d1,0+12+2(sp)
 .aligned:	
 	
 	lsr.l		#4,d1

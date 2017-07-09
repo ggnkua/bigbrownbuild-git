@@ -67,7 +67,6 @@ static short exit_count = 0;
 static exit_function_t exit_funcs[MAX_ATEXIT];
 
 // internal atexit() registration
-//__attribute__((optimize("O0")))
 int __cxa_atexit(cxaefuncp func, void * arg, void * dso_handle)
 {
 	if (func == NULL)
@@ -97,7 +96,6 @@ __attribute__((optimize("O0")))
 void __cxa_finalize(void * dso_handle)
 {
 	int exit_count_snapshot = exit_count;
-	//debug_printf("__cxa_finalize(%d)\n", exit_count);
 
 	/* In reverse order */
 	while ((--exit_count_snapshot) >= 0) 
