@@ -87,10 +87,11 @@ echo
 echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC for gcc building"
 echo "                                                            bison-bin,flex-bin,flex-dev for mintlib"
 echo ""
-echo "Finally, this script will install things to /usr and needs root privileges."
+echo "Finally, this script will install things to $INSTALL_PREFIX and might need root privileges."
+echo "Also it'll use $JMULT cores while building"
 echo "If this is not to your liking then edit this script and change INSTALL_PREFIX"
 echo "to the path you would like to install to (including home folder) and SUDO to"
-echo "nothing if you don't need root rights."
+echo "nothing if you don't need root rights. Also JMULT for number of build cores."
 echo ""
 echo "The bulk of the script was written by George 'GGN' Nakos"
 echo "With enhancements by Douglas 'DML' Little"
@@ -149,24 +150,6 @@ fi
 
 # home directory
 cd $HOMEDIR
-
-# XXX: Moved to libstdc++v3 section and commented out here - re-enable it
-#      if it causes problems
-# Comment out errors we don't care about much
-
-# edit file gcc-7.1.0/libstdc++-v3/configure - comment out the line:
-##as_fn_error "No support for this host/target combination." "$LINENO" 5
-
-#if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-#    REPLY=Y
-#else    
-#    read -p "Placebo patch libstdc++-v3 configure (not sure if it's needed)?" -n 1 -r
-#    echo
-#fi
-#if [[ $REPLY =~ ^[Yy]$ ]]
-#then
-#    sed_inplace 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-7.1.0/libstdc++-v3/configure
-#fi
 
 #
 # gcc build dir
@@ -228,10 +211,6 @@ fi
 #        --disable-multilib \
 # Dunno, does anyone NEED unicode for building ST applications?
 #        --disable-wchar_t \
-# These are very likely to go in:
-#        --enable-cxx-flags='-fno-exceptions -fno-rtti' \
-# Probably not needed?
-#        --with-gxx-include-dir=/usr/m68k-ataribrowner-elf/7.1.0/include
 # This ditches all coldfire lib building stuff:
 #        --with-arch=m68k
 
@@ -313,7 +292,6 @@ ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020-60_soft\n  DIST_SUBDIR
 ifeq (\$(WITH_040_LIB), yes)\n  SUBDIRS += lib040\n  DIST_SUBDIRS += lib040\nendif\n\n\
 ifeq (\$(WITH_060_LIB), yes)\n  SUBDIRS += lib060\n  DIST_SUBDIRS += lib060\nendif\n\n\
 ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
-#    sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=yes\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
     # It's probably not possible to build mintlib with mshort....
     sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=no\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
 
@@ -609,7 +587,6 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
-    #sed -i -e 's/%d0/%%d0/gI' $MINTLIBDIR/syscall/traps.c
     sed -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-ataribrowner-elf|gI" $MINTLIBDIR/buildrules
 
     cd $MINTLIBDIR
@@ -882,10 +859,6 @@ then
     # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
     for i in `find . -name type_traits`; do echo Patching $i; sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
 
-    #rm -r include
-    #rm    lib/*.a
-    #rm -r share/info
-    #rm -r share/man/man7
     strip .$INSTALL_PREFIX/bin/*
     if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
     then
