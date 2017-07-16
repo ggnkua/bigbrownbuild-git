@@ -8,9 +8,9 @@ set PROJNAME2=cpptest
 set PROJNAME3=ctest
 set OUTPUT_FOLDER=auto
 
-set GCCPATH=gcc6
-set GPP=%GCCPATH%\bin\m68k-ataribrown-elf-g++
-set GCC=%GCCPATH%\bin\m68k-ataribrown-elf-gcc
+set GCCPATH=c:\svn\gitsfap\gcc7
+set GPP=%GCCPATH%\bin\m68k-ataribrowner-elf-g++
+set GCC=%GCCPATH%\bin\m68k-ataribrowner-elf-gcc
 set COMMONFLAGS=-c -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore -D__ATARI__ -D__M68000__ -DELF_CONFIG_STACK=16384 -Wall
 set CPPFLAGS=%COMMONFLAGS% -x c++ -std=c++0x -fno-exceptions -fno-rtti -fno-threadsafe-statics -Wno-reorder
 set CFLAGS=%COMMONFLAGS%
@@ -42,25 +42,25 @@ del %OUTPUT_FOLDER%\%PROJNAME2%.o 2>NUL
 del %OUTPUT_FOLDER%\%PROJNAME3%.o 2>NUL
 
 rem Compile cpp files
-for %%I in (%CPPFILES%) do call :checkrun "%%I.cpp" "obj\%%I.o" "%GPP% %CPPFLAGS% %INCPATH% -o obj\%%I.o %%I.cpp"
+for %%I in (%CPPFILES%) do call :checkrun "obj\%%I.o" "%%I.cpp" "%GPP% %CPPFLAGS% %INCPATH% -o obj\%%I.o %%I.cpp"
 
 rem Compile c files
-for %%I in (%CFILES%) do call :checkrun "%%I.c" "obj\%%I.o" "%GCC% %CFLAGS% %INCPATH% -o obj\%%I.o %%I.c"
+for %%I in (%CFILES%) do call :checkrun "obj\%%I.o" "%%I.c" "%GCC% %CFLAGS% %INCPATH% -o obj\%%I.o %%I.c"
 
 rem Assemble .s files
-for %%I in (%ASMFILES%) do call :checkrun "%%I.s" "obj\%%I.o" "%ASM% %ASMFLAGS% -L obj\%%I.o.lst -o obj\%%I.o %%I.s"
-for %%I in (%GASFILES%) do call :checkrun "%%I.gas" "obj\%%I.o" "%GCCPATH%\bin\m68k-ataribrown-elf-as -o obj\%%I.o %%I.gas"
+for %%I in (%ASMFILES%) do call :checkrun "obj\%%I.o" "%%I.s" "%ASM% %ASMFLAGS% -L obj\%%I.o.lst -o obj\%%I.o %%I.s"
+for %%I in (%GASFILES%) do call :checkrun "obj\%%I.o" "%%I.gas" "%GCCPATH%\bin\m68k-ataribrowner-elf-as -o obj\%%I.o %%I.gas"
 
 rem Link
 del %OUTPUT_FOLDER%\%PROJNAME%.tos 2>NUL
 
-%GPP% -L/lib/gcc/m68k-ataribrown-elf/6.2.0/m68000 -L/usr/m68k-ataribrown-elf/lib/m68000 -o lolworld.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/lolworld.o -Wl,-Map,lolworld.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -L/lib/gcc/m68k-ataribrowner-elf/7.1.0/m68000 -L/usr/m68k-ataribrowner-elf/lib/m68000 -o lolworld.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/lolworld.o -Wl,-Map,lolworld.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
-%GPP% -L/lib/gcc/m68k-ataribrown-elf/6.2.0/m68000 -L/usr/m68k-ataribrown-elf/lib/m68000 -o ctest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/ctest.o -Wl,-Map,ctest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -L/lib/gcc/m68k-ataribrowner-elf/7.1.0/m68000 -L/usr/m68k-ataribrowner-elf/lib/m68000 -o ctest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/ctest.o -Wl,-Map,ctest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
-%GPP% -L/lib/gcc/m68k-ataribrown-elf/6.2.0/m68000 -L/usr/m68k-ataribrown-elf/lib/m68000 -o cpptest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/cpptest.o -Wl,-Map,cpptest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -L/lib/gcc/m68k-ataribrowner-elf/7.1.0/m68000 -L/usr/m68k-ataribrowner-elf/lib/m68000 -o cpptest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/cpptest.o -Wl,-Map,cpptest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
 rem brown up the elf
