@@ -15,30 +15,56 @@ fi
 # Setup stuff
 #
 
-# sed_inplace(regex, file_to_replace)
-# TODO: When this script was first written it used a very old
-#       version of sed that didn't have the in-place switch
-#       (-i). So probably replace this function with sed -i?
-sed_inplace()
-{
-    sed -e "$1" $2 > $2.orig
-    mv $2.orig $2
-}
+# Figure out from what environment we are being run
+# Nicked from https://stackoverflow.com/a/3466183
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+echo Host machine: $machine
 
 # Some global stuff that are platform dependent
 HOMEDIR=$PWD
 NICE='nice -20'
 JMULT=-j4
 BINPACKAGE_DIR=$PWD/binary-package
+# Apple tools are not GNU compatible, use standard gnutool install naming
+if [ "$machine" == "Mac" ]
+then
+    SED=gsed
+    TAR=gnutar
+else
+    SED=sed
+    TAR=tar
+fi
+
+# sed_inplace(regex, file_to_replace)
+# TODO: When this script was first written it used a very old
+#       version of sed that didn't have the in-place switch
+#       (-i). So probably replace this function with sed -i?
+sed_inplace()
+{
+    $SED -e "$1" $2 > $2.orig
+    mv $2.orig $2
+}
 
 # Administrator mode
 SUDO=sudo
-INSTALL_PREFIX=/usr
+if [ "$machine" == "Mac" ]
+then
+    INSTALL_PREFIX=/opt/local/
+else
+    INSTALL_PREFIX=/usr
+fi
 # User mode
 #SUDO=
 #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
 
-if [ `uname -o` == "Msys" ]
+if [ "$machine" == "MinGw" ]
 then
     # Msys has no idea what "sudo" and "nice" are.
     # Also, it's not liking parallel builds that much.
@@ -60,7 +86,7 @@ then
     echo
     echo
 fi
-if [ `uname -o` == "Cygwin" ]
+if [ "$machine" == "Cygwin" ]
 then
     # Disable some stuff for cygwin as well
     unset SUDO
@@ -87,6 +113,8 @@ echo
 echo "Also, make sure you have installed the following libraries: GMP, MPFR and MPC for gcc building"
 echo "                                                            bison-bin,flex-bin,flex-dev for mintlib"
 echo ""
+echo "(On macOS, use Macports and install gmp, mpfr, libmpc, bison, flex, gsed and gnutar)"
+echo ""
 echo "Finally, this script will install things to $INSTALL_PREFIX and might need root privileges."
 echo "Also it'll use $JMULT cores while building"
 echo "If this is not to your liking then edit this script and change INSTALL_PREFIX"
@@ -96,6 +124,7 @@ echo ""
 echo "The bulk of the script was written by George 'GGN' Nakos"
 echo "With enhancements by Douglas 'DML' Little"
 echo "                     Patrice 'PMANDIN' Mandin"
+echo "                     Troed 'TROED' Sångberg"
 echo ""
 read -p "Press Enter when you've made sure (or 'a' if you don't want any prompts again)..." -n 1 -r
 echo
@@ -145,7 +174,7 @@ then
     strip .$INSTALL_PREFIX/bin/*
     strip .$INSTALL_PREFIX/m68k-ataribrowner-elf/bin/*
     gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-    tar --owner=0 --group=0 -jcvf binutils-2.27-ataribrownerbin.tar.bz2 .$INSTALL_PREFIX
+    $TAR --owner=0 --group=0 -jcvf binutils-2.27-ataribrowner-bin.tar.bz2 .$INSTALL_PREFIX
 fi
 
 # home directory
@@ -158,9 +187,18 @@ cd $HOMEDIR
 
 # Export flags for target compiler as well as pass them on configuration time.
 # Who knows, maybe one of the two will actually work!
+
+if [ "$machine" == "Mac" ]
+then
+    export C_INCLUDE_PATH=/opt/local/include
+    export CXX_INCLUDE_PATH=/opt/local/include
+    export LDFLAGS="-L/opt/local/lib"
+    export LIBRARY_PATH="/opt/local/lib"
+fi
+
 export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
 export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
-export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
+export LDFLAGS_FOR_TARGET="-Wl,--emit-relocs -Ttext=0"
 # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
 #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
 
@@ -190,14 +228,14 @@ then
         --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
         CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
         CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
-        LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
+        LDFLAGS_FOR_TARGET="-Wl,--emit-relocs -Ttext=0"
     $NICE make all-gcc $JMULT && $SUDO make install-gcc
 
     # In some linux distros (linux mint for example) it was observed
     # that make install-gcc didn't set the read permission for users
     # so gcc couldn't work properly. No idea how to fix this propery
     # which means - botch time!                                     
-if [ `uname -o` != "Cygwin" ]
+if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
 then
     $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/
     $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/
@@ -232,7 +270,7 @@ then
     make all-target-libgcc && $SUDO make install-target-libgcc
 
     # Some extra permissions
-if [ `uname -o` != "Cygwin" ]
+if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
 then
     $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
 fi
@@ -265,27 +303,27 @@ then
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib040
     cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib060
     # Change build rules for targets
-    sed -i -e "s/instdir =/instdir = m68020_Mshort/gI" \
+    $SED -i -e "s/instdir =/instdir = m68020_Mshort/gI" \
            -e "s/cflags =/cflags = -m68000 -mshort/gI " \
            -e "s/subdir = lib/subdir = lib_mshort/gI" $MINTLIBDIR/lib_mshort/Makefile
-    sed -i -e "s/instdir = m68020-60/instdir = m68020/gI" \
+    $SED -i -e "s/instdir = m68020-60/instdir = m68020/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68020/gI " \
            -e "s/subdir = lib020/subdir = lib020/gI" $MINTLIBDIR/lib020/Makefile
-    sed -i -e "s/instdir = m68020-60/instdir = m68020-20_soft/gI" \
+    $SED -i -e "s/instdir = m68020-60/instdir = m68020-20_soft/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68020 -msoft-float/gI " \
            -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib020_soft/Makefile
-    sed -i -e "s/instdir = m68020-60/instdir = m68020-60_soft/gI" \
+    $SED -i -e "s/instdir = m68020-60/instdir = m68020-60_soft/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68020-60 -msoft-float/gI " \
            -e "s/subdir = lib020/subdir = lib020-60_soft/gI" $MINTLIBDIR/lib020-60_soft/Makefile
-    sed -i -e "s/instdir = m68020-60/instdir = m68040/gI" \
+    $SED -i -e "s/instdir = m68020-60/instdir = m68040/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68040/gI " \
            -e "s/subdir = lib020/subdir = lib040/gI" $MINTLIBDIR/lib040/Makefile
-    sed -i -e "s/instdir = m68020-60/instdir = m68060/gI" \
+    $SED -i -e "s/instdir = m68020-60/instdir = m68060/gI" \
            -e "s/cflags = -m68020-60/cflags = -m68060/gI " \
            -e "s/subdir = lib020/subdir = lib020_soft/gI" $MINTLIBDIR/lib060/Makefile
-    sed -i -e "s/subdir = lib020/subdir = lib020-60/gI" $MINTLIBDIR/lib020-60/Makefile
+    $SED -i -e "s/subdir = lib020/subdir = lib020-60/gI" $MINTLIBDIR/lib020-60/Makefile
     # Add targets to main makefile
-    sed -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\n\
+    $SED -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\n\
 ifeq (\$(WITH_000MSHORT_LIB), yes)\n  SUBDIRS += lib_mshort\n  DIST_SUBDIRS += lib_mshort\nendif\n\n\
 ifeq (\$(WITH_020_060_LIB), yes)\n  SUBDIRS += lib020-60\n  DIST_SUBDIRS += lib020-60\nendif\n\n\
 ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020-60_soft\n  DIST_SUBDIRS += lib020-60_soft\nendif\n\n\
@@ -293,12 +331,12 @@ ifeq (\$(WITH_040_LIB), yes)\n  SUBDIRS += lib040\n  DIST_SUBDIRS += lib040\nend
 ifeq (\$(WITH_060_LIB), yes)\n  SUBDIRS += lib060\n  DIST_SUBDIRS += lib060\nendif\n\n\
 ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     # It's probably not possible to build mintlib with mshort....
-    sed -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=no\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
+    $SED -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=no\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
 
     # Force 68000 mode in the default lib since our gcc defaults to 68020
-    sed -i -e "s/cflags = /cflags = -m68000/gI " $MINTLIBDIR/lib/Makefile
+    $SED -i -e "s/cflags = /cflags = -m68000/gI " $MINTLIBDIR/lib/Makefile
     
-    if [ `uname -o` == "Msys" ]
+    if [ "$machine" == "MinGw" ]
     then
 
     #   Because MinGW/Msys has mixed forward/backward slashs in paths, convert
@@ -581,13 +619,13 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     sed_inplace "s/sp@(/%%%%sp@(/gI" $MINTLIBDIR/syscall/traps.c
 
     # Extra things (clobbered reg lists etc)
-    sed -i -e 's/\\"d0\\"/\\"%%%%d0\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/\\"d1\\"/\\"%%%%d1\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/\\"d2\\"/\\"%%%%d2\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
-    sed -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-ataribrowner-elf|gI" $MINTLIBDIR/buildrules
+    $SED -i -e 's/\\"d0\\"/\\"%%%%d0\\"/gI' $MINTLIBDIR/syscall/traps.c
+    $SED -i -e 's/\\"d1\\"/\\"%%%%d1\\"/gI' $MINTLIBDIR/syscall/traps.c
+    $SED -i -e 's/\\"d2\\"/\\"%%%%d2\\"/gI' $MINTLIBDIR/syscall/traps.c
+    $SED -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
+    $SED -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
+    $SED -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
+    $SED -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-ataribrowner-elf|gI" $MINTLIBDIR/buildrules
 
     cd $MINTLIBDIR
 
@@ -599,6 +637,10 @@ ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     # ¯\_(ツ)_/¯ 
     $SUDO make install
     $SUDO cp include/math.h $INSTALL_PREFIX/m68k-ataribrowner-elf/include
+    if [ "$machine" == "Mac" ]
+    then
+        $SUDO chmod g+r $INSTALL_PREFIX/m68k-ataribrowner-elf/include/math.h
+    fi
 
     # Create lib binary package
     make bin-dist
@@ -614,7 +656,7 @@ fi
 cd $HOMEDIR/gcc-7.1.0
 
 # Some more permissions need to be fixed here
-if [ `uname -o` != "Cygwin" ] && [ `uname -o` != "Msys" ]
+if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ] && [ "$machine" != "Mac" ]
 then
     $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/include/
     $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrowner-elf/share/
@@ -815,13 +857,13 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     # I dunno why this must be done.
     # It happens on linux mint
-if [ `uname -o` != "Cygwin" ] && [ `uname -o` == "Msys" ]
+if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]
 then
     $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
 fi
     $NICE make all $JMULT && $SUDO make install
     $SUDO strip $INSTALL_PREFIX/bin/*ataribrowner*
-    if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
+    if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
     then
         $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
 			$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
@@ -860,7 +902,7 @@ then
     for i in `find . -name type_traits`; do echo Patching $i; sed_inplace "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
 
     strip .$INSTALL_PREFIX/bin/*
-    if [ `uname -o` == "Cygwin" ] || [ `uname -o` == "Msys" ]
+    if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
     then
         $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1* \
 			.$INSTALL_PREFIX/libexec/gcc/m68k-ataribrowner-elf/7.1.0/cc1plus* \
@@ -880,7 +922,7 @@ then
 
     find .$INSTALL_PREFIX/m68k-ataribrowner-elf/lib -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
     find .$INSTALL_PREFIX/lib/gcc/m68k-ataribrowner-elf/* -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
-    tar --owner=0 --group=0 -jcvf gcc-7.1-ataribrownerbin.tar.bz2 .$INSTALL_PREFIX
+    $TAR --owner=0 --group=0 -jcvf gcc-7.1-ataribrownerbin.tar.bz2 .$INSTALL_PREFIX
 fi
 
 echo "All done!"
