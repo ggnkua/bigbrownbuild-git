@@ -202,6 +202,14 @@ export LDFLAGS_FOR_TARGET="-Wl,--emit-relocs -Ttext=0"
 # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
 #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
 
+
+if [ "$machine" == "Mac" ]
+then
+    LANGUAGES=c,c++
+else
+    LANGUAGES=c,c++,fortran
+fi
+
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
@@ -215,7 +223,7 @@ then
     ../gcc-7.1.0/configure \
         --target=m68k-ataribrowner-elf \
         --disable-nls \
-        --enable-languages=c,c++,fortran \
+        --enable-languages=$LANGUAGES \
         --enable-lto \
         --prefix=$INSTALL_PREFIX \
         --disable-libssp \
@@ -857,10 +865,16 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then    
     # I dunno why this must be done.
     # It happens on linux mint
-if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]
-then
-    $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
-fi
+    if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]
+    then
+        $SUDO chmod 775 $HOMEDIR/build-gcc/gcc/b-header-vars
+    fi
+    # This system include isn't picked up for some reason 
+    if [ "$machine" == "Mac" ] 
+    then
+        sed_inplace "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" $HOMEDIR/gcc-7.1.0/gcc/system.h 
+    fi 
+
     $NICE make all $JMULT && $SUDO make install
     $SUDO strip $INSTALL_PREFIX/bin/*ataribrowner*
     if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
