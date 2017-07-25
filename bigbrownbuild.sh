@@ -106,7 +106,7 @@ echo "same directory this script is running:"
 echo "---------------------------"
 echo "gcc-7.1.0.tar.bz2 (download from one of the mirrors of https://gcc.gnu.org/mirrors.html)"
 echo "binutils-2.27.tar.bz2 (download from http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2)"
-echo "mintlib-CVS-20160320.tar.gz (download from http://vincent.riviere.free.fr/soft/m68k-atari-mint/archives/mintlib-CVS-20160320.tar.gz)"
+echo "mintlib-CVS-20160320.tar.gz (download from http://d-bug.mooo.com/releases/mintlib-CVS-20160320.tar.gz)"
 echo "(note that this file is a .tar, not a .tar.gz as it claims, please gzip it first!"
 echo "---------------------------"
 echo
@@ -207,7 +207,10 @@ if [ "$machine" == "Mac" ]
 then
     LANGUAGES=c,c++
 else
-    LANGUAGES=c,c++,fortran
+    LANGUAGES=c,c++
+    # Fortran is disabled for now until we get a grasp of why it fails 
+    # building on some linux distros but works on others...
+    #LANGUAGES=c,c++,fortran
 fi
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
