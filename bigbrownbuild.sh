@@ -194,24 +194,20 @@ then
     export CXX_INCLUDE_PATH=/opt/local/include
     export LDFLAGS="-L/opt/local/lib"
     export LIBRARY_PATH="/opt/local/lib"
+    LANGUAGES=c,c++
+    WL=-Wl,
+else
+    # Fortran is enabled now, but there are still issues when compiling
+    # a program with it...
+    LANGUAGES=c,c++,fortran
+    WL=
 fi
 
 export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
 export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
-export LDFLAGS_FOR_TARGET="-Wl,--emit-relocs -Ttext=0"
+export LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
 # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
 #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
-
-
-if [ "$machine" == "Mac" ]
-then
-    LANGUAGES=c,c++
-else
-    LANGUAGES=c,c++
-    # Fortran is disabled for now until we get a grasp of why it fails 
-    # building on some linux distros but works on others...
-    #LANGUAGES=c,c++,fortran
-fi
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -239,7 +235,7 @@ then
         --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
         CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
         CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
-        LDFLAGS_FOR_TARGET="-Wl,--emit-relocs -Ttext=0"
+        LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
     $NICE make all-gcc $JMULT && $SUDO make install-gcc
 
     # In some linux distros (linux mint for example) it was observed
@@ -831,7 +827,7 @@ then
     sed_inplace "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/intrinsics/time_1.h
     sed_inplace "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/runtime/string.c
     sed_inplace "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-7.1.0/libgfortran/runtime/string.c
-    sed_inplace "s/--emit-relocs//gI" $HOMEDIR/build-gcc/Makefile
+    sed_inplace "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc/Makefile
 
     make configure-target-libgfortran
     $NICE make $JMULT all-target-libgfortran
