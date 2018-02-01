@@ -236,18 +236,19 @@ then
         CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
         CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
         LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
-    $NICE make all-gcc $JMULT && $SUDO make install-gcc
+    $NICE make all-gcc $JMULT
+    $SUDO make install-gcc
 
     # In some linux distros (linux mint for example) it was observed
     # that make install-gcc didn't set the read permission for users
     # so gcc couldn't work properly. No idea how to fix this propery
     # which means - botch time!                                     
-if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
-then
-    $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrownerer-elf/
-    $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-ataribrownerer-elf/
-    $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-ataribrownerer-elf/
-fi
+    if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
+    then
+        $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-ataribrownerer-elf/
+        $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-ataribrownerer-elf/
+        $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-ataribrownerer-elf/
+    fi
 
 fi
 # TODO:
@@ -274,13 +275,14 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    make all-target-libgcc && $SUDO make install-target-libgcc
+    make all-target-libgcc
+    $SUDO make install-target-libgcc
 
     # Some extra permissions
-if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
-then
-    $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
-fi
+    if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
+    then
+        $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
+    fi
 fi
 
 #
@@ -331,12 +333,12 @@ then
     $SED -i -e "s/subdir = lib020/subdir = lib020-60/gI" $MINTLIBDIR/lib020-60/Makefile
     # Add targets to main makefile
     $SED -i -e "s/ifeq (\$(WITH_020_LIB), yes)/ifeq (\$(WITH_020SOFT_LIB), yes)\n  SUBDIRS += lib020_soft\n  DIST_SUBDIRS += lib020_soft\nendif\n\n\
-ifeq (\$(WITH_000MSHORT_LIB), yes)\n  SUBDIRS += lib_mshort\n  DIST_SUBDIRS += lib_mshort\nendif\n\n\
-ifeq (\$(WITH_020_060_LIB), yes)\n  SUBDIRS += lib020-60\n  DIST_SUBDIRS += lib020-60\nendif\n\n\
-ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020-60_soft\n  DIST_SUBDIRS += lib020-60_soft\nendif\n\n\
-ifeq (\$(WITH_040_LIB), yes)\n  SUBDIRS += lib040\n  DIST_SUBDIRS += lib040\nendif\n\n\
-ifeq (\$(WITH_060_LIB), yes)\n  SUBDIRS += lib060\n  DIST_SUBDIRS += lib060\nendif\n\n\
-ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
+    ifeq (\$(WITH_000MSHORT_LIB), yes)\n  SUBDIRS += lib_mshort\n  DIST_SUBDIRS += lib_mshort\nendif\n\n\
+    ifeq (\$(WITH_020_060_LIB), yes)\n  SUBDIRS += lib020-60\n  DIST_SUBDIRS += lib020-60\nendif\n\n\
+    ifeq (\$(WITH_020_060SOFT_LIB), yes)\n  SUBDIRS += lib020-60_soft\n  DIST_SUBDIRS += lib020-60_soft\nendif\n\n\
+    ifeq (\$(WITH_040_LIB), yes)\n  SUBDIRS += lib040\n  DIST_SUBDIRS += lib040\nendif\n\n\
+    ifeq (\$(WITH_060_LIB), yes)\n  SUBDIRS += lib060\n  DIST_SUBDIRS += lib060\nendif\n\n\
+    ifeq (\$(WITH_020_LIB), yes)/gI" $MINTLIBDIR/Makefile
     # It's probably not possible to build mintlib with mshort....
     $SED -i -e "s/# Uncomment this out if you want extra libraries that are optimized/# Uncomment this out if you want extra libraries that are optimized\n# for m68020 processors.\nWITH_020SOFT_LIB=yes\nWITH_000MSHORT_LIB=no\nWITH_020_060_LIB=yes\nWITH_020_060SOFT_LIB=yes\nWITH_040_LIB=yes\nWITH_060_LIB=yes\n\n# Uncomment this out if you want extra libraries/gI" $MINTLIBDIR/configvars
 
@@ -845,7 +847,8 @@ fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd $HOMEDIR/build-gcc
-    make all-target-libstdc++-v3 $JMULT && $SUDO make install-target-libstdc++-v3
+    make all-target-libstdc++-v3 $JMULT
+    $SUDO make install-target-libstdc++-v3
 fi
 
 # gcc build dir
@@ -874,7 +877,8 @@ then
         sed_inplace "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" $HOMEDIR/gcc-7.2.0/gcc/system.h 
     fi 
 
-    $NICE make all $JMULT && $SUDO make install
+    $NICE make all $JMULT
+    $SUDO make install
     $SUDO strip $INSTALL_PREFIX/bin/*ataribrownerer*
     if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
     then
