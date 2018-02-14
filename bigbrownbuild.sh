@@ -880,15 +880,24 @@ SUDO=
 #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
 INSTALL_PREFIX=${HOME}/opt
 
+# Which gccs to build. 1=Build, anything else=Don't build
+BUILD_4_6_4=0
+BUILD_4_9_4=0
+BUILD_5_4_0=1
+BUILD_6_2_0=0
+BUILD_7_1_0=0
+BUILD_7_2_0=0
+BUILD_7_3_0=0
+
 # Get all the things
 
-if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.xz; fi
-if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.xz; fi
-if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi
-if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi
-if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi
-if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi
-if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi
+if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
+if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi; fi
+if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi; fi
+if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi; fi
+if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi; fi
+if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
+if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
 if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
 if [ ! -f mintlib-CVS-20160320.tar ]; then wget http://d-bug.mooo.com/releases/mintlib-CVS-20160320.tar; fi
 # requires GMP, MPFR and MPC
@@ -909,14 +918,6 @@ then
     rm -rf binary-package binutils-2.27 build-binutils* build-gcc-* gcc-4.6.4 gcc-9.4 gcc-5.4.0 gcc-6.2.0 gcc-7.1.0 gcc-7.2.0 gcc-7.3.0 mintlib-CVS-20160320
 fi
 
-BUILD_7_3_0=1
-BUILD_7_2_0=1
-BUILD_7_1_0=1
-BUILD_6_2_0=1
-BUILD_5_4_0=1
-BUILD_4_9_4=0
-BUILD_4_6_4=0
-
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
@@ -925,16 +926,15 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
-    if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
-    if [ "$BUILD_6_2_0" == "1" ]; then tar -jxvf gcc-6.2.0.tar.bz2; fi
-    if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
     if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then tar -jxvf gcc-6.2.0.tar.bz2; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
     tar -jxvf binutils-2.27.tar.bz2
-    tar -zxvf mintlib-CVS-20160320.tar
-    echo "lolol"
+    #tar -zxvf mintlib-CVS-20160320.tar
 fi
 
 # Comment this out if you want a completely automated run
@@ -945,12 +945,23 @@ GLOBAL_OVERRIDE=A
 BUILD_MINTLIB=1
 
 # This might be needed as gcc 7.2 doesn't seem to build 4.6.4...
-export CC=gcc-7
+export CC=gcc-4
+export CXX=g++-4
 
 if [ "$BUILD_4_6_4" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 4.6.4; fi
 if [ "$BUILD_4_9_4" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 4.9.4; fi
+
+export CC=gcc-5
+export CXX=g++-5
+
 if [ "$BUILD_5_4_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 5.4.0; fi
+
+export CC=gcc-6
+export CXX=g++-6
 if [ "$BUILD_6_2_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 6.2.0; fi
+
+export CC=gcc-7
+export CXX=g++-7
 if [ "$BUILD_7_1_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.1.0; fi
 if [ "$BUILD_7_2_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.2.0; fi
 if [ "$BUILD_7_3_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.3.0; fi
