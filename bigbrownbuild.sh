@@ -47,7 +47,8 @@ buildgcc()
     
     # Fortran is enabled now, but there are still issues when compiling
     # a program with it...
-    LANGUAGES=c,c++,fortran
+    #LANGUAGES=c,c++,fortran
+    LANGUAGES=c,c++
     WL=
     
     export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
@@ -563,11 +564,14 @@ buildgcc()
         ##if (0)
         #...everything...
         ##endif
-    
-        echo "#if (0)" > $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-        cat $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-        echo "#endif" >> $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-        mv $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc
+   
+	if [ -f $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ];
+        then
+            echo "#if (0)" > $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+            cat $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+            echo "#endif" >> $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+            mv $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc
+	fi
     
     fi
     
@@ -670,29 +674,30 @@ buildgcc()
     
     fi
     
-    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        REPLY=Y
-    else    
-        read -p "Configure, source patch and build glibfortran?" -n 1 -r
-        echo
-    fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-        # From what I could see libgfortran only has some function re-declarations
-        # This might be possible to fix by passing proper configuration options
-        # during configuration, but lolwtfwhocares - let's patch some files! 
-        sed -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
-        sed -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
-        sed -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
-        sed -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-        sed -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-        sed -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
-    
-        make configure-target-libgfortran
-        $NICE make $JMULT all-target-libgfortran
-        make install-target-libgfortran
-    fi
-    
+    #### FORTRAN DISABLED FOR NOW - GETTING INTERNAL COMPILER ERROR FROM GCC!!!!
+#    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+#        REPLY=N
+#    else    
+#        read -p "Configure, source patch and build glibfortran?" -n 1 -r
+#        echo
+#    fi
+#    if [[ $REPLY =~ ^[Yy]$ ]]
+#    then
+#        # From what I could see libgfortran only has some function re-declarations
+#        # This might be possible to fix by passing proper configuration options
+#        # during configuration, but lolwtfwhocares - let's patch some files! 
+#        sed -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
+#        sed -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
+#        sed -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
+#        sed -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
+#        sed -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
+#        sed -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
+#    
+#        make configure-target-libgfortran
+#        $NICE make $JMULT all-target-libgfortran
+#        make install-target-libgfortran
+#    fi
+#    
     #*** build it
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -904,8 +909,13 @@ then
     rm -rf binary-package binutils-2.27 build-binutils* build-gcc-* gcc-4.6.4 gcc-9.4 gcc-5.4.0 gcc-6.2.0 gcc-7.1.0 gcc-7.2.0 gcc-7.3.0 mintlib-CVS-20160320
 fi
 
-
-GLOBAL_OVERRIDE=A
+BUILD_7_3_0=1
+BUILD_7_2_0=1
+BUILD_7_1_0=1
+BUILD_6_2_0=1
+BUILD_5_4_0=1
+BUILD_4_9_4=0
+BUILD_4_6_4=0
 
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
@@ -915,40 +925,35 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    tar -Jxvf gcc-7.3.0.tar.xz
-    tar -Jxvf gcc-7.2.0.tar.xz
-    tar -jxvf gcc-7.1.0.tar.bz2
-    tar -jxvf gcc-6.2.0.tar.bz2
-    tar -jxvf gcc-5.4.0.tar.bz2
-    tar -jxvf gcc-4.9.4.tar.bz2
-    tar -jxvf gcc-4.6.4.tar.bz2
+    if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then tar -jxvf gcc-6.2.0.tar.bz2; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
+    if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
     tar -jxvf binutils-2.27.tar.bz2
     tar -zxvf mintlib-CVS-20160320.tar
     echo "lolol"
 fi
 
+# Comment this out if you want a completely automated run
+GLOBAL_OVERRIDE=A
+
 # Only set this to nonzero when you do want to build mintlib
+# Note that if you don't build mintlib then libstdc++v3 will also fail to build
 BUILD_MINTLIB=1
 
-buildgcc 4.6.4
+# This might be needed as gcc 7.2 doesn't seem to build 4.6.4...
+export CC=gcc-7
 
-rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar
-buildgcc 4.9.4
-
-rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar
-buildgcc 5.4.0
-
-rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar
-buildgcc 6.2.0
-
-rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar
-buildgcc 7.1.0
-
-rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar
-buildgcc 7.2.0
-
-rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar
-buildgcc 7.3.0
+if [ "$BUILD_4_6_4" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 4.6.4; fi
+if [ "$BUILD_4_9_4" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 4.9.4; fi
+if [ "$BUILD_5_4_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 5.4.0; fi
+if [ "$BUILD_6_2_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 6.2.0; fi
+if [ "$BUILD_7_1_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.1.0; fi
+if [ "$BUILD_7_2_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.2.0; fi
+if [ "$BUILD_7_3_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.3.0; fi
 
 echo "All done!"
 echo
