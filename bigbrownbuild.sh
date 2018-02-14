@@ -206,278 +206,278 @@ buildgcc()
             #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
             #   .....
             #   I need a drink...
-                sed -i -e $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
+                $SED -i -e $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
             fi
         
             # Set C standard to avoid shit blow up
-            sed -i -e "s/-O2 -fomit-frame-pointer/-O2 -fomit-frame-pointer -std=gnu89/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/-O2 -fomit-frame-pointer/-O2 -fomit-frame-pointer -std=gnu89/gI" $MINTLIBDIR/configvars
         
             # Set cross compiler
-            sed -i -e "s/AM_DEFAULT_VERBOSITY = 1/AM_DEFAULT_VERBOSITY = 0/gI" $MINTLIBDIR/configvars
-            sed -i -e "s/#CROSS=yes/CROSS=yes/gI" $MINTLIBDIR/configvars
-            sed -i -e "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-atari$1-elf|gI" $MINTLIBDIR/configvars
-            sed -i -e "s/m68k-atari-mint/m68k-atari$1-elf/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/AM_DEFAULT_VERBOSITY = 1/AM_DEFAULT_VERBOSITY = 0/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/#CROSS=yes/CROSS=yes/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-atari$1-elf|gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/m68k-atari-mint/m68k-atari$1-elf/gI" $MINTLIBDIR/configvars
         
             # Convert syntax into new gcc/gas format
         
-            sed -i -e "s/|/\/\//gI" $MINTLIBDIR/startup/crt0.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/startup/crt0.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/startup/crt0.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/startup/crt0.S
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/startup/crt0.S
+            $SED -i -e "s/|/\/\//gI" $MINTLIBDIR/startup/crt0.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/startup/crt0.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/startup/crt0.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/startup/crt0.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/startup/crt0.S
             
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/dirent/closedir.c
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/dirent/closedir.c
             
-            sed -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/mintbind.h
-            sed -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/mintbind.h
-            sed -i -e "s/,sp \"/,%%sp\"/gI" $MINTLIBDIR/include/mint/mintbind.h
-            sed -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/mintbind.h
-            sed -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/osbind.h
-            sed -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/osbind.h
-            sed -i -e "s/,sp\\\\n/,%%sp\\\\n/gI" $MINTLIBDIR/include/mint/osbind.h
-            sed -i -e "s/,sp \"/,%%sp\"/gI" $MINTLIBDIR/include/mint/osbind.h
-            sed -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/osbind.h
+            $SED -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/mintbind.h
+            $SED -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/mintbind.h
+            $SED -i -e "s/,sp \"/,%%sp\"/gI" $MINTLIBDIR/include/mint/mintbind.h
+            $SED -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/mintbind.h
+            $SED -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/osbind.h
+            $SED -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/osbind.h
+            $SED -i -e "s/,sp\\\\n/,%%sp\\\\n/gI" $MINTLIBDIR/include/mint/osbind.h
+            $SED -i -e "s/,sp \"/,%%sp\"/gI" $MINTLIBDIR/include/mint/osbind.h
+            $SED -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/osbind.h
         
-            sed -i -e "s/sp@-/%sp@-/gI" $MINTLIBDIR/mintlib/checkcpu.S
-            sed -i -e "s/,sp/,%sp/gI" $MINTLIBDIR/mintlib/checkcpu.S
+            $SED -i -e "s/sp@-/%sp@-/gI" $MINTLIBDIR/mintlib/checkcpu.S
+            $SED -i -e "s/,sp/,%sp/gI" $MINTLIBDIR/mintlib/checkcpu.S
         
-            sed -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/osbind.h
+            $SED -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/osbind.h
         
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/frexp.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/frexp.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/frexp.S
          
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/5%a0/5a0/gI" $MINTLIBDIR/mintlib/getcookie.S #lolol
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/getcookie.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/5%a0/5a0/gI" $MINTLIBDIR/mintlib/getcookie.S #lolol
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/getcookie.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/getcookie.S
          
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/getsysvar.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/getsysvar.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/getsysvar.S
          
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/ldexp.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/ldexp.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/ldexp.S
          
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/libc_exit.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/libc_exit.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/libc_exit.S
          
-            sed -i -e "s/d2\/a2\/a6/%%d2\/%%a2\/%%a6/gI" $MINTLIBDIR/include/mint/linea.h
-            sed -i -e "s/d2\/a2\/a6/%%d2\/%%a2\/%%a6/gI" $MINTLIBDIR/mintlib/linea.c
-            sed -i -e "s/sp@/%%sp@/gI" $MINTLIBDIR/include/mint/linea.h
+            $SED -i -e "s/d2\/a2\/a6/%%d2\/%%a2\/%%a6/gI" $MINTLIBDIR/include/mint/linea.h
+            $SED -i -e "s/d2\/a2\/a6/%%d2\/%%a2\/%%a6/gI" $MINTLIBDIR/mintlib/linea.c
+            $SED -i -e "s/sp@/%%sp@/gI" $MINTLIBDIR/include/mint/linea.h
         
-            sed -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/compiler.h
-            sed -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/compiler.h
-            sed -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/compiler.h
+            $SED -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/compiler.h
+            $SED -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/compiler.h
+            $SED -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/compiler.h
         
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/_normdf.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/_normdf.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/_normdf.S
          
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/modf.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/modf.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/modf.S
         
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/a7/%a7/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/setjmp.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/a7/%a7/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/setjmp.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/setjmp.S
         
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/a7/%a7/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/setstack.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/a7/%a7/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/mintlib/setstack.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/mintlib/setstack.S
         
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/stdlib/alloca.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/stdlib/alloca.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/stdlib/alloca.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/stdlib/alloca.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/stdlib/alloca.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/stdlib/alloca.S
         
-            sed -i -e "s/\tpc@/\t%pc@/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/a7/%a7/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/string/bcopy.S
-            sed -i -e "s/exit_%d2/exit_d2/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/\tpc@/\t%pc@/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/a7/%a7/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/string/bcopy.S
+            $SED -i -e "s/exit_%d2/exit_d2/gI" $MINTLIBDIR/string/bcopy.S
         
-            sed -i -e "s/\tpc@/\t%pc@/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/a7/%a7/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/string/bzero.S
-            sed -i -e "s/exit_%d2/exit_d2/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/\tpc@/\t%pc@/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/a7/%a7/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/string/bzero.S
+            $SED -i -e "s/exit_%d2/exit_d2/gI" $MINTLIBDIR/string/bzero.S
         
-            sed -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/falcon.h
-            sed -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/falcon.h
-            sed -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/falcon.h
+            $SED -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/falcon.h
+            $SED -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/falcon.h
+            $SED -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/falcon.h
         
-            sed -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/metados.h
-            sed -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/metados.h
-            sed -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/metados.h
+            $SED -i -e "s/,sp@/,%%sp@/gI" $MINTLIBDIR/include/mint/metados.h
+            $SED -i -e "s/,sp\"/,%%sp\"/gI" $MINTLIBDIR/include/mint/metados.h
+            $SED -i -e "s/\tsp/\t%%sp/gI" $MINTLIBDIR/include/mint/metados.h
         
-            sed -i -e "s/\tpc@/\t%pc@/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/sp/%sp/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a0/%a0/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a1/%a1/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a2/%a2/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a3/%a3/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a4/%a4/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a5/%a5/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a6/%a6/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/a7/%a7/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d4/%d4/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d5/%d5/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d0/%d0/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d1/%d1/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d2/%d2/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d3/%d3/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d7/%d7/gI" $MINTLIBDIR/unix/vfork.S
-            sed -i -e "s/d6/%d6/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/\tpc@/\t%pc@/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/sp/%sp/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a0/%a0/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a1/%a1/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a2/%a2/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a3/%a3/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a4/%a4/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a5/%a5/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a6/%a6/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/a7/%a7/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d4/%d4/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d5/%d5/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d0/%d0/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d1/%d1/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d2/%d2/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d3/%d3/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/unix/vfork.S
+            $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/unix/vfork.S
         
             # Even though -fleading-underscore is enforced in gcc, it still needs setting in these makefiles
             # Go. Figure.
             # (TODO: unless of course it doesn't any more)
-            sed -i -e "s/srcdir)\/time/srcdir)\/time -fleading-underscore/gI" $MINTLIBDIR/tz/Makefile
-            sed -i -e "s/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT -fleading-underscore/gI" $MINTLIBDIR/checkrules
-            sed -i -e "s/-std=gnu89/-std=gnu89 -fleading-underscore/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/srcdir)\/time/srcdir)\/time -fleading-underscore/gI" $MINTLIBDIR/tz/Makefile
+            $SED -i -e "s/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT -fleading-underscore/gI" $MINTLIBDIR/checkrules
+            $SED -i -e "s/-std=gnu89/-std=gnu89 -fleading-underscore/gI" $MINTLIBDIR/configvars
         
             # Furhter targets (020+, coldfire)
-            sed -i -e "s/sp@+/%sp@+/gI" $MINTLIBDIR/mintlib/checkcpu.S
-            sed -i -e "s/\tsp/\t%sp/gI" $MINTLIBDIR/mintlib/checkcpu.S
+            $SED -i -e "s/sp@+/%sp@+/gI" $MINTLIBDIR/mintlib/checkcpu.S
+            $SED -i -e "s/\tsp/\t%sp/gI" $MINTLIBDIR/mintlib/checkcpu.S
             
-            sed -i -e "s/,sp/,%%sp/gI" $MINTLIBDIR/include/compiler.h
-            sed -i -e "s/,sp/,%%%%sp/gI" $MINTLIBDIR/syscall/traps.c
-            sed -i -e "s/sp@(/%%%%sp@(/gI" $MINTLIBDIR/syscall/traps.c
+            $SED -i -e "s/,sp/,%%sp/gI" $MINTLIBDIR/include/compiler.h
+            $SED -i -e "s/,sp/,%%%%sp/gI" $MINTLIBDIR/syscall/traps.c
+            $SED -i -e "s/sp@(/%%%%sp@(/gI" $MINTLIBDIR/syscall/traps.c
         
             # Extra things (clobbered reg lists etc)
             $SED -i -e 's/\\"d0\\"/\\"%%%%d0\\"/gI' $MINTLIBDIR/syscall/traps.c
@@ -539,7 +539,7 @@ buildgcc()
         # edit file gcc-$1/libstdc++-v3/configure - comment out the line:
         ##as_fn_error "No support for this host/target combination." "$LINENO" 5
     
-        sed -i -e 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-$1/libstdc++-v3/configure
+        $SED -i -e 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-$1/libstdc++-v3/configure
         
         # *** hack configure to remove dlopen stuff
         
@@ -548,7 +548,7 @@ buildgcc()
         #-  AC_LIBTOOL_DLOPEN
         #+#  AC_LIBTOOL_DLOPEN
         # fi
-        sed -i -e "s/  AC_LIBTOOL_DLOPEN/#  AC_LIBTOOL_DLOPEN/gI" $HOMEDIR/gcc-$1/libstdc++-v3/configure.ac
+        $SED -i -e "s/  AC_LIBTOOL_DLOPEN/#  AC_LIBTOOL_DLOPEN/gI" $HOMEDIR/gcc-$1/libstdc++-v3/configure.ac
         
         #libstdc++-v3/configure:
         #
@@ -556,7 +556,7 @@ buildgcc()
         #*** change to as_echo_n so the configure doesn't halt on this error
         #
         #  as_echo_n "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
-        sed -i -e "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" $HOMEDIR/gcc-$1/libstdc++-v3/configure
+        $SED -i -e "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" $HOMEDIR/gcc-$1/libstdc++-v3/configure
     
         #*** remove the contents of cow-stdexcept.cc
         #
@@ -599,8 +599,8 @@ buildgcc()
         cd $HOMEDIR/build-gcc-$1
         $NICE make configure-target-libstdc++-v3
      
-        #sed -i -e "s/-std=gnu++98//gI" $HOMEDIR/gcc-$1/build/src/Makefile
-        sed -i -e "s/-std=gnu++98//gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/src/Makefile
+        #$SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/gcc-$1/build/src/Makefile
+        $SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/src/Makefile
     
         
         #*** fix type_traits to avoid macro collision: convert '_CTp' to '_xCTp' because ctypes.h defines _CTp as 0x20
@@ -621,26 +621,26 @@ buildgcc()
         #       (yeah right, that will happen soon)
         if [ "$BUILD_MINTLIB" != "0" ]
         then
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/softfp/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/softfp/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mcpu32/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5407/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m54455/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/softfp/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/softfp/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m51qe/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206e/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5208/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5307/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5329/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68000/libstdc++-v3/include/type_traits
-            sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mcpu32/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5407/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m54455/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m51qe/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206e/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5208/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5307/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5329/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68000/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/include/type_traits
         fi
 
         #*** fix type_traits to favour <cstdint> over those partially-defined wierd builtin int_leastXX, int_fastXX types
@@ -652,26 +652,26 @@ buildgcc()
         # Patch all multilib instances
         # TODO: replace this with a grep or find command
         #       (yeah right, that will happen soon)
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/softfp/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/softfp/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mcpu32/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5407/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m54455/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/softfp/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/softfp/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m51qe/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206e/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5208/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5307/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5329/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68000/libstdc++-v3/include/type_traits
-        sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mcpu32/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5407/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m54455/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m51qe/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206e/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5208/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5307/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5329/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68000/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/include/type_traits
     
     fi
     
@@ -688,12 +688,12 @@ buildgcc()
             # From what I could see libgfortran only has some function re-declarations
             # This might be possible to fix by passing proper configuration options
             # during configuration, but lolwtfwhocares - let's patch some files! 
-            sed -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
-            sed -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
-            sed -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
-            sed -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-            sed -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-            sed -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
+            $SED -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
+            $SED -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
+            $SED -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
+            $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
+            $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
+            $SED -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
         
             make configure-target-libgfortran
             $NICE make $JMULT all-target-libgfortran
@@ -738,7 +738,7 @@ buildgcc()
         # This system include isn't picked up for some reason 
         if [ "$machine" == "Mac" ]
         then
-            sed -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" $HOMEDIR/gcc-$1/gcc/system.h 
+            $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" $HOMEDIR/gcc-$1/gcc/system.h 
         fi 
     
         $NICE make all $JMULT
@@ -780,7 +780,7 @@ buildgcc()
         cd $BINPACKAGE_DIR
         # Since make install uses the non-patched type_traits file let's patch them here too
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
-        for i in `find . -name type_traits`; do echo Patching $i; sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
+        for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
     
         strip .$INSTALL_PREFIX/bin/*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
@@ -967,23 +967,23 @@ fi
 export CC=gcc-4.8
 export CXX=g++-4.8
 
-if [ "$BUILD_4_6_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-4.6.4; buildgcc 4.6.4; fi
-if [ "$BUILD_4_9_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-4.9.4; buildgcc 4.9.4; fi
+if [ "$BUILD_4_6_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.6.4; buildgcc 4.6.4; fi
+if [ "$BUILD_4_9_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.9.4; buildgcc 4.9.4; fi
                                                                                          
 export CC=gcc-5                                                                          
 export CXX=g++-5                                                                         
                                                                                          
-if [ "$BUILD_5_4_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-5.4.0; buildgcc 5.4.0; fi
+if [ "$BUILD_5_4_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-5.4.0; buildgcc 5.4.0; fi
                                                                                          
 export CC=gcc-6                                                                          
 export CXX=g++-6                                                                         
-if [ "$BUILD_6_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-6.2.0; buildgcc 6.2.0; fi
+if [ "$BUILD_6_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-6.2.0; buildgcc 6.2.0; fi
                                                                                          
 export CC=gcc-7                                                                          
 export CXX=g++-7                                                                         
-if [ "$BUILD_7_1_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-7.1.0; buildgcc 7.1.0; fi
-if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-7.2.0; buildgcc 7.2.0; fi
-if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-7.3.0; buildgcc 7.3.0; fi
+if [ "$BUILD_7_1_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.1.0; buildgcc 7.1.0; fi
+if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.2.0; buildgcc 7.2.0; fi
+if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.3.0; buildgcc 7.3.0; fi
 
 echo "All done!"
 echo
