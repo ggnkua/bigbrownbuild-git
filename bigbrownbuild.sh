@@ -209,7 +209,7 @@ buildgcc()
                 $SED -i -e $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
             fi
         
-            # Set C standard to avoid shit blow up
+            # Set C standard to avoid shit blowing up
             $SED -i -e "s/-O2 -fomit-frame-pointer/-O2 -fomit-frame-pointer -std=gnu89/gI" $MINTLIBDIR/configvars
         
             # Set cross compiler
@@ -805,49 +805,9 @@ buildgcc()
         find .$INSTALL_PREFIX/lib/gcc/m68k-atari$1-elf/* -name '*.a' -print -exec m68k-atari$1-elf-strip -S -x '{}' ';'
         $TAR --owner=0 --group=0 -jcvf gcc-7.1-atari$1bin.tar.bz2 .$INSTALL_PREFIX
     fi
+
+    cd $HOMEDIR
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -986,7 +946,3 @@ if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016
 if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.3.0; buildgcc 7.3.0; fi
 
 echo "All done!"
-echo
-echo "If all went well there should be .tar.bz2 files inside"
-echo """build-binutils"" and ""build-gcc"" folders"
-echo "and mintlib-0.60.1-bin.tar.gz inside ""mintlib-CVS-20160320"" folder!"
