@@ -18,7 +18,7 @@ A collection of brown scripts that build brown compilers and libaries for the At
 
 * GST extended symbols
 
-* can preview code generation in Godbolt/68k
+* can preview code generation in Godbolt/68k (try it live at http://brownbot.hopto.org)
 
 * path open for future gcc releases
 
@@ -48,27 +48,27 @@ GMP/MPFR/MPC are required for building gcc, flex and bison for building MiNTlib.
 
 Use Macports and install:
 
-*gmp
+* gmp
 
-*mpfr
+* mpfr
 
-*libmpc
+* libmpc
 
-*bison
+* bison
 
-*flex
+* flex
 
-*gsed
+* gsed
 
-*gnutar
+* gnutar
 
 #Installation
 
-The script will install things to $INSTALL_PREFIX and might need root privileges. Also it'll use $JMULT cores while building. If this is not to your liking then edit this script and change INSTALL_PREFIX to the path you would like to install to (including home folder) and SUDO to nothing if you don't need root rights. Also JMULT for number of build cores. Examples are inside the script's comments
+The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments
 
 #Post installation
 
-It is recommended to run _postinstall.sh to rename mintlib's install directories to more sane names. Don't forget to edit the paths first before running!
+It is recommended to run ```_postinstall.sh``` to rename mintlib's install directories to more sane names. Don't forget to edit the paths first before running!
 
 Also, make absolutely sure you run it only once!
 
