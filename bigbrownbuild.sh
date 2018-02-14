@@ -1,6 +1,7 @@
 set -e			#stop on any error encountered
 #set -x                  #echo all commands
 
+# Build subroutine
 # Parameter 1=version
 buildgcc()
 {
@@ -153,7 +154,7 @@ buildgcc()
         if [[ $REPLY =~ ^[Yy]$ ]]
         then
         
-            MINTLIBDIR=$HOMEDIR/mintlib-CVS-20160320
+            MINTLIBDIR=$HOMEDIR/mintlib-CVS-20160320-$1
         
             # Create missing targets
             cp -R $MINTLIBDIR/lib/ $MINTLIBDIR/lib_mshort
@@ -674,30 +675,31 @@ buildgcc()
     
     fi
     
-    #### FORTRAN DISABLED FOR NOW - GETTING INTERNAL COMPILER ERROR FROM GCC!!!!
-#    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-#        REPLY=N
-#    else    
-#        read -p "Configure, source patch and build glibfortran?" -n 1 -r
-#        echo
-#    fi
-#    if [[ $REPLY =~ ^[Yy]$ ]]
-#    then
-#        # From what I could see libgfortran only has some function re-declarations
-#        # This might be possible to fix by passing proper configuration options
-#        # during configuration, but lolwtfwhocares - let's patch some files! 
-#        sed -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
-#        sed -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
-#        sed -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
-#        sed -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-#        sed -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-#        sed -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
-#    
-#        make configure-target-libgfortran
-#        $NICE make $JMULT all-target-libgfortran
-#        make install-target-libgfortran
-#    fi
-#    
+    # Build Fortran (a bit unstable for now)
+    if [ "$BUILD_FORTRAN" == "1" ]; then
+        if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+            REPLY=N
+        else    
+            read -p "Configure, source patch and build glibfortran?" -n 1 -r
+            echo
+        fi
+        if [[ $REPLY =~ ^[Yy]$ ]]
+        then
+            # From what I could see libgfortran only has some function re-declarations
+            # This might be possible to fix by passing proper configuration options
+            # during configuration, but lolwtfwhocares - let's patch some files! 
+            sed -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
+            sed -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
+            sed -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
+            sed -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
+            sed -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
+            sed -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
+        
+            make configure-target-libgfortran
+            $NICE make $JMULT all-target-libgfortran
+            make install-target-libgfortran
+        fi
+    fi 
     #*** build it
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -881,13 +883,13 @@ SUDO=
 INSTALL_PREFIX=${HOME}/opt
 
 # Which gccs to build. 1=Build, anything else=Don't build
-BUILD_4_6_4=0
-BUILD_4_9_4=0
+BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+BUILD_4_9_4=1
 BUILD_5_4_0=1
-BUILD_6_2_0=0
-BUILD_7_1_0=0
-BUILD_7_2_0=0
-BUILD_7_3_0=0
+BUILD_6_2_0=1
+BUILD_7_1_0=1
+BUILD_7_2_0=1
+BUILD_7_3_0=1
 
 # Get all the things
 
@@ -902,11 +904,20 @@ if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/bin
 if [ ! -f mintlib-CVS-20160320.tar ]; then wget http://d-bug.mooo.com/releases/mintlib-CVS-20160320.tar; fi
 # requires GMP, MPFR and MPC
 
-# Unpack all the things
-
-cd $HOMEDIR
 
 
+
+# Comment this out if you want a completely automated run
+GLOBAL_OVERRIDE=A
+
+# Only set this to nonzero when you do want to build mintlib
+# Note that if you don't build mintlib then libstdc++v3 will also fail to build
+BUILD_MINTLIB=1
+
+# Building Fortran seems unstable for now so it's off by default
+BUILD_FORTRAN=0
+
+# Cleanup folders
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
@@ -915,9 +926,20 @@ else
 fi
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    rm -rf binary-package binutils-2.27 build-binutils* build-gcc-* gcc-4.6.4 gcc-9.4 gcc-5.4.0 gcc-6.2.0 gcc-7.1.0 gcc-7.2.0 gcc-7.3.0 mintlib-CVS-20160320
+    rm -rf binary-package 
+    rm -rf binutils-2.27
+    if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4 build-gcc-4.6.4 build-binutils-4.6.4 mintlib-CVS-20160320-4.6.4; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then rm -rf gcc-4.9.4 build-gcc-4.9.4 build-binutils-4.9.4 mintlib-CVS-20160320-4.9.4; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then rm -rf gcc-5.4.0 build-gcc-5.4.0 build-binutils-5.4.0 mintlib-CVS-20160320-5.4.0; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then rm -rf gcc-6.2.0 build-gcc-6.2.0 build-binutils-6.2.0 mintlib-CVS-20160320-6.2.0; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then rm -rf gcc-7.1.0 build-gcc-7.1.0 build-binutils-7.1.0 mintlib-CVS-20160320-7.1.0; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then rm -rf gcc-7.2.0 build-gcc-7.2.0 build-binutils-7.2.0 mintlib-CVS-20160320-7.2.0; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0 build-gcc-7.3.0 build-binutils-7.3.0 mintlib-CVS-20160320-7.3.0; fi
+    rm -rf mintlib-CVS-20160320
 fi
 
+# Unpack all the things
+cd $HOMEDIR
 if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
     REPLY=Y
 else    
@@ -934,37 +956,34 @@ then
     if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
     if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
     tar -jxvf binutils-2.27.tar.bz2
-    #tar -zxvf mintlib-CVS-20160320.tar
+    tar -zxvf mintlib-CVS-20160320.tar
 fi
 
-# Comment this out if you want a completely automated run
-GLOBAL_OVERRIDE=A
+# Start the build
 
-# Only set this to nonzero when you do want to build mintlib
-# Note that if you don't build mintlib then libstdc++v3 will also fail to build
-BUILD_MINTLIB=1
 
 # This might be needed as gcc 7.2 doesn't seem to build 4.6.4...
-export CC=gcc-4
-export CXX=g++-4
+# Note that these exports are ubuntu 17.10 specific, you might need to change them depending on your distro!
+export CC=gcc-4.8
+export CXX=g++-4.8
 
-if [ "$BUILD_4_6_4" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 4.6.4; fi
-if [ "$BUILD_4_9_4" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 4.9.4; fi
-
-export CC=gcc-5
-export CXX=g++-5
-
-if [ "$BUILD_5_4_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 5.4.0; fi
-
-export CC=gcc-6
-export CXX=g++-6
-if [ "$BUILD_6_2_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 6.2.0; fi
-
-export CC=gcc-7
-export CXX=g++-7
-if [ "$BUILD_7_1_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.1.0; fi
-if [ "$BUILD_7_2_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.2.0; fi
-if [ "$BUILD_7_3_0" == "1" ]; then rm -rf mintlib-CVS-20160320 && tar -zxvf mintlib-CVS-20160320.tar; buildgcc 7.3.0; fi
+if [ "$BUILD_4_6_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-4.6.4; buildgcc 4.6.4; fi
+if [ "$BUILD_4_9_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-4.9.4; buildgcc 4.9.4; fi
+                                                                                         
+export CC=gcc-5                                                                          
+export CXX=g++-5                                                                         
+                                                                                         
+if [ "$BUILD_5_4_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-5.4.0; buildgcc 5.4.0; fi
+                                                                                         
+export CC=gcc-6                                                                          
+export CXX=g++-6                                                                         
+if [ "$BUILD_6_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-6.2.0; buildgcc 6.2.0; fi
+                                                                                         
+export CC=gcc-7                                                                          
+export CXX=g++-7                                                                         
+if [ "$BUILD_7_1_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-7.1.0; buildgcc 7.1.0; fi
+if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-7.2.0; buildgcc 7.2.0; fi
+if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-2016032-7.3.0; buildgcc 7.3.0; fi
 
 echo "All done!"
 echo
