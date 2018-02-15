@@ -1,10 +1,211 @@
 set -e			#stop on any error encountered
 #set -x                  #echo all commands
 
+mainbrown()
+{
+
+    #
+    # Make sure this is being run under bash
+    # Very bad things happen on other shells (like sh)
+    #
+    
+    if [ -z "$BASH_VERSION"  ]; then
+        echo "Please run this script under bash!"
+        exit
+    fi	
+
+    #   
+    # User definable stuff
+    #
+
+    # Set this to "A" if you want a completely automated run
+    GLOBAL_OVERRIDE=A
+    
+    # Which gccs to build. 1=Build, anything else=Don't build
+    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_9_4=0
+    BUILD_5_4_0=0
+    BUILD_6_2_0=0
+    BUILD_7_1_0=1
+    BUILD_7_2_0=0
+    BUILD_7_3_0=0
+
+    # Should we run this as an administrator or user?
+    # Administrator mode will install the compiler in
+    # the system's folders and will require root priviledges
+    #RUN_MODE=Admin
+    RUN_MODE=User
+
+    # Only set this to nonzero when you do want to build mintlib
+    # Note that if you don't build mintlib then libstdc++v3 will also fail to build
+    BUILD_MINTLIB=1
+    
+    # How are the various gcc versions named. This is tuned for ubuntu 17.10
+    # so your mileage may vary! Also you might be able to build all gcc versions using one
+    # compiler - so many problems were encountered in Ubuntu (including Internal Compiler
+    # Errors) that this is now in full pendantic mode. Again, your mileage may vary!
+    CC4=gcc-4.8
+    CXX4=g++-4.8
+    CC5=gcc-5
+    CXX5=g++-5
+    CC6=gcc-6
+    CXX6=g++-6
+    CC7=gcc-7
+    CXX7=g++-7
+
+    #
+    # Setup stuff
+    #
+
+    # Figure out from what environment we are being run
+    # Nicked from https://stackoverflow.com/a/3466183
+    unameOut="$(uname -s)"
+    case "${unameOut}" in
+        Linux*)     machine=Linux;;
+        Darwin*)    machine=Mac;;
+        CYGWIN*)    machine=Cygwin;;
+        MINGW*)     machine=MinGw;;
+        *)          machine="UNKNOWN:${unameOut}"
+    esac
+    echo Host machine: $machine
+    
+    # Some global stuff that are platform dependent
+    HOMEDIR=$PWD
+    NICE='nice -20'
+    JMULT=-j4
+    BINPACKAGE_DIR=$PWD/binary-package
+    SED=sed
+    TAR=tar
+
+    if [ "$machine" == "MinGw" ]
+    then
+        # Msys has no idea what "sudo" and "nice" are.
+        # Also, it's not liking parallel builds that much.
+        unset SUDO
+        unset NICE
+        unset JMULT
+    fi
+    if [ "$machine" == "Cygwin" ]
+    then
+        # Disable some stuff for cygwin as well
+        unset SUDO
+        unset NICE
+    fi
+
+    if [ "$RUN_MODE" == "Admin" ]
+    then
+        # Administrator mode
+        SUDO=sudo
+        if [ "$machine" == "Mac" ]
+        then
+            INSTALL_PREFIX=/opt/local/
+        else
+            INSTALL_PREFIX=/usr
+        fi
+    else
+        # User mode
+        SUDO=
+        #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
+        INSTALL_PREFIX=${HOME}/opt
+    fi
+    
+    # Get all the things
+    
+    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
+    if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
+    if [ ! -f mintlib-CVS-20160320.tar ]; then wget http://d-bug.mooo.com/releases/mintlib-CVS-20160320.tar; fi
+    # requires GMP, MPFR and MPC
+    
+    # Cleanup folders
+    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        REPLY=Y
+    else    
+        read -p "Cleanup build dirs from previous build?" -n 1 -r
+        echo
+    fi
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        rm -rf binary-package 
+        rm -rf binutils-2.27
+        if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4 build-gcc-4.6.4 build-binutils-4.6.4 mintlib-CVS-20160320-4.6.4; fi
+        if [ "$BUILD_4_9_4" == "1" ]; then rm -rf gcc-4.9.4 build-gcc-4.9.4 build-binutils-4.9.4 mintlib-CVS-20160320-4.9.4; fi
+        if [ "$BUILD_5_4_0" == "1" ]; then rm -rf gcc-5.4.0 build-gcc-5.4.0 build-binutils-5.4.0 mintlib-CVS-20160320-5.4.0; fi
+        if [ "$BUILD_6_2_0" == "1" ]; then rm -rf gcc-6.2.0 build-gcc-6.2.0 build-binutils-6.2.0 mintlib-CVS-20160320-6.2.0; fi
+        if [ "$BUILD_7_1_0" == "1" ]; then rm -rf gcc-7.1.0 build-gcc-7.1.0 build-binutils-7.1.0 mintlib-CVS-20160320-7.1.0; fi
+        if [ "$BUILD_7_2_0" == "1" ]; then rm -rf gcc-7.2.0 build-gcc-7.2.0 build-binutils-7.2.0 mintlib-CVS-20160320-7.2.0; fi
+        if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0 build-gcc-7.3.0 build-binutils-7.3.0 mintlib-CVS-20160320-7.3.0; fi
+        rm -rf mintlib-CVS-20160320
+    fi
+    
+    # Unpack all the things
+    cd $HOMEDIR
+    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        REPLY=Y
+    else    
+        read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
+        echo
+    fi
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
+        if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
+        if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
+        if [ "$BUILD_6_2_0" == "1" ]; then tar -jxvf gcc-6.2.0.tar.bz2; fi
+        if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
+        if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
+        if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
+        tar -jxvf binutils-2.27.tar.bz2
+        tar -zxvf mintlib-CVS-20160320.tar
+    fi
+   
+    # 
+    # Start the build
+    #
+
+    # This might be needed as gcc 7.2 doesn't seem to build 4.6.4...
+    # Note that these exports are ubuntu 17.10 specific, you might need to change them depending on your distro!
+    export CC=$CC4
+    export CXX=$CXX4
+    # Building Fortran for old gcc versions doesn't seem to work so it's disabled for now...
+    BUILD_FORTRAN=0
+    
+    if [ "$BUILD_4_6_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.6.4; buildgcc 4.6.4; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.9.4; buildgcc 4.9.4; fi
+                                                                                             
+    export CC=$CC5
+    export CXX=$CXX5
+                                                                                             
+    if [ "$BUILD_5_4_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-5.4.0; buildgcc 5.4.0; fi
+                                                                                             
+    export CC=$CC6
+    export CXX=$CXX6
+    if [ "$BUILD_6_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-6.2.0; buildgcc 6.2.0; fi
+                                                                                             
+    export CC=$CC7
+    export CXX=$CXX7
+    BUILD_FORTRAN=1
+    if [ "$BUILD_7_1_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.1.0; buildgcc 7.1.0; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.2.0; buildgcc 7.2.0; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.3.0; buildgcc 7.3.0; fi
+    
+    echo "All done!"
+}
+
 # Build subroutine
 # Parameter 1=version
+
 buildgcc()
 {
+    # Construct compiler vendor name
+
+    VENDOR=atari$1
+
     # binutils build dir
     # Configure, build and install binutils for m68k elf
     
@@ -18,11 +219,11 @@ buildgcc()
     then
         mkdir -p $HOMEDIR/build-binutils-$1
         cd $HOMEDIR/build-binutils-$1
-        ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-atari$1-elf
+        ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
         make
         $SUDO make install
-        $SUDO strip $INSTALL_PREFIX/bin/*atari$1*
-        $SUDO strip $INSTALL_PREFIX/m68k-atari$1-elf/bin/*
+        $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
+        $SUDO strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
     
         # Package up binutils
@@ -30,9 +231,9 @@ buildgcc()
         make install DESTDIR=$BINPACKAGE_DIR
         cd $BINPACKAGE_DIR
         strip .$INSTALL_PREFIX/bin/*
-        strip .$INSTALL_PREFIX/m68k-atari$1-elf/bin/*
+        strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-        $TAR --owner=0 --group=0 -jcvf binutils-2.27-atari$1-bin.tar.bz2 .$INSTALL_PREFIX
+        $TAR --owner=0 --group=0 -jcvf binutils-2.27-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
     # home directory
@@ -69,7 +270,7 @@ buildgcc()
         mkdir -p $HOMEDIR/build-gcc-$1
         cd $HOMEDIR/build-gcc-$1
         ../gcc-$1/configure \
-            --target=m68k-atari$1-elf \
+            --target=m68k-$VENDOR-elf \
             --disable-nls \
             --enable-languages=$LANGUAGES \
             --enable-lto \
@@ -94,9 +295,9 @@ buildgcc()
         # which means - botch time!                                     
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
         then
-            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-atari$1-elf/
-            $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/
-            $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-atari$1-elf/
+            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/
+            $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/
+            $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/
         fi
     
     fi
@@ -209,14 +410,14 @@ buildgcc()
                 $SED -i -e $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
             fi
         
-            # Set C standard to avoid shit blowing up
+            # Set C standard to prevent shit from blowing up
             $SED -i -e "s/-O2 -fomit-frame-pointer/-O2 -fomit-frame-pointer -std=gnu89/gI" $MINTLIBDIR/configvars
         
             # Set cross compiler
             $SED -i -e "s/AM_DEFAULT_VERBOSITY = 1/AM_DEFAULT_VERBOSITY = 0/gI" $MINTLIBDIR/configvars
             $SED -i -e "s/#CROSS=yes/CROSS=yes/gI" $MINTLIBDIR/configvars
-            $SED -i -e "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-atari$1-elf|gI" $MINTLIBDIR/configvars
-            $SED -i -e "s/m68k-atari-mint/m68k-atari$1-elf/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s|prefix=/usr/m68k-atari-mint|prefix=${INSTALL_PREFIX}/m68k-$VENDOR-elf|gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/m68k-atari-mint/m68k-$VENDOR-elf/gI" $MINTLIBDIR/configvars
         
             # Convert syntax into new gcc/gas format
         
@@ -486,7 +687,7 @@ buildgcc()
             $SED -i -e 's/\\"a0\\"/\\"%%%%a0\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
-            $SED -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-atari$1-elf|gI" $MINTLIBDIR/buildrules
+            $SED -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-$VENDOR-elf|gI" $MINTLIBDIR/buildrules
         
             cd $MINTLIBDIR
         
@@ -497,10 +698,10 @@ buildgcc()
             # For some reason math.h isn't installed so we do it by hand
             # ¯\_(ツ)_/¯ 
             $SUDO make install
-            $SUDO cp include/math.h $INSTALL_PREFIX/m68k-atari$1-elf/include
+            $SUDO cp include/math.h $INSTALL_PREFIX/m68k-$VENDOR-elf/include
             if [ "$machine" == "Mac" ]
             then
-                $SUDO chmod g+r $INSTALL_PREFIX/m68k-atari$1-elf/include/math.h
+                $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
             fi
         
             # Create lib binary package
@@ -522,8 +723,8 @@ buildgcc()
     then
         if [ "$BUILD_MINTLIB" != "0" ]
         then
-            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-atari$1-elf/include/
-            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-atari$1-elf/share/
+            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include/
+            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/share/
         fi
     fi
     
@@ -600,7 +801,7 @@ buildgcc()
         $NICE make configure-target-libstdc++-v3
      
         #$SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/gcc-$1/build/src/Makefile
-        $SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/src/Makefile
+        $SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/src/Makefile
     
         
         #*** fix type_traits to avoid macro collision: convert '_CTp' to '_xCTp' because ctypes.h defines _CTp as 0x20
@@ -621,26 +822,26 @@ buildgcc()
         #       (yeah right, that will happen soon)
         if [ "$BUILD_MINTLIB" != "0" ]
         then
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mcpu32/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5407/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m54455/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m51qe/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206e/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5208/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5307/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5329/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68000/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mcpu32/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5407/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m54455/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m51qe/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206e/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5208/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5307/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
         fi
 
         #*** fix type_traits to favour <cstdint> over those partially-defined wierd builtin int_leastXX, int_fastXX types
@@ -652,30 +853,30 @@ buildgcc()
         # Patch all multilib instances
         # TODO: replace this with a grep or find command
         #       (yeah right, that will happen soon)
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68060/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mcpu32/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5407/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m54455/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5475/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68040/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m51qe/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5206e/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5208/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5307/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m5329/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/m68000/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-atari$1-elf/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mcpu32/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5407/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m54455/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m51qe/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206e/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5208/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5307/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
     
     fi
     
-    # Build Fortran (a bit unstable for now)
+    # Build Fortran (not guaranteed to work for gccs earlier than 7)
     if [ "$BUILD_FORTRAN" == "1" ]; then
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
             REPLY=N
@@ -743,26 +944,26 @@ buildgcc()
     
         $NICE make all $JMULT
         $SUDO make install
-        $SUDO strip $INSTALL_PREFIX/bin/*atari$1*
+        $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
         then
-            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1plus* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/collect2* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto1* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto-wrapper*
+            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
         else
-            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1plus* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/collect2* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/liblto_plugin.so \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/liblto_plugin.so.0 \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/liblto_plugin.so.0.0.0 \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto1 \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto-wrapper
+            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
+    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
         fi
-        $SUDO find $INSTALL_PREFIX/m68k-atari$1-elf/lib -name '*.a' -print -exec m68k-atari$1-elf-strip -S -x '{}' ';'
-        $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-atari$1-elf/* -name '*.a' -print -exec m68k-atari$1-elf-strip -S -x '{}' ';'
+        $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
+        $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         
     fi
     
@@ -785,164 +986,117 @@ buildgcc()
         strip .$INSTALL_PREFIX/bin/*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
         then
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto-wrapper*
+            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
         else
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/liblto_plugin.so \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/liblto_plugin.so.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/liblto_plugin.so.0.0.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto1 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-atari$1-elf/$1/lto-wrapper
+            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
+    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
         fi
     
-        find .$INSTALL_PREFIX/m68k-atari$1-elf/lib -name '*.a' -print -exec m68k-atari$1-elf-strip -S -x '{}' ';'
-        find .$INSTALL_PREFIX/lib/gcc/m68k-atari$1-elf/* -name '*.a' -print -exec m68k-atari$1-elf-strip -S -x '{}' ';'
-        $TAR --owner=0 --group=0 -jcvf gcc-7.1-atari$1bin.tar.bz2 .$INSTALL_PREFIX
+        find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
+        find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
+        $TAR --owner=0 --group=0 -jcvf gcc-7.1-$VENDORbin.tar.bz2 .$INSTALL_PREFIX
     fi
 
+    # reorganise install dirs to map libs to all processor switches
+    #
+    # on completion the target:lib variants will be:
+    #
+    # m68000/		assumes no fpu
+    # m68020/		assumes 68881/2
+    # m68020/softfp		assumes no fpu
+    # m68020-60/		assumes any 0x0 cpu, 68881/2
+    # m68020-60/softfp	assumes any 0x0 cpu, no fpu
+    # m68040/		assumes internal fpu
+    # m68060/		assumes internal fpu
+    
+    
+    LIBGCC=$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/$1
+    LIBCXX=$INSTALL_PREFIX/m68k-$VENDOR-elf/lib
+    
+    #-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
+    
+    # make subdir for gcc default cpu (020)
+    mkdir -p $LIBGCC/m68020
+    cp -r $LIBGCC/*.o $LIBGCC/m68020/.
+    cp -r $LIBGCC/*.a $LIBGCC/m68020/.
+    cp -r $LIBGCC/softfp $LIBGCC/m68020
+    
+    #-------------------------------------------------------------------------------
+    
+    # make subdir for gcc cpu (020-60)
+    # we aren't generating 060-clean versions yet so we use the
+    # soft-float 020 version as a safe compromise
+    mkdir -p $LIBGCC/m68020-60
+    cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
+    cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
+    cp -r $LIBGCC/softfp $LIBGCC/m68020-60
+    
+    #-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
+    
+    # make subdir for libc++ default cpu (020)
+    mkdir -p $LIBCXX/m68020
+    mkdir -p $LIBCXX/m68020/softfp
+    cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
+    cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
+    cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
+    cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
+    
+    #-------------------------------------------------------------------------------
+    
+    # transfer libc to correct subdirs (68k)
+    mv $LIBCXX/libc.a $LIBCXX/m68000/.
+    mv $LIBCXX/libiio.a $LIBCXX/m68000/.
+    mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
+    
+    # publish 020/fpu version of libc as default
+    cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
+    cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
+    cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
+    
+    # publish 020/softfp version of libc as default softfp
+    cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
+    cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
+    rm -rf $LIBCXX/m68020-20_soft
+    
+    # transfer libc to correct subdirs (020-60)
+    mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
+    
+    cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
+    cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
+    
+    #-------------------------------------------------------------------------------
+    # 68040,060
+    
+    # we prefer not to transfer transfer 020/fpu libs to 040-060 because emulated 
+    # fpu ops may be generated. better to build a 040/060 variant of libstdc++
+    # as a safe compromise for now we use the 020/softfp variant
+    cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
+    cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
+    
+    # we don't bother with LC versions of 040/060 so...
+    rm -rf $LIBCXX/m68040/softfp 
+    rm -rf $LIBCXX/m68060/softfp 
+    rm -rf $LIBGCC/m68040/softfp 
+    rm -rf $LIBGCC/m68060/softfp 
+    
+    # crt0.o, gcrt0.o are 68k asm and don't need relocated
+
+
+    # The end, just be a good citizen and go back to the directory we were called from
     cd $HOMEDIR
 }
 
+mainbrown "$@"
 
-
-
-
-#
-# Setup stuff
-#
-
-# Figure out from what environment we are being run
-# Nicked from https://stackoverflow.com/a/3466183
-unameOut="$(uname -s)"
-case "${unameOut}" in
-    Linux*)     machine=Linux;;
-    Darwin*)    machine=Mac;;
-    CYGWIN*)    machine=Cygwin;;
-    MINGW*)     machine=MinGw;;
-    *)          machine="UNKNOWN:${unameOut}"
-esac
-echo Host machine: $machine
-
-# Some global stuff that are platform dependent
-HOMEDIR=$PWD
-NICE='nice -20'
-JMULT=-j4
-BINPACKAGE_DIR=$PWD/binary-package
-SED=sed
-TAR=tar
-
-# User mode
-SUDO=
-#INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-INSTALL_PREFIX=${HOME}/opt
-
-# Which gccs to build. 1=Build, anything else=Don't build
-BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
-BUILD_4_9_4=1
-BUILD_5_4_0=1
-BUILD_6_2_0=1
-BUILD_7_1_0=1
-BUILD_7_2_0=1
-BUILD_7_3_0=1
-
-# Get all the things
-
-if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
-if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi; fi
-if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi; fi
-if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi; fi
-if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi; fi
-if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
-if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
-if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
-if [ ! -f mintlib-CVS-20160320.tar ]; then wget http://d-bug.mooo.com/releases/mintlib-CVS-20160320.tar; fi
-# requires GMP, MPFR and MPC
-
-
-
-
-# Comment this out if you want a completely automated run
-GLOBAL_OVERRIDE=A
-
-# Only set this to nonzero when you do want to build mintlib
-# Note that if you don't build mintlib then libstdc++v3 will also fail to build
-BUILD_MINTLIB=1
-
-# Building Fortran seems unstable for now so it's off by default
-BUILD_FORTRAN=0
-
-# Cleanup folders
-if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-    REPLY=Y
-else    
-    read -p "Cleanup build dirs from previous build?" -n 1 -r
-    echo
-fi
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    rm -rf binary-package 
-    rm -rf binutils-2.27
-    if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4 build-gcc-4.6.4 build-binutils-4.6.4 mintlib-CVS-20160320-4.6.4; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then rm -rf gcc-4.9.4 build-gcc-4.9.4 build-binutils-4.9.4 mintlib-CVS-20160320-4.9.4; fi
-    if [ "$BUILD_5_4_0" == "1" ]; then rm -rf gcc-5.4.0 build-gcc-5.4.0 build-binutils-5.4.0 mintlib-CVS-20160320-5.4.0; fi
-    if [ "$BUILD_6_2_0" == "1" ]; then rm -rf gcc-6.2.0 build-gcc-6.2.0 build-binutils-6.2.0 mintlib-CVS-20160320-6.2.0; fi
-    if [ "$BUILD_7_1_0" == "1" ]; then rm -rf gcc-7.1.0 build-gcc-7.1.0 build-binutils-7.1.0 mintlib-CVS-20160320-7.1.0; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then rm -rf gcc-7.2.0 build-gcc-7.2.0 build-binutils-7.2.0 mintlib-CVS-20160320-7.2.0; fi
-    if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0 build-gcc-7.3.0 build-binutils-7.3.0 mintlib-CVS-20160320-7.3.0; fi
-    rm -rf mintlib-CVS-20160320
-fi
-
-# Unpack all the things
-cd $HOMEDIR
-if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-    REPLY=Y
-else    
-    read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
-    echo
-fi
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
-    if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
-    if [ "$BUILD_6_2_0" == "1" ]; then tar -jxvf gcc-6.2.0.tar.bz2; fi
-    if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
-    if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
-    tar -jxvf binutils-2.27.tar.bz2
-    tar -zxvf mintlib-CVS-20160320.tar
-fi
-
-# Start the build
-
-
-# This might be needed as gcc 7.2 doesn't seem to build 4.6.4...
-# Note that these exports are ubuntu 17.10 specific, you might need to change them depending on your distro!
-export CC=gcc-4.8
-export CXX=g++-4.8
-
-if [ "$BUILD_4_6_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.6.4; buildgcc 4.6.4; fi
-if [ "$BUILD_4_9_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.9.4; buildgcc 4.9.4; fi
-                                                                                         
-export CC=gcc-5                                                                          
-export CXX=g++-5                                                                         
-                                                                                         
-if [ "$BUILD_5_4_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-5.4.0; buildgcc 5.4.0; fi
-                                                                                         
-export CC=gcc-6                                                                          
-export CXX=g++-6                                                                         
-if [ "$BUILD_6_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-6.2.0; buildgcc 6.2.0; fi
-                                                                                         
-export CC=gcc-7                                                                          
-export CXX=g++-7                                                                         
-if [ "$BUILD_7_1_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.1.0; buildgcc 7.1.0; fi
-if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.2.0; buildgcc 7.2.0; fi
-if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.3.0; buildgcc 7.3.0; fi
-
-echo "All done!"
