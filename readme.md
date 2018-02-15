@@ -91,12 +91,6 @@ Also you might be able to build all gcc versions using one compiler. In Ubuntu 1
 ###Other notes
 The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments
 
-#Post installation
-
-It is recommended to run ```_postinstall.sh``` to rename mintlib's install directories to more sane names. Don't forget to edit the paths first before running!
-
-Also, make absolutely sure you run it only once!
-
 #Testing
 
 Inside the folder ```barebones``` there exist test projects to verify that your gcc installation is sane. Just type ```make``` on installations that have make installed or run ```build.bat``` under Windows (especially if you built the toolchain(s) using MinGW).
