@@ -28,7 +28,7 @@ The script will attempt to auto-fetch the required gcc/binutils/mintlib packages
 
 Make sure you have installed the following libraries and tools.
 
-##Linux/Windows
+###Linux/Windows
 
 * GMP (dev version)
 
@@ -44,7 +44,7 @@ Make sure you have installed the following libraries and tools.
 
 GMP/MPFR/MPC are required for building gcc, flex and bison for building MiNTlib.
 
-##macOS
+###macOS
 
 Use Macports and install:
 
@@ -66,29 +66,29 @@ Use Macports and install:
 
 Before running the script it is advised to open it and go through the "User definable stuff" settings. In brief they are:
 
-##GLOBAL_OVERRIDE
+###GLOBAL_OVERRIDE
 
 Set this to A if you want a completely automated run.
     
-##BUILD_X_Y_Z
+###BUILD_X_Y_Z
 
 Which gccs to build. 1=Build, anything else=Don't build. Can be toggled individually.
 
-##RUN_MODE
+###RUN_MODE
 
 Should we run this as an administrator or user? Administrator mode will install the compiler in the system's folders and will require root priviledges.
 
-##BUILD_MINTLIB
+###BUILD_MINTLIB
 
 Only set this to nonzero when you do want to build mintlib. Note that if you don't build mintlib then libstdc++v3 will also fail to build, so you are advised to keep this on.
     
-##CC?/CXX?
+###CC?/CXX?
 
 The actual names of the compilers used to build our set of gccs. The names aretuned for ubuntu 17.10 so your mileage may vary!
 
 Also you might be able to build all gcc versions using one compiler. In Ubuntu 17.10 so many problems were encountered in Ubuntu (including Internal Compiler Errors) that this is now in full pendantic mode. Again, your mileage may vary!
 
-##Other notes
+###Other notes
 The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments
 
 #Post installation
