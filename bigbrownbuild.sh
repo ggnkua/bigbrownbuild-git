@@ -77,21 +77,6 @@ mainbrown()
     SED=sed
     TAR=tar
 
-    if [ "$machine" == "MinGw" ]
-    then
-        # Msys has no idea what "sudo" and "nice" are.
-        # Also, it's not liking parallel builds that much.
-        unset SUDO
-        unset NICE
-        unset JMULT
-    fi
-    if [ "$machine" == "Cygwin" ]
-    then
-        # Disable some stuff for cygwin as well
-        unset SUDO
-        unset NICE
-    fi
-
     if [ "$RUN_MODE" == "Admin" ]
     then
         # Administrator mode
@@ -109,6 +94,21 @@ mainbrown()
         INSTALL_PREFIX=${HOME}/opt
     fi
     
+    if [ "$machine" == "MinGw" ]
+    then
+        # Msys has no idea what "sudo" and "nice" are.
+        # Also, it's not liking parallel builds that much.
+        unset SUDO
+        unset NICE
+        unset JMULT
+    fi
+    if [ "$machine" == "Cygwin" ]
+    then
+        # Disable some stuff for cygwin as well
+        unset SUDO
+        unset NICE
+    fi
+
     # Get all the things
     
     if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
@@ -124,22 +124,15 @@ mainbrown()
     
     # Cleanup folders
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        REPLY=Y
+        CLEANUP=Y
     else    
         read -p "Cleanup build dirs from previous build?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [[ $CLEANUP =~ ^[Yy]$ ]]
     then
         rm -rf binary-package 
         rm -rf binutils-2.27
-        if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4 build-gcc-4.6.4 build-binutils-4.6.4 mintlib-CVS-20160320-4.6.4; fi
-        if [ "$BUILD_4_9_4" == "1" ]; then rm -rf gcc-4.9.4 build-gcc-4.9.4 build-binutils-4.9.4 mintlib-CVS-20160320-4.9.4; fi
-        if [ "$BUILD_5_4_0" == "1" ]; then rm -rf gcc-5.4.0 build-gcc-5.4.0 build-binutils-5.4.0 mintlib-CVS-20160320-5.4.0; fi
-        if [ "$BUILD_6_2_0" == "1" ]; then rm -rf gcc-6.2.0 build-gcc-6.2.0 build-binutils-6.2.0 mintlib-CVS-20160320-6.2.0; fi
-        if [ "$BUILD_7_1_0" == "1" ]; then rm -rf gcc-7.1.0 build-gcc-7.1.0 build-binutils-7.1.0 mintlib-CVS-20160320-7.1.0; fi
-        if [ "$BUILD_7_2_0" == "1" ]; then rm -rf gcc-7.2.0 build-gcc-7.2.0 build-binutils-7.2.0 mintlib-CVS-20160320-7.2.0; fi
-        if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0 build-gcc-7.3.0 build-binutils-7.3.0 mintlib-CVS-20160320-7.3.0; fi
         rm -rf mintlib-CVS-20160320
     fi
     
@@ -205,6 +198,19 @@ buildgcc()
     # Construct compiler vendor name
 
     VENDOR=atari$1
+
+    case "$1" in    # Brown up the names
+    4.6.4)    VENDOR=atarioriginalbrown;;
+    4.9.4)    VENDOR=atarioriginalbrowner;;
+    5.4.0)    VENDOR=ataribrownish;;
+    6.2.0)    VENDOR=ataribrown;;
+    7.1.0)    VENDOR=ataribrowner;;
+    7.2.0)    VENDOR=ataribrownerer;;
+    7.3.0)    VENDOR=ataribrownest;;
+    esac            # Brooooooooown
+
+    # Clean build folders if requested
+    if [ "$CLEANUP" == "Y" ]; then rm -rf gcc-$VENDOR build-gcc-$VENDOR build-binutils-$VENDOR mintlib-CVS-20160320-$VENDOR; fi
 
     # binutils build dir
     # Configure, build and install binutils for m68k elf
