@@ -23,12 +23,12 @@ mainbrown()
     
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=0
-    BUILD_5_4_0=0
-    BUILD_6_2_0=0
+    BUILD_4_9_4=1
+    BUILD_5_4_0=1
+    BUILD_6_2_0=1
     BUILD_7_1_0=1
-    BUILD_7_2_0=0
-    BUILD_7_3_0=0
+    BUILD_7_2_0=1
+    BUILD_7_3_0=1
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -168,24 +168,24 @@ mainbrown()
     # Building Fortran for old gcc versions doesn't seem to work so it's disabled for now...
     BUILD_FORTRAN=0
     
-    if [ "$BUILD_4_6_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.6.4; buildgcc 4.6.4; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-4.9.4; buildgcc 4.9.4; fi
-                                                                                             
+    if [ "$BUILD_4_6_4" == "1" ]; then buildgcc 4.6.4; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then buildgcc 4.9.4; fi
+                                       
     export CC=$CC5
     export CXX=$CXX5
-                                                                                             
-    if [ "$BUILD_5_4_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-5.4.0; buildgcc 5.4.0; fi
-                                                                                             
+                                       
+    if [ "$BUILD_5_4_0" == "1" ]; then buildgcc 5.4.0; fi
+                                       
     export CC=$CC6
     export CXX=$CXX6
-    if [ "$BUILD_6_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-6.2.0; buildgcc 6.2.0; fi
-                                                                                             
+    if [ "$BUILD_6_2_0" == "1" ]; then buildgcc 6.2.0; fi
+                                       
     export CC=$CC7
     export CXX=$CXX7
     BUILD_FORTRAN=1
-    if [ "$BUILD_7_1_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.1.0; buildgcc 7.1.0; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.2.0; buildgcc 7.2.0; fi
-    if [ "$BUILD_7_3_0" == "1" ]; then cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-7.3.0; buildgcc 7.3.0; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then buildgcc 7.1.0; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then buildgcc 7.2.0; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then buildgcc 7.3.0; fi
     
     echo "All done!"
 }
@@ -210,7 +210,7 @@ buildgcc()
     esac            # Brooooooooown
 
     # Clean build folders if requested
-    if [ "$CLEANUP" == "Y" ]; then rm -rf gcc-$VENDOR build-gcc-$VENDOR build-binutils-$VENDOR mintlib-CVS-20160320-$VENDOR; fi
+    if [ "$CLEANUP" == "Y" ]; then rm -rf gcc-$VENDOR build-gcc-$VENDOR build-binutils-$VENDOR mintlib-CVS-20160320-$1; cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-$1; fi
 
     # binutils build dir
     # Configure, build and install binutils for m68k elf
