@@ -22,7 +22,7 @@ mainbrown()
     GLOBAL_OVERRIDE=A
     
     # Which gccs to build. 1=Build, anything else=Don't build
-    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
     BUILD_4_9_4=1
     BUILD_5_4_0=1
     BUILD_6_2_0=1
@@ -68,7 +68,21 @@ mainbrown()
         *)          machine="UNKNOWN:${unameOut}"
     esac
     echo Host machine: $machine
-    
+   
+    # If building 4.6.4 warn the user that the coldfire mintlib is hosed
+    # and thus disabled for now
+
+    if [ "$BUILD_4_6_4" == "1" ]; then
+        echo You''re building gcc 4.6.4
+        echo Be aware that currently when building MiNTlib the cross compiler
+        echo throws an Internal Compiler Error when trying to build the coldfire
+        echo target, thus it is disabled. Answer no to the question below
+        echo otherwise and/or file a report to the authors if you know how
+        echo to overcome this!
+        read -p "Disable building MiNTlib for coldfire on 4.6.4?" -n 1 -r SKIP_464_CF
+        echo
+    fi
+  
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
     NICE='nice -20'
@@ -146,6 +160,15 @@ mainbrown()
     fi
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
+        if [ "$CLEANUP" == "Y" ]; then
+            if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4; fi
+            if [ "$BUILD_4_9_4" == "1" ]; then rm -rf gcc-4.9.4; fi
+            if [ "$BUILD_5_4_0" == "1" ]; then rm -rf gcc-5.4.0; fi
+            if [ "$BUILD_6_2_0" == "1" ]; then rm -rf gcc-6.2.0; fi
+            if [ "$BUILD_7_1_0" == "1" ]; then rm -rf gcc-7.1.0; fi
+            if [ "$BUILD_7_2_0" == "1" ]; then rm -rf gcc-7.2.0; fi
+            if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0; fi
+        fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
         if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
@@ -210,7 +233,7 @@ buildgcc()
     esac            # Brooooooooown
 
     # Clean build folders if requested
-    if [ "$CLEANUP" == "Y" ]; then rm -rf gcc-$VENDOR build-gcc-$VENDOR build-binutils-$VENDOR mintlib-CVS-20160320-$1; cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-$1; fi
+    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-CVS-20160320-$1; cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-$1; fi
 
     # binutils build dir
     # Configure, build and install binutils for m68k elf
@@ -403,6 +426,12 @@ buildgcc()
         
             # Force 68000 mode in the default lib since our gcc defaults to 68020
             $SED -i -e "s/cflags = /cflags = -m68000/gI " $MINTLIBDIR/lib/Makefile
+            
+            # When building using cross-gcc-4.6.4 the compilers ICE with coldifre targets at
+            # stdio/printf_fp.c. So let's disable this...
+            if [[ $SKIP_464_CF =~ ^[Yy]$ ]]; then
+                $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
+            fi
             
             if [ "$machine" == "MinGw" ]
             then
@@ -984,6 +1013,7 @@ buildgcc()
         #make install DESTDIR=$PWD/binary-package $JMULT
         make install DESTDIR=$BINPACKAGE_DIR $JMULT
         #cd binary-package
+        export PATH=${INSTALL_PREFIX}/bin:$PATH
         cd $BINPACKAGE_DIR
         # Since make install uses the non-patched type_traits file let's patch them here too
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
@@ -1013,92 +1043,100 @@ buildgcc()
         $TAR --owner=0 --group=0 -jcvf gcc-7.1-$VENDORbin.tar.bz2 .$INSTALL_PREFIX
     fi
 
-    # reorganise install dirs to map libs to all processor switches
-    #
-    # on completion the target:lib variants will be:
-    #
-    # m68000/		assumes no fpu
-    # m68020/		assumes 68881/2
-    # m68020/softfp		assumes no fpu
-    # m68020-60/		assumes any 0x0 cpu, 68881/2
-    # m68020-60/softfp	assumes any 0x0 cpu, no fpu
-    # m68040/		assumes internal fpu
-    # m68060/		assumes internal fpu
-    
-    
-    LIBGCC=$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/$1
-    LIBCXX=$INSTALL_PREFIX/m68k-$VENDOR-elf/lib
-    
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
-    
-    # make subdir for gcc default cpu (020)
-    mkdir -p $LIBGCC/m68020
-    cp -r $LIBGCC/*.o $LIBGCC/m68020/.
-    cp -r $LIBGCC/*.a $LIBGCC/m68020/.
-    cp -r $LIBGCC/softfp $LIBGCC/m68020
-    
-    #-------------------------------------------------------------------------------
-    
-    # make subdir for gcc cpu (020-60)
-    # we aren't generating 060-clean versions yet so we use the
-    # soft-float 020 version as a safe compromise
-    mkdir -p $LIBGCC/m68020-60
-    cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
-    cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
-    cp -r $LIBGCC/softfp $LIBGCC/m68020-60
-    
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
-    
-    # make subdir for libc++ default cpu (020)
-    mkdir -p $LIBCXX/m68020
-    mkdir -p $LIBCXX/m68020/softfp
-    cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
-    cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
-    cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
-    cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
-    
-    #-------------------------------------------------------------------------------
-    
-    # transfer libc to correct subdirs (68k)
-    mv $LIBCXX/libc.a $LIBCXX/m68000/.
-    mv $LIBCXX/libiio.a $LIBCXX/m68000/.
-    mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
-    
-    # publish 020/fpu version of libc as default
-    cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
-    cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
-    cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
-    
-    # publish 020/softfp version of libc as default softfp
-    cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
-    cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
-    rm -rf $LIBCXX/m68020-20_soft
-    
-    # transfer libc to correct subdirs (020-60)
-    mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
-    
-    cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
-    cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
-    
-    #-------------------------------------------------------------------------------
-    # 68040,060
-    
-    # we prefer not to transfer transfer 020/fpu libs to 040-060 because emulated 
-    # fpu ops may be generated. better to build a 040/060 variant of libstdc++
-    # as a safe compromise for now we use the 020/softfp variant
-    cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
-    cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
-    
-    # we don't bother with LC versions of 040/060 so...
-    rm -rf $LIBCXX/m68040/softfp 
-    rm -rf $LIBCXX/m68060/softfp 
-    rm -rf $LIBGCC/m68040/softfp 
-    rm -rf $LIBGCC/m68060/softfp 
-    
-    # crt0.o, gcrt0.o are 68k asm and don't need relocated
-
+    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        REPLY=Y
+    else    
+        read -p "Reorganise MiNTlib folders?" -n 1 -r
+        echo
+    fi
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        # reorganise install dirs to map libs to all processor switches
+        #
+        # on completion the target:lib variants will be:
+        #
+        # m68000/		assumes no fpu
+        # m68020/		assumes 68881/2
+        # m68020/softfp		assumes no fpu
+        # m68020-60/		assumes any 0x0 cpu, 68881/2
+        # m68020-60/softfp	assumes any 0x0 cpu, no fpu
+        # m68040/		assumes internal fpu
+        # m68060/		assumes internal fpu
+        
+        
+        LIBGCC=$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/$1
+        LIBCXX=$INSTALL_PREFIX/m68k-$VENDOR-elf/lib
+        
+        #-------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
+        
+        # make subdir for gcc default cpu (020)
+        mkdir -p $LIBGCC/m68020
+        cp -r $LIBGCC/*.o $LIBGCC/m68020/.
+        cp -r $LIBGCC/*.a $LIBGCC/m68020/.
+        cp -r $LIBGCC/softfp $LIBGCC/m68020
+        
+        #-------------------------------------------------------------------------------
+        
+        # make subdir for gcc cpu (020-60)
+        # we aren't generating 060-clean versions yet so we use the
+        # soft-float 020 version as a safe compromise
+        mkdir -p $LIBGCC/m68020-60
+        cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
+        cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
+        cp -r $LIBGCC/softfp $LIBGCC/m68020-60
+        
+        #-------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
+        
+        # make subdir for libc++ default cpu (020)
+        mkdir -p $LIBCXX/m68020
+        mkdir -p $LIBCXX/m68020/softfp
+        cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
+        cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
+        cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
+        cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
+        
+        #-------------------------------------------------------------------------------
+        
+        # transfer libc to correct subdirs (68k)
+        mv $LIBCXX/libc.a $LIBCXX/m68000/.
+        mv $LIBCXX/libiio.a $LIBCXX/m68000/.
+        mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
+        
+        # publish 020/fpu version of libc as default
+        cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
+        cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
+        cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
+        
+        # publish 020/softfp version of libc as default softfp
+        cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
+        cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
+        rm -rf $LIBCXX/m68020-20_soft
+        
+        # transfer libc to correct subdirs (020-60)
+        mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
+        
+        cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
+        cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
+        
+        #-------------------------------------------------------------------------------
+        # 68040,060
+        
+        # we prefer not to transfer transfer 020/fpu libs to 040-060 because emulated 
+        # fpu ops may be generated. better to build a 040/060 variant of libstdc++
+        # as a safe compromise for now we use the 020/softfp variant
+        cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
+        cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
+        
+        # we don't bother with LC versions of 040/060 so...
+        rm -rf $LIBCXX/m68040/softfp 
+        rm -rf $LIBCXX/m68060/softfp 
+        rm -rf $LIBGCC/m68040/softfp 
+        rm -rf $LIBGCC/m68060/softfp 
+        
+        # crt0.o, gcrt0.o are 68k asm and don't need relocated
+    fi
 
     # The end, just be a good citizen and go back to the directory we were called from
     cd $HOMEDIR
