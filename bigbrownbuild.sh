@@ -73,7 +73,7 @@ mainbrown()
     # and thus disabled for now
 
     if [ "$BUILD_4_6_4" == "1" ]; then
-        echo You''re building gcc 4.6.4
+        echo You\'re building gcc 4.6.4
         echo Be aware that currently when building MiNTlib the cross compiler
         echo throws an Internal Compiler Error when trying to build the coldfire
         echo target, thus it is disabled. Answer no to the question below
@@ -1072,9 +1072,9 @@ buildgcc()
         
         # make subdir for gcc default cpu (020)
         $SUDO mkdir -p $LIBGCC/m68020
-        cp -r $LIBGCC/*.o $LIBGCC/m68020/.
-        cp -r $LIBGCC/*.a $LIBGCC/m68020/.
-        cp -r $LIBGCC/softfp $LIBGCC/m68020
+        $SUDO cp -r $LIBGCC/*.o $LIBGCC/m68020/.
+        $SUDO cp -r $LIBGCC/*.a $LIBGCC/m68020/.
+        $SUDO cp -r $LIBGCC/softfp $LIBGCC/m68020
         
         #-------------------------------------------------------------------------------
         
@@ -1082,9 +1082,9 @@ buildgcc()
         # we aren't generating 060-clean versions yet so we use the
         # soft-float 020 version as a safe compromise
         $SUDO mkdir -p $LIBGCC/m68020-60
-        cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
-        cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
-        cp -r $LIBGCC/softfp $LIBGCC/m68020-60
+        $SUDO cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
+        $SUDO cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
+        $SUDO cp -r $LIBGCC/softfp $LIBGCC/m68020-60
         
         #-------------------------------------------------------------------------------
         #-------------------------------------------------------------------------------
@@ -1092,33 +1092,33 @@ buildgcc()
         # make subdir for libc++ default cpu (020)
         $SUDO mkdir -p $LIBCXX/m68020
         $SUDO mkdir -p $LIBCXX/m68020/softfp
-        cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
-        cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
-        cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
-        cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
+        $SUDO cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
+        $SUDO cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
+        $SUDO cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
+        $SUDO cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
         
         #-------------------------------------------------------------------------------
         
         # transfer libc to correct subdirs (68k)
-        mv $LIBCXX/libc.a $LIBCXX/m68000/.
-        mv $LIBCXX/libiio.a $LIBCXX/m68000/.
-        mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
+        $SUDO mv $LIBCXX/libc.a $LIBCXX/m68000/.
+        $SUDO mv $LIBCXX/libiio.a $LIBCXX/m68000/.
+        $SUDO mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
         
-        # publish 020/fpu version of libc as default
-        cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
-        cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
-        cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
+        $SUDO # publish 020/fpu version of libc as default
+        $SUDO cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
+        $SUDO cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
+        $SUDO cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
         
         # publish 020/softfp version of libc as default softfp
-        cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
-        cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
-        rm -rf $LIBCXX/m68020-20_soft
+        $SUDO cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
+        $SUDO cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
+        $SUDO rm -rf $LIBCXX/m68020-20_soft
         
         # transfer libc to correct subdirs (020-60)
-        mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
+        $SUDO mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
         
-        cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
-        cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
+        $SUDO cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
+        $SUDO cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
         
         #-------------------------------------------------------------------------------
         # 68040,060
@@ -1126,14 +1126,14 @@ buildgcc()
         # we prefer not to transfer transfer 020/fpu libs to 040-060 because emulated 
         # fpu ops may be generated. better to build a 040/060 variant of libstdc++
         # as a safe compromise for now we use the 020/softfp variant
-        cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
-        cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
+        $SUDO cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
+        $SUDO cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
         
         # we don't bother with LC versions of 040/060 so...
-        rm -rf $LIBCXX/m68040/softfp 
-        rm -rf $LIBCXX/m68060/softfp 
-        rm -rf $LIBGCC/m68040/softfp 
-        rm -rf $LIBGCC/m68060/softfp 
+        $SUDO rm -rf $LIBCXX/m68040/softfp 
+        $SUDO rm -rf $LIBCXX/m68060/softfp 
+        $SUDO rm -rf $LIBGCC/m68040/softfp 
+        $SUDO rm -rf $LIBGCC/m68060/softfp 
         
         # crt0.o, gcrt0.o are 68k asm and don't need relocated
     fi
