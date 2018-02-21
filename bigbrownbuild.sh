@@ -1071,7 +1071,7 @@ buildgcc()
         #-------------------------------------------------------------------------------
         
         # make subdir for gcc default cpu (020)
-        mkdir -p $LIBGCC/m68020
+        $SUDO mkdir -p $LIBGCC/m68020
         cp -r $LIBGCC/*.o $LIBGCC/m68020/.
         cp -r $LIBGCC/*.a $LIBGCC/m68020/.
         cp -r $LIBGCC/softfp $LIBGCC/m68020
@@ -1081,7 +1081,7 @@ buildgcc()
         # make subdir for gcc cpu (020-60)
         # we aren't generating 060-clean versions yet so we use the
         # soft-float 020 version as a safe compromise
-        mkdir -p $LIBGCC/m68020-60
+        $SUDO mkdir -p $LIBGCC/m68020-60
         cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
         cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
         cp -r $LIBGCC/softfp $LIBGCC/m68020-60
@@ -1090,8 +1090,8 @@ buildgcc()
         #-------------------------------------------------------------------------------
         
         # make subdir for libc++ default cpu (020)
-        mkdir -p $LIBCXX/m68020
-        mkdir -p $LIBCXX/m68020/softfp
+        $SUDO mkdir -p $LIBCXX/m68020
+        $SUDO mkdir -p $LIBCXX/m68020/softfp
         cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
         cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
         cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
