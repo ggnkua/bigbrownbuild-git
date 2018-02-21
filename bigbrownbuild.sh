@@ -1104,7 +1104,7 @@ buildgcc()
         $SUDO mv $LIBCXX/libiio.a $LIBCXX/m68000/.
         $SUDO mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
         
-        $SUDO # publish 020/fpu version of libc as default
+        # publish 020/fpu version of libc as default
         $SUDO cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
         $SUDO cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
         $SUDO cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
