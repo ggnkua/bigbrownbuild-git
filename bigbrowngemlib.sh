@@ -1,10 +1,5 @@
 set -e			#stop on any error encountered
 #set -x         #echo all commands
-sed_inplace()
-{
-    sed -e "$1" $2 > $2.orig
-    mv $2.orig $2
-}
 
 fixregs()
 {
