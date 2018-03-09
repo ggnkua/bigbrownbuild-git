@@ -265,6 +265,9 @@ buildgcc()
         $TAR --owner=0 --group=0 -jcvf binutils-2.27-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
+    # Clean install dir
+    rm -rf $BINPACKAGE_DIR/$INSTALL_PREFIX
+    
     # home directory
     cd $HOMEDIR
     
@@ -1040,7 +1043,7 @@ buildgcc()
     
         find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        $TAR --owner=0 --group=0 -jcvf gcc-7.1-$VENDORbin.tar.bz2 .$INSTALL_PREFIX
+        $TAR --owner=0 --group=0 -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
