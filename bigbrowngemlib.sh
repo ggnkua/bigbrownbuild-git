@@ -1,10 +1,5 @@
 set -e			#stop on any error encountered
 #set -x         #echo all commands
-sed_inplace()
-{
-    sed -e "$1" $2 > $2.orig
-    mv $2.orig $2
-}
 
 fixregs()
 {
@@ -28,9 +23,9 @@ fixregs()
 }
 
 #wget http://arnaud.bercegeay.free.fr/gemlib/gemlib-0.44.0-src.tgz
-#tar -zxvf gemlib-0.44.0-src.tgz
-#cd gemlib-0.44.0
-sed -i -e "s/CROSS = no/CROSS = yes/gI" -e "s/m68k-atari-mint/m68k-ossom-elf/gI" CONFIGVARS
+tar -zxvf gemlib-0.44.0-src.tgz
+cd gemlib-0.44.0
+sed -i -e "s/CROSS = no/CROSS = yes/gI" -e "s/m68k-atari-mint/m68k-ataribrownest-elf/gI" CONFIGVARS
 fixregs gemlib/gem_vdiP.h
 fixregs gemlib/gem_vdiP.h
 fixregs gemlib/_gc_asm_aes.S

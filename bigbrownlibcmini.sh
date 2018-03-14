@@ -1,10 +1,5 @@
 set -e			#stop on any error encountered
 #set -x         #echo all commands
-sed_inplace()
-{
-    sed -e "$1" $2 > $2.orig
-    mv $2.orig $2
-}
 
 fixregs()
 {
@@ -27,7 +22,7 @@ fixregs()
            -e "s/d7/%d7/gI" -i $1
 }
 echo Run me inside libcmini/trunk/libcmini
-sed -i -e "s/m68k-elf-/m68k-ossom-elf-/gI" -e "s/COMPILE_ELF=N/COMPILE_ELF=Y/gI" Makefile 
+sed -i -e "s/m68k-elf-/m68k-ataribrownest-elf-/gI" -e "s/COMPILE_ELF=N/COMPILE_ELF=Y/gI" Makefile 
 fixregs sources/_normdf.S
 fixregs sources/checkcpu.S
 fixregs sources/frexp.S
@@ -43,5 +38,5 @@ fixregs sources/setjmp.c
 # This is wrong. gcc 6.2 will crash if a6 is added to the clobber list
 # so we remove it. No idea what will happen though.
 sed -i -e 's/, "%%a6"//gI' sources/setjmp.c
-sed -i -e "s/m68k-atari-mint-/m68k-ossom-elf-/gI" tests/acctest/Makefile 
+sed -i -e "s/m68k-atari-mint-/m68k-ataribrownest-elf-/gI" tests/acctest/Makefile 
 make
