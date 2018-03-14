@@ -133,7 +133,7 @@ mainbrown()
     if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
     if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
-    if [ ! -f mintlib-CVS-20160320.tar ]; then wget http://d-bug.mooo.com/releases/mintlib-CVS-20160320.tar; fi
+    if [ ! -f mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
     # Cleanup folders
@@ -147,7 +147,7 @@ mainbrown()
     then
         rm -rf binary-package 
         rm -rf binutils-2.27
-        rm -rf mintlib-CVS-20160320
+        rm -rf mintlib-bigbrownbuild
     fi
     
     # Unpack all the things
@@ -177,7 +177,7 @@ mainbrown()
         if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
         tar -jxvf binutils-2.27.tar.bz2
-        tar -zxvf mintlib-CVS-20160320.tar
+        tar -zxvf mintlib-bigbrownbuild.tar
     fi
    
     # 
@@ -233,7 +233,7 @@ buildgcc()
     esac            # Brooooooooown
 
     # Clean build folders if requested
-    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-CVS-20160320-$1; cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-$1; fi
+    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-$1; fi
 
     # binutils build dir
     # Configure, build and install binutils for m68k elf
@@ -387,7 +387,7 @@ buildgcc()
         if [[ $REPLY =~ ^[Yy]$ ]]
         then
         
-            MINTLIBDIR=$HOMEDIR/mintlib-CVS-20160320-$1
+            MINTLIBDIR=$HOMEDIR/mintlib-bigbrownbuild-$1
         
             # Create missing targets
             cp -R $MINTLIBDIR/lib/ $MINTLIBDIR/lib_mshort
