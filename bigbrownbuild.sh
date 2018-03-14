@@ -33,8 +33,8 @@ mainbrown()
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
     # the system's folders and will require root priviledges
-    #RUN_MODE=Admin
-    RUN_MODE=User
+    RUN_MODE=Admin
+    #RUN_MODE=User
 
     # Only set this to nonzero when you do want to build mintlib
     # Note that if you don't build mintlib then libstdc++v3 will also fail to build
@@ -101,15 +101,15 @@ mainbrown()
         SUDO=sudo
         if [ "$machine" == "Mac" ]
         then
-            INSTALL_PREFIX=/opt/local/
+            INSTALL_PREFIX_GLOBAL=/opt/local/
         else
-            INSTALL_PREFIX=/usr
+            INSTALL_PREFIX_GLOBAL=/opt/compiler-explorer
         fi
     else
         # User mode
         SUDO=
-        #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=${HOME}/opt
+        #INSTALL_PREFIX_GLOBAL=${HOME}/localINSTALL_PREFIX
+        INSTALL_PREFIX_GLOBAL=${HOME}/opt
     fi
     
     if [ "$machine" == "MinGw" ]
@@ -223,17 +223,8 @@ buildgcc()
 {
     # Construct compiler vendor name
 
-    VENDOR=atari$1
-
-    case "$1" in    # Brown up the names
-    4.6.4)    VENDOR=atarioriginalbrown;;
-    4.9.4)    VENDOR=atarioriginalbrowner;;
-    5.4.0)    VENDOR=ataribrownish;;
-    6.2.0)    VENDOR=ataribrown;;
-    7.1.0)    VENDOR=ataribrowner;;
-    7.2.0)    VENDOR=ataribrownerer;;
-    7.3.0)    VENDOR=ataribrownest;;
-    esac            # Brooooooooown
+    VENDOR=$1
+    INSTALL_PREFIX=$INSTALL_PREFIX_GLOBAL/gcc68k-$VENDOR
 
     # Clean build folders if requested
     if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
