@@ -111,6 +111,7 @@ mainbrown()
         #INSTALL_PREFIX_GLOBAL=${HOME}/localINSTALL_PREFIX
         INSTALL_PREFIX_GLOBAL=${HOME}/opt
     fi
+    export PATH=${INSTALL_PREFIX}/bin:$PATH
     
     if [ "$machine" == "MinGw" ]
     then
@@ -370,7 +371,6 @@ buildgcc()
 
         # Patch mintlib at the source level
         cd $HOMEDIR
-        export PATH=${INSTALL_PREFIX}/bin:$PATH
         
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
             REPLY=Y
