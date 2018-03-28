@@ -111,7 +111,6 @@ mainbrown()
         #INSTALL_PREFIX_GLOBAL=${HOME}/localINSTALL_PREFIX
         INSTALL_PREFIX_GLOBAL=${HOME}/opt
     fi
-    export PATH=${INSTALL_PREFIX}/bin:$PATH
 
     # Seems that docker doesn't like/need sudo?
     SUDO=    
@@ -214,6 +213,7 @@ buildgcc()
 
     VENDOR=$1
     INSTALL_PREFIX=$INSTALL_PREFIX_GLOBAL/gcc68k-$VENDOR
+    export PATH=${INSTALL_PREFIX}/bin:$PATH
 
     # Clean build folders if requested
     if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
