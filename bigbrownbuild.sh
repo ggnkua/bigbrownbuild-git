@@ -42,8 +42,8 @@ mainbrown()
     # Errors) that this is now in full pendantic mode. Again, your mileage may vary!
     CC4=gcc-4.8
     CXX4=g++-4.8
-    CC5=gcc-4.8
-    CXX5=g++-4.8
+    CC5=gcc
+    CXX5=g++
     CC6=gcc-4.8
     CXX6=g++-4.8
     CC7=gcc-4.8
