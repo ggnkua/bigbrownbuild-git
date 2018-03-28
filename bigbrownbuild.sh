@@ -112,21 +112,9 @@ mainbrown()
         INSTALL_PREFIX_GLOBAL=${HOME}/opt
     fi
     export PATH=${INSTALL_PREFIX}/bin:$PATH
-    
-    if [ "$machine" == "MinGw" ]
-    then
-        # Msys has no idea what "sudo" and "nice" are.
-        # Also, it's not liking parallel builds that much.
-        unset SUDO
-        unset NICE
-        unset JMULT
-    fi
-    if [ "$machine" == "Cygwin" ]
-    then
-        # Disable some stuff for cygwin as well
-        unset SUDO
-        unset NICE
-    fi
+
+    # Seems that docker doesn't like/need sudo?
+    SUDO=    
 
     # Cleanup folders
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
