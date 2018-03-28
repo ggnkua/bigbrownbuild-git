@@ -40,8 +40,8 @@ mainbrown()
     # so your mileage may vary! Also you might be able to build all gcc versions using one
     # compiler - so many problems were encountered in Ubuntu (including Internal Compiler
     # Errors) that this is now in full pendantic mode. Again, your mileage may vary!
-    CC4=gcc-4.8
-    CXX4=g++-4.8
+    CC4=gcc
+    CXX4=g++
     CC5=gcc
     CXX5=g++
     CC6=gcc-4.8
