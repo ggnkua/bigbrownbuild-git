@@ -22,8 +22,8 @@ mainbrown()
     GLOBAL_OVERRIDE=A
     
     # Which gccs to build. 1=Build, anything else=Don't build
-    BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=1
+    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_9_4=0
     BUILD_5_4_0=1
     BUILD_6_2_0=1
     BUILD_7_1_0=1
