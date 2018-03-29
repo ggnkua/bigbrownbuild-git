@@ -40,8 +40,8 @@ mainbrown()
     # so your mileage may vary! Also you might be able to build all gcc versions using one
     # compiler - so many problems were encountered in Ubuntu (including Internal Compiler
     # Errors) that this is now in full pendantic mode. Again, your mileage may vary!
-    CC4=gcc-5
-    CXX4=g++-5
+    CC4=gcc-4.8
+    CXX4=g++-4.8
     CC5=gcc-5
     CXX5=g++-5
     CC6=gcc-6
@@ -52,7 +52,7 @@ mainbrown()
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
     NICE='nice -20'
-    JMULT=-j4
+    JMULT=-j1
     BINPACKAGE_DIR=$PWD/binary-package
     SED=sed
     TAR=tar
