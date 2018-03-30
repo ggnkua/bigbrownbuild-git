@@ -237,15 +237,6 @@ buildgcc()
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         $SUDO strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
-    
-        # Package up binutils
-    
-        make install DESTDIR=$BINPACKAGE_DIR
-        cd $BINPACKAGE_DIR
-        strip .$INSTALL_PREFIX/bin/*
-        strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
-        gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-        $TAR --owner=0 --group=0 -jcvf binutils-2.27-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
     # Clean install dir
@@ -724,9 +715,6 @@ buildgcc()
                 $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
             fi
         
-            # Create lib binary package
-            make bin-dist
-        
         fi
     fi
 
@@ -985,47 +973,6 @@ buildgcc()
         $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         
-    fi
-    
-    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        REPLY=Y
-    else    
-        read -p "Package up gcc binaries?" -n 1 -r
-        echo
-    fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then    
-        #make install DESTDIR=$PWD/binary-package $JMULT
-        make install DESTDIR=$BINPACKAGE_DIR $JMULT
-        #cd binary-package
-        export PATH=${INSTALL_PREFIX}/bin:$PATH
-        cd $BINPACKAGE_DIR
-        # Since make install uses the non-patched type_traits file let's patch them here too
-        # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
-        for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
-    
-        strip .$INSTALL_PREFIX/bin/*
-        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
-        then
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
-        else
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
-        fi
-    
-        find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        $TAR --owner=0 --group=0 -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
