@@ -36,10 +36,6 @@ mainbrown()
     #RUN_MODE=Admin
     RUN_MODE=User
 
-    # Only set this to nonzero when you do want to build mintlib
-    # Note that if you don't build mintlib then libstdc++v3 will also fail to build
-    BUILD_MINTLIB=1
-    
     # How are the various gcc versions named. This is tuned for ubuntu 17.10
     # so your mileage may vary! Also you might be able to build all gcc versions using one
     # compiler - so many problems were encountered in Ubuntu (including Internal Compiler
@@ -53,6 +49,18 @@ mainbrown()
     CC7=gcc-7
     CXX7=g++-7
 
+    # Some global stuff that are platform dependent
+    HOMEDIR=$PWD
+    NICE='nice -20'
+    JMULT=-j4
+    BINPACKAGE_DIR=$PWD/binary-package
+    SED=sed
+    TAR=tar
+
+    # Only set this to nonzero when you do want to build mintlib
+    # Note that if you don't build mintlib then libstdc++v3 will also fail to build
+    BUILD_MINTLIB=1
+    
     #
     # Setup stuff
     #
@@ -72,34 +80,30 @@ mainbrown()
     # If building 4.6.4 warn the user that the coldfire mintlib is hosed
     # and thus disabled for now
 
-    if [ "$BUILD_4_6_4" == "1" ]; then
-        echo You\'re building gcc 4.6.4
-        echo Be aware that currently when building MiNTlib the cross compiler
-        echo throws an Internal Compiler Error when trying to build the coldfire
-        echo target, thus it is disabled. Answer no to the question below
-        echo otherwise and/or file a report to the authors if you know how
-        echo to overcome this!
-        read -p "Disable building MiNTlib for coldfire on 4.6.4?" -n 1 -r SKIP_464_CF
-        echo
+    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        SKIP_464_CF=Y
+    else
+        if [ "$BUILD_4_6_4" == "1" ]; then
+            echo You\'re building gcc 4.6.4
+            echo Be aware that currently when building MiNTlib the cross compiler
+            echo throws an Internal Compiler Error when trying to build the coldfire
+            echo target, thus it is disabled. Answer no to the question below
+            echo otherwise and/or file a report to the authors if you know how
+            echo to overcome this!
+            read -p "Disable building MiNTlib for coldfire on 4.6.4?" -n 1 -r SKIP_464_CF
+            echo
+        fi
     fi
   
-    # Some global stuff that are platform dependent
-    HOMEDIR=$PWD
-    NICE='nice -20'
-    JMULT=-j4
-    BINPACKAGE_DIR=$PWD/binary-package
-    SED=sed
-    TAR=tar
-
     if [ "$RUN_MODE" == "Admin" ]
     then
         # Administrator mode
         SUDO=sudo
         if [ "$machine" == "Mac" ]
         then
-            INSTALL_PREFIX=/opt/local/
+            INSTALL_PREFIX_GLOBAL=/opt/local/
         else
-            INSTALL_PREFIX=/usr
+            INSTALL_PREFIX_GLOBAL=/opt/compiler-explorer
         fi
     else
         # User mode
@@ -123,19 +127,6 @@ mainbrown()
         unset NICE
     fi
 
-    # Get all the things
-    
-    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi; fi
-    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi; fi
-    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi; fi
-    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
-    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.ntua.gr/pub/gnu/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
-    if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
-    if [ ! -f mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
-    # requires GMP, MPFR and MPC
-    
     # Cleanup folders
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         CLEANUP=Y
@@ -149,6 +140,19 @@ mainbrown()
         rm -rf binutils-2.27
         rm -rf mintlib-bigbrownbuild
     fi
+    
+    # Get all the things
+    
+    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
+    if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
+    if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
+    # requires GMP, MPFR and MPC
     
     # Unpack all the things
     cd $HOMEDIR
@@ -177,7 +181,6 @@ mainbrown()
         if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
         tar -jxvf binutils-2.27.tar.bz2
-        tar -zxvf mintlib-bigbrownbuild.tar
     fi
    
     # 
@@ -233,7 +236,7 @@ buildgcc()
     esac            # Brooooooooown
 
     # Clean build folders if requested
-    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-CVS-20160320 mintlib-CVS-20160320-$1; fi
+    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
 
     # binutils build dir
     # Configure, build and install binutils for m68k elf
@@ -1016,7 +1019,6 @@ buildgcc()
         #make install DESTDIR=$PWD/binary-package $JMULT
         make install DESTDIR=$BINPACKAGE_DIR $JMULT
         #cd binary-package
-        export PATH=${INSTALL_PREFIX}/bin:$PATH
         cd $BINPACKAGE_DIR
         # Since make install uses the non-patched type_traits file let's patch them here too
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
