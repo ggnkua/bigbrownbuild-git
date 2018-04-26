@@ -70,6 +70,14 @@ Before running the script it is advised to open it and go through the "User defi
 
 Set this to A if you want a completely automated run.
     
+###GLOBAL_BUILD_FORTRAN
+
+Set this to 1 to build Fortran, anything else to skip building Fortran.
+
+###GLOBAL_DOWNLOAD_PREREQUISITES
+
+Set this to 1 to download prerequisite libs such as MPC and MPFR automatically (without having to install them on the host machine) via the contrib/download_prerequisites script inside each gcc. Not tested extensively but it seems to work with gcc 4.6.4.
+
 ###BUILD_X_Y_Z
 
 Which gccs to build. 1=Build, anything else=Don't build. Can be toggled individually.

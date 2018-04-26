@@ -20,7 +20,15 @@ mainbrown()
 
     # Set this to "A" if you want a completely automated run
     GLOBAL_OVERRIDE=A
-    
+    # Set this to 0 if you don't want to build fortran at all.
+    # For now this is only enabled for gcc 7.x anyway.
+    # If anyone wants to test this on older gccs, be my guest
+    GLOBAL_BUILD_FORTRAN=1
+    # Set this to 1 if you want to tell gcc to download and
+    # build prerequisite libraries if they are not installed
+    # on your system
+    GLOBAL_DOWNLOAD_PREREQUISITES=1
+
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
     BUILD_4_9_4=1
@@ -125,6 +133,16 @@ mainbrown()
         # Disable some stuff for cygwin as well
         unset SUDO
         unset NICE
+        # This is probably safe for cygwin, but only been tested
+        # when building gcc 7.x
+        CC4=gcc
+        CXX4=g++
+        CC5=gcc
+        CXX5=g++
+        CC6=gcc
+        CXX6=g++
+        CC7=gcc
+        CXX7=g++
     fi
 
     # Cleanup folders
@@ -180,6 +198,15 @@ mainbrown()
         if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
         if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
+        if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
+            if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_5_4_0" == "1" ]; then cd gcc-5.4.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_6_2_0" == "1" ]; then cd gcc-6.2.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_7_1_0" == "1" ]; then cd gcc-7.1.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
+        fi
         tar -jxvf binutils-2.27.tar.bz2
     fi
    
@@ -208,7 +235,7 @@ mainbrown()
                                        
     export CC=$CC7
     export CXX=$CXX7
-    BUILD_FORTRAN=1
+    BUILD_FORTRAN=$BUILD_FORTRAN
     if [ "$BUILD_7_1_0" == "1" ]; then buildgcc 7.1.0; fi
     if [ "$BUILD_7_2_0" == "1" ]; then buildgcc 7.2.0; fi
     if [ "$BUILD_7_3_0" == "1" ]; then buildgcc 7.3.0; fi
