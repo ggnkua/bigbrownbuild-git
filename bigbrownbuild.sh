@@ -244,14 +244,14 @@ mainbrown()
                                        
     export CC=$CC7
     export CXX=$CXX7
-    BUILD_FORTRAN=$BUILD_FORTRAN
+    BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
     if [ "$BUILD_7_1_0" == "1" ]; then buildgcc 7.1.0; fi
     if [ "$BUILD_7_2_0" == "1" ]; then buildgcc 7.2.0; fi
     if [ "$BUILD_7_3_0" == "1" ]; then buildgcc 7.3.0; fi
 
     export CC=$CC8
     export CXX=$CXX8
-    BUILD_FORTRAN=$BUILD_FORTRAN
+    BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
     if [ "$BUILD_8_1_0" == "1" ]; then buildgcc 8.1.0; fi
     
     echo "All done!"
@@ -326,8 +326,12 @@ buildgcc()
     
     # Fortran is enabled now, but there are still issues when compiling
     # a program with it...
-    #LANGUAGES=c,c++,fortran
-    LANGUAGES=c,c++
+    if [ "$GLOBAL_BUILD_FORTRAN" == "1" ]
+    then
+        LANGUAGES=c,c++,fortran
+    else
+        LANGUAGES=c,c++
+    fi
     WL=
     
     export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
