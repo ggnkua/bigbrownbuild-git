@@ -23,7 +23,7 @@ mainbrown()
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
-    GLOBAL_BUILD_FORTRAN=1
+    GLOBAL_BUILD_FORTRAN=0
     # Set this to 1 if you want to tell gcc to download and
     # build prerequisite libraries if they are not installed
     # on your system
@@ -326,7 +326,7 @@ buildgcc()
     
     # Fortran is enabled now, but there are still issues when compiling
     # a program with it...
-    if [ "$GLOBAL_BUILD_FORTRAN" == "1" ]
+    if [ "$BUILD_FORTRAN" == "1" ]
     then
         LANGUAGES=c,c++,fortran
     else
