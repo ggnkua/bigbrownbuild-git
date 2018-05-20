@@ -929,6 +929,9 @@ buildgcc()
             $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
             $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
             $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
+
+            # Tentative: patch the source file as well
+            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-$1/libstdc++-v3/include/std/type_traits
         fi
 
         #*** fix type_traits to favour <cstdint> over those partially-defined wierd builtin int_leastXX, int_fastXX types
@@ -961,6 +964,8 @@ buildgcc()
         $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
         $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
     
+        # Tentative: patch the source file as well
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/gcc-$1/libstdc++-v3/include/std/type_traits
     fi
     
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
