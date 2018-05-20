@@ -391,7 +391,22 @@ buildgcc()
     # This ditches all coldfire lib building stuff:
     #        --with-arch=m68k
     
+   
+    # For gcc 8.1 and MinGW, patch some nuisances in the source
+    if [ "$machine" == "MinGw" ]
+    then
+        if [ "$1" == "8.1.0" ]
+        then
+            # No MinGW isntall I have knows what ENOTSUP is.
+            # Random internet suggestions said to replace this with ENOSYS so here we go
+            $SED -i -e "s/ENOTSUP/ENOSYS/gI" gcc-8.1.0/libiberty/simple-object-elf.c
+            # The following two defines appear on most windows.h versions I have here
+            # but not on MinGW. Who knows
+            $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' gcc-8.1.0/gcc/pretty-print.c
+        fi
+    fi
     
+
     #INSTALL_PREFIX
     # Build/install libgcc
     #
