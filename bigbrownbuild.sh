@@ -179,7 +179,7 @@ mainbrown()
     # requires GMP, MPFR and MPC
     
     # Unpack all the things
-    cd $HOMEDIR
+    cd "$HOMEDIR"
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
     else    
@@ -207,14 +207,14 @@ mainbrown()
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
         if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxvf gcc-8.1.0.tar.xz; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
-            if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_5_4_0" == "1" ]; then cd gcc-5.4.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_6_2_0" == "1" ]; then cd gcc-6.2.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_7_1_0" == "1" ]; then cd gcc-7.1.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
-            if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd $HOMEDIR; fi
+            if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_5_4_0" == "1" ]; then cd gcc-5.4.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_6_2_0" == "1" ]; then cd gcc-6.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_7_1_0" == "1" ]; then cd gcc-7.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
     fi
@@ -291,8 +291,8 @@ buildgcc()
     fi
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
-        mkdir -p $HOMEDIR/build-binutils-$1
-        cd $HOMEDIR/build-binutils-$1
+        mkdir -p "$HOMEDIR"/build-binutils-$1
+        cd "$HOMEDIR"/build-binutils-$1
         ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
         make
         $SUDO make install
@@ -314,7 +314,7 @@ buildgcc()
     rm -rf $BINPACKAGE_DIR/$INSTALL_PREFIX
     
     # home directory
-    cd $HOMEDIR
+    cd "$HOMEDIR"
     
     #
     # gcc build dir
@@ -348,8 +348,8 @@ buildgcc()
     fi
     if [[ $REPLY =~ ^[Yy]$ ]]
     then                                                                       
-        mkdir -p $HOMEDIR/build-gcc-$1
-        cd $HOMEDIR/build-gcc-$1
+        mkdir -p "$HOMEDIR"/build-gcc-$1
+        cd "$HOMEDIR"/build-gcc-$1
         ../gcc-$1/configure \
             --target=m68k-$VENDOR-elf \
             --disable-nls \
@@ -396,7 +396,7 @@ buildgcc()
     # Build/install libgcc
     #
     
-    cd $HOMEDIR/build-gcc-$1
+    cd "$HOMEDIR"/build-gcc-$1
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
@@ -424,7 +424,7 @@ buildgcc()
     then
 
         # Patch mintlib at the source level
-        cd $HOMEDIR
+        cd "$HOMEDIR"
         export PATH=${INSTALL_PREFIX}/bin:$PATH
         
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -436,7 +436,7 @@ buildgcc()
         if [[ $REPLY =~ ^[Yy]$ ]]
         then
         
-            MINTLIBDIR=$HOMEDIR/mintlib-bigbrownbuild-$1
+            MINTLIBDIR="$HOMEDIR"/mintlib-bigbrownbuild-$1
         
             # Create missing targets
             cp -R $MINTLIBDIR/lib/ $MINTLIBDIR/lib_mshort
@@ -803,7 +803,7 @@ buildgcc()
     
     # *** create local build dir
     
-    cd $HOMEDIR/gcc-$1
+    cd "$HOMEDIR"/gcc-$1
     
     # Some more permissions need to be fixed here
     if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ] && [ "$machine" != "Mac" ]
@@ -827,7 +827,7 @@ buildgcc()
         # edit file gcc-$1/libstdc++-v3/configure - comment out the line:
         ##as_fn_error "No support for this host/target combination." "$LINENO" 5
     
-        $SED -i -e 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' $HOMEDIR/gcc-$1/libstdc++-v3/configure
+        $SED -i -e 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
         
         # *** hack configure to remove dlopen stuff
         
@@ -836,7 +836,7 @@ buildgcc()
         #-  AC_LIBTOOL_DLOPEN
         #+#  AC_LIBTOOL_DLOPEN
         # fi
-        $SED -i -e "s/  AC_LIBTOOL_DLOPEN/#  AC_LIBTOOL_DLOPEN/gI" $HOMEDIR/gcc-$1/libstdc++-v3/configure.ac
+        $SED -i -e "s/  AC_LIBTOOL_DLOPEN/#  AC_LIBTOOL_DLOPEN/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure.ac
         
         #libstdc++-v3/configure:
         #
@@ -844,7 +844,7 @@ buildgcc()
         #*** change to as_echo_n so the configure doesn't halt on this error
         #
         #  as_echo_n "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
-        $SED -i -e "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" $HOMEDIR/gcc-$1/libstdc++-v3/configure
+        $SED -i -e "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
     
         #*** remove the contents of cow-stdexcept.cc
         #
@@ -854,12 +854,12 @@ buildgcc()
         #...everything...
         ##endif
    
-	if [ -f $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ];
+	if [ -f "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ];
         then
-            echo "#if (0)" > $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-            cat $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc >> $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-            echo "#endif" >> $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
-            mv $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new $HOMEDIR/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc
+            echo "#if (0)" > "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+            cat "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc >> "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+            echo "#endif" >> "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
+            mv "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc
 	fi
     
     fi
@@ -884,11 +884,11 @@ buildgcc()
         #	$(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
         #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
         
-        cd $HOMEDIR/build-gcc-$1
+        cd "$HOMEDIR"/build-gcc-$1
         $NICE make configure-target-libstdc++-v3
      
-        #$SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/gcc-$1/build/src/Makefile
-        $SED -i -e "s/-std=gnu++98//gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/src/Makefile
+        #$SED -i -e "s/-std=gnu++98//gI" "$HOMEDIR"/gcc-$1/build/src/Makefile
+        $SED -i -e "s/-std=gnu++98//gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/src/Makefile
     
         
         #*** fix type_traits to avoid macro collision: convert '_CTp' to '_xCTp' because ctypes.h defines _CTp as 0x20
@@ -902,70 +902,70 @@ buildgcc()
         #      typedef common_type<typename _xCTp::type, _Args...> type;
         #    };
         
-        #sed -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-$1/build/include/type_traits
+        #sed -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/gcc-$1/build/include/type_traits
     
         # Patch all multilib instances
         # TODO: replace this with a grep or find command
         #       (yeah right, that will happen soon)
         if [ "$BUILD_MINTLIB" != "0" ]
         then
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mcpu32/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5407/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m54455/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/softfp/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m51qe/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206e/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5208/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5307/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/mcpu32/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5407/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m54455/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5475/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5475/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68040/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68040/softfp/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m51qe/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5206/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5206e/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5208/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5307/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
 
             # Tentative: patch the source file as well
-            $SED -i -e "s/_CTp/_xCTp/gI" $HOMEDIR/gcc-$1/libstdc++-v3/include/std/type_traits
+            $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/include/std/type_traits
         fi
 
         #*** fix type_traits to favour <cstdint> over those partially-defined wierd builtin int_leastXX, int_fastXX types
         #*** note: this causes multiply defined std:: or missing :: types depending on _GLIBCXX_USE_C99_STDINT_TR1 1/0
         #
     
-        #sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/gcc-$1/build/include/type_traits
+        #sed -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/gcc-$1/build/include/type_traits
     
         # Patch all multilib instances
         # TODO: replace this with a grep or find command
         #       (yeah right, that will happen soon)
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mcpu32/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5407/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m54455/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5475/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68040/softfp/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m51qe/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5206e/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5208/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5307/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/mcpu32/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/mfidoa/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5407/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m54455/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5475/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5475/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68040/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68040/softfp/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m51qe/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5206/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5206e/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5208/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5307/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m5329/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68000/libstdc++-v3/include/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/include/type_traits
     
         # Tentative: patch the source file as well
-        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $HOMEDIR/gcc-$1/libstdc++-v3/include/std/type_traits
+        $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/gcc-$1/libstdc++-v3/include/std/type_traits
     fi
     
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
@@ -981,12 +981,12 @@ buildgcc()
             # From what I could see libgfortran only has some function re-declarations
             # This might be possible to fix by passing proper configuration options
             # during configuration, but lolwtfwhocares - let's patch some files! 
-            $SED -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/c99_functions.c
-            $SED -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/date_and_time.c
-            $SED -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/intrinsics/time_1.h
-            $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-            $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" $HOMEDIR/gcc-$1/libgfortran/runtime/string.c
-            $SED -i -e "s/${WL}--emit-relocs//gI" $HOMEDIR/build-gcc-$1/Makefile
+            $SED -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/c99_functions.c
+            $SED -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/date_and_time.c
+            $SED -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/time_1.h
+            $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
+            $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
+            $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
         
             make configure-target-libgfortran
             $NICE make $JMULT all-target-libgfortran
@@ -1003,7 +1003,7 @@ buildgcc()
     fi
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
-        cd $HOMEDIR/build-gcc-$1
+        cd "$HOMEDIR"/build-gcc-$1
         make all-target-libstdc++-v3 $JMULT
         $SUDO make install-target-libstdc++-v3
     fi
@@ -1012,7 +1012,7 @@ buildgcc()
     # build everything else
     # (which doesn't amount to much)
     
-    cd $HOMEDIR/build-gcc-$1
+    cd "$HOMEDIR"/build-gcc-$1
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
@@ -1026,12 +1026,12 @@ buildgcc()
         # It happens on linux mint
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]
         then
-            $SUDO chmod 775 $HOMEDIR/build-gcc-$1/gcc/b-header-vars
+            $SUDO chmod 775 "$HOMEDIR"/build-gcc-$1/gcc/b-header-vars
         fi
         # This system include isn't picked up for some reason 
         if [ "$machine" == "Mac" ]
         then
-            $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" $HOMEDIR/gcc-$1/gcc/system.h 
+            $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
         fi 
     
         $NICE make all $JMULT
@@ -1195,7 +1195,7 @@ buildgcc()
     fi
 
     # The end, just be a good citizen and go back to the directory we were called from
-    cd $HOMEDIR
+    cd "$HOMEDIR"
 }
 
 mainbrown "$@"
