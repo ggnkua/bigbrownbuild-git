@@ -986,7 +986,7 @@ buildgcc()
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
     if [ "$BUILD_FORTRAN" == "1" ]; then
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-            REPLY=N
+            REPLY=Y
         else    
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
             echo
