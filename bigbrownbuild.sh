@@ -112,15 +112,15 @@ mainbrown()
         SUDO=sudo
         if [ "$machine" == "Mac" ]
         then
-            INSTALL_PREFIX_GLOBAL=/opt/local/
+            INSTALL_PREFIX=/opt/local/
         else
-            INSTALL_PREFIX_GLOBAL=/opt/compiler-explorer
+            INSTALL_PREFIX=/opt/compiler-explorer
         fi
     else
         # User mode
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=${HOME}/opt
+        INSTALL_PREFIX=${HOME}/brown
     fi
     
     if [ "$machine" == "MinGw" ]
