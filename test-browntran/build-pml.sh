@@ -3,7 +3,7 @@ set -e
 
 echo Get the PML archive from http://d-bug.mooo.com/releases/pml-2.03-ataribrown.tar.gz !!
 
-tar -zxvf pml-2.03-ataribrown.tar.gz
+#tar -zxvf pml-2.03-ataribrown.tar.gz
 cd pml-2.03-ataribrown/pmlsrc
 
 INSTALL_DIR=/usr
@@ -27,5 +27,5 @@ make install CROSSDIR=build-pml$INSTALL_DIR
 #make install CROSSDIR=$PWD/binary-package$INSTALL_DIR
 
 cd build-pml
-find . -name '*.a' -print -exec m68k-ataribrowner-elf-strip -S -x '{}' ';'
+find . -name '*.a' -print -exec ~/brown/bin/m68k-atariultrabrown-elf-strip -S -x '{}' ';'
 

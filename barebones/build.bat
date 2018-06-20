@@ -8,13 +8,13 @@ set PROJNAME2=cpptest
 set PROJNAME3=ctest
 set OUTPUT_FOLDER=auto
 
-set GCCPATH=c:\svn\gitsfap\gcc7
-set GPP=%GCCPATH%\bin\m68k-ataribrowner-elf-g++
-set GCC=%GCCPATH%\bin\m68k-ataribrowner-elf-gcc
+set GCCPATH=c:\gcc8
+set GPP=%GCCPATH%\bin\m68k-atariultrabrown-elf-g++
+set GCC=%GCCPATH%\bin\m68k-atariultrabrown-elf-gcc
 set COMMONFLAGS=-c -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore -D__ATARI__ -D__M68000__ -DELF_CONFIG_STACK=16384 -Wall
 set CPPFLAGS=%COMMONFLAGS% -x c++ -std=c++0x -fno-exceptions -fno-rtti -fno-threadsafe-statics -Wno-reorder
 set CFLAGS=%COMMONFLAGS%
-set INCPATH=-I%PROJROOT%\AGT -I%PROJROOT%\AGT\3rdparty -I%GCCPATH%\include 
+set INCPATH=-I%GCCPATH%\include 
 
 set PATH=%PATH%;%GCCPATH%\bin
 
@@ -49,18 +49,18 @@ for %%I in (%CFILES%) do call :checkrun "obj\%%I.o" "%%I.c" "%GCC% %CFLAGS% %INC
 
 rem Assemble .s files
 for %%I in (%ASMFILES%) do call :checkrun "obj\%%I.o" "%%I.s" "%ASM% %ASMFLAGS% -L obj\%%I.o.lst -o obj\%%I.o %%I.s"
-for %%I in (%GASFILES%) do call :checkrun "obj\%%I.o" "%%I.gas" "%GCCPATH%\bin\m68k-ataribrowner-elf-as -o obj\%%I.o %%I.gas"
+for %%I in (%GASFILES%) do call :checkrun "obj\%%I.o" "%%I.gas" "%GCCPATH%\bin\m68k-atariultrabrown-elf-as -o obj\%%I.o %%I.gas"
 
 rem Link
 del %OUTPUT_FOLDER%\%PROJNAME%.tos 2>NUL
 
-%GPP% -L/lib/gcc/m68k-ataribrowner-elf/7.1.0/m68000 -L/usr/m68k-ataribrowner-elf/lib/m68000 -o lolworld.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/lolworld.o -Wl,-Map,lolworld.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -L/lib/gcc/m68k-atariultrabrown-elf/8.1.0/m68000 -L/usr/m68k-atariultrabrown-elf/lib/m68000 -o lolworld.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/lolworld.o -Wl,-Map,lolworld.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
-%GPP% -L/lib/gcc/m68k-ataribrowner-elf/7.1.0/m68000 -L/usr/m68k-ataribrowner-elf/lib/m68000 -o ctest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/ctest.o -Wl,-Map,ctest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -L/lib/gcc/m68k-atariultrabrown-elf/8.1.0/m68000 -L/usr/m68k-atariultrabrown-elf/lib/m68000 -o ctest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/ctest.o -Wl,-Map,ctest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
-%GPP% -L/lib/gcc/m68k-ataribrowner-elf/7.1.0/m68000 -L/usr/m68k-ataribrowner-elf/lib/m68000 -o cpptest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/cpptest.o -Wl,-Map,cpptest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -L/lib/gcc/m68k-atariultrabrown-elf/8.1.0/m68000 -L/usr/m68k-atariultrabrown-elf/lib/m68000 -o cpptest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/cpptest.o -Wl,-Map,cpptest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
 rem brown up the elf
