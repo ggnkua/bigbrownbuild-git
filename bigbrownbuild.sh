@@ -92,7 +92,7 @@ mainbrown()
     # and thus disabled for now
 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        SKIP_464_CF=Y
+        GLOBAL_SKIP_464_CF=Y
     else
         if [ "$BUILD_4_6_4" == "1" ]; then
             echo You\'re building gcc 4.6.4
@@ -101,7 +101,7 @@ mainbrown()
             echo target, thus it is disabled. Answer no to the question below
             echo otherwise and/or file a report to the authors if you know how
             echo to overcome this!
-            read -p "Disable building MiNTlib for coldfire on 4.6.4?" -n 1 -r SKIP_464_CF
+            read -p "Disable building MiNTlib for coldfire on 4.6.4?" -n 1 -r GLOBAL_SKIP_464_CF
             echo
         fi
     fi
@@ -229,8 +229,10 @@ mainbrown()
     export CXX=$CXX4
     # Building Fortran for old gcc versions doesn't seem to work so it's disabled for now...
     BUILD_FORTRAN=0
-    
+   
+    SKIP_464_CF=$GLOBAL_SKIP_464_CF     # Enabled only for 4.6.4
     if [ "$BUILD_4_6_4" == "1" ]; then buildgcc 4.6.4; fi
+    SKIP_464_CF=0
     if [ "$BUILD_4_9_4" == "1" ]; then buildgcc 4.9.4; fi
                                        
     export CC=$CC5
