@@ -67,6 +67,7 @@ mainbrown()
     BINPACKAGE_DIR=$PWD/binary-package
     SED=sed
     TAR=tar
+    TAROPTS='--owner=0 --group=0'
 
     # Only set this to nonzero when you do want to build mintlib
     # Note that if you don't build mintlib then libstdc++v3 will also fail to build
@@ -121,6 +122,23 @@ mainbrown()
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
         INSTALL_PREFIX=${HOME}/brown
+    fi
+
+    if [ "$machine" == "Mac" ]
+    then
+        TAR=tar
+        SED=gsed
+        TAROPTS=
+        CC4=gcc
+        CXX4=g++
+        CC5=gcc
+        CXX5=g++
+        CC6=gcc
+        CXX6=g++
+        CC7=gcc
+        CXX7=g++
+        CC8=gcc
+        CXX8=g++
     fi
     
     if [ "$machine" == "MinGw" ]
@@ -309,7 +327,7 @@ buildgcc()
         strip .$INSTALL_PREFIX/bin/*
         strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-        $TAR --owner=0 --group=0 -jcvf binutils-2.27-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
+        $TAR $TAROPTS -jcvf binutils-2.27-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
     # Clean install dir
@@ -792,6 +810,14 @@ buildgcc()
             $SED -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-$VENDOR-elf|gI" $MINTLIBDIR/buildrules
+
+            if [ "$machine" == "Mac" ]
+            then
+                # MacOS 10.11.6 ("El Capitan") has a slightly different flex installation
+                # via macports, so we can't link using -lfl. Instead we need to link
+                # against -ll
+                $SED -i -e 's/-lfl/-ll/gI' $MINTLIBDIR/syscall/Makefile
+            fi
         
             cd $MINTLIBDIR
         
@@ -1113,7 +1139,7 @@ buildgcc()
     
         find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        $TAR --owner=0 --group=0 -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
+        $TAR $TAROPTS -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
