@@ -38,6 +38,7 @@ mainbrown()
     BUILD_7_2_0=1
     BUILD_7_3_0=1
     BUILD_8_1_0=1
+    BUILD_8_2_0=1
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -192,6 +193,7 @@ mainbrown()
     if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
     if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
     if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz; fi; fi
+    if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
@@ -215,6 +217,7 @@ mainbrown()
             if [ "$BUILD_7_2_0" == "1" ]; then rm -rf gcc-7.2.0; fi
             if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0; fi
             if [ "$BUILD_8_1_0" == "1" ]; then rm -rf gcc-8.1.0; fi
+            if [ "$BUILD_8_2_0" == "1" ]; then rm -rf gcc-8.2.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -224,6 +227,7 @@ mainbrown()
         if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
         if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxvf gcc-8.1.0.tar.xz; fi
+        if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf gcc-8.2.0.tar.xz; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -233,6 +237,7 @@ mainbrown()
             if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
     fi
@@ -273,6 +278,7 @@ mainbrown()
     export CXX=$CXX8
     BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
     if [ "$BUILD_8_1_0" == "1" ]; then buildgcc 8.1.0; fi
+    if [ "$BUILD_8_2_0" == "1" ]; then buildgcc 8.2.0; fi
     
     echo "All done!"
 }
@@ -295,6 +301,7 @@ buildgcc()
     7.2.0)    VENDOR=ataribrownerer;;
     7.3.0)    VENDOR=ataribrownest;;
     8.1.0)    VENDOR=atariultrabrown;;
+    8.2.0)    VENDOR=ataribrownart;;
     esac            # Brooooooooown
 
     # Clean build folders if requested
