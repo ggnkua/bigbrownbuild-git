@@ -180,6 +180,7 @@ mainbrown()
     then
         rm -rf binary-package 
         rm -rf binutils-2.27
+        rm -rf binutils-2.31
         rm -rf mintlib-bigbrownbuild
     fi
     
@@ -195,6 +196,7 @@ mainbrown()
     if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz; fi; fi
     if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
+    if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
@@ -237,9 +239,10 @@ mainbrown()
             if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
+        tar -Jxvf binutils-2.31.tar.xz
     fi
    
     # 
@@ -250,6 +253,7 @@ mainbrown()
     # Note that these exports are ubuntu 17.10 specific, you might need to change them depending on your distro!
     export CC=$CC4
     export CXX=$CXX4
+    BINUTILS=2.27
     # Building Fortran for old gcc versions doesn't seem to work so it's disabled for now...
     BUILD_FORTRAN=0
    
@@ -278,6 +282,7 @@ mainbrown()
     export CXX=$CXX8
     BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
     if [ "$BUILD_8_1_0" == "1" ]; then buildgcc 8.1.0; fi
+    BINUTILS=2.31
     if [ "$BUILD_8_2_0" == "1" ]; then buildgcc 8.2.0; fi
     
     echo "All done!"
@@ -320,7 +325,7 @@ buildgcc()
     then
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
-        ../binutils-2.27/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
+        ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
         make
         $SUDO make install
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
@@ -334,7 +339,7 @@ buildgcc()
         strip .$INSTALL_PREFIX/bin/*
         strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-        $TAR $TAROPTS -jcvf binutils-2.27-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
+        $TAR $TAROPTS -jcvf binutils-$BINUTILS-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
     # Clean install dir
