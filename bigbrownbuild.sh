@@ -176,7 +176,7 @@ mainbrown()
         read -p "Cleanup build dirs from previous build?" -n 1 -r
         echo
     fi
-    if [[ $CLEANUP =~ ^[Yy]$ ]]
+    if [ "$CLEANUP" == "Y" ] || [ "$CLEANUP" == "y" ]
     then
         rm -rf binary-package 
         rm -rf binutils-2.27
@@ -208,7 +208,7 @@ mainbrown()
         read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         if [ "$CLEANUP" == "Y" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4; fi
@@ -321,8 +321,18 @@ buildgcc()
         read -p "Configure build, install and package up binutils?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
+        # For gcc 8.x and MinGW, patch some nuisances in the source
+        if [ "$machine" == "MinGw" ]
+        then
+            if [ "$BINUTILS" == "2.31" ]
+            then
+                # No MinGW isntall I have knows what ENOTSUP is.
+                # Random internet suggestions said to replace this with ENOSYS so here we go
+                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$binutils/libiberty/simple-object-elf.c
+            fi
+        fi
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
         ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
@@ -378,7 +388,7 @@ buildgcc()
         read -p "Configure, build and install gcc (without libs)?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then                                                                       
         mkdir -p "$HOMEDIR"/build-gcc-$1
         cd "$HOMEDIR"/build-gcc-$1
@@ -424,17 +434,17 @@ buildgcc()
     #        --with-arch=m68k
     
    
-    # For gcc 8.1 and MinGW, patch some nuisances in the source
+    # For gcc 8.x and MinGW, patch some nuisances in the source
     if [ "$machine" == "MinGw" ]
     then
-        if [ "$1" == "8.1.0" ]
+        if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ]
         then
             # No MinGW isntall I have knows what ENOTSUP is.
             # Random internet suggestions said to replace this with ENOSYS so here we go
-            $SED -i -e "s/ENOTSUP/ENOSYS/gI" gcc-8.1.0/libiberty/simple-object-elf.c
+            $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
             # The following two defines appear on most windows.h versions I have here
             # but not on MinGW. Who knows
-            $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' gcc-8.1.0/gcc/pretty-print.c
+            $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
         fi
     fi
     
@@ -451,7 +461,7 @@ buildgcc()
         read -p "Build and install libgcc?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         make all-target-libgcc
         $SUDO make install-target-libgcc
@@ -480,7 +490,7 @@ buildgcc()
             read -p "Source patch and build mintlib?" -n 1 -r
             echo
         fi
-        if [[ $REPLY =~ ^[Yy]$ ]]
+        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
         then
         
             MINTLIBDIR="$HOMEDIR"/mintlib-bigbrownbuild-$1
@@ -528,7 +538,7 @@ buildgcc()
             
             # When building using cross-gcc-4.6.4 the compilers ICE with coldifre targets at
             # stdio/printf_fp.c. So let's disable this...
-            if [[ $SKIP_464_CF =~ ^[Yy]$ ]]; then
+            if [ "$SKIP_464_CF" == "Y" ] || [ "$SKIP_464_CF" == "y" ]
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
             
@@ -876,7 +886,7 @@ buildgcc()
         read -p "Patch libstdc++v3 at the source level (meaning the gcc-$1 files will be tinkered)?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
     
         # edit file gcc-$1/libstdc++-v3/configure - comment out the line:
@@ -927,7 +937,7 @@ buildgcc()
         read -p "Patch libstdc++v3's configure scripts?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         #*** remove -std=gnu++98 from the toplevel makefile - it gets combined with the c++11 Makefile and causes problems
         #
@@ -1031,7 +1041,7 @@ buildgcc()
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
             echo
         fi
-        if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
         then
             # From what I could see libgfortran only has some function re-declarations
             # This might be possible to fix by passing proper configuration options
@@ -1056,7 +1066,7 @@ buildgcc()
         read -p "Build and install libstdc++v3?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         cd "$HOMEDIR"/build-gcc-$1
         make all-target-libstdc++-v3 $JMULT
@@ -1075,7 +1085,7 @@ buildgcc()
         read -p "Build and install the rest?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
         # I dunno why this must be done.
         # It happens on linux mint
@@ -1120,7 +1130,7 @@ buildgcc()
         read -p "Package up gcc binaries?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
         #make install DESTDIR=$PWD/binary-package $JMULT
         make install DESTDIR=$BINPACKAGE_DIR $JMULT
@@ -1160,7 +1170,7 @@ buildgcc()
         read -p "Reorganise MiNTlib folders?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         # reorganise install dirs to map libs to all processor switches
         #
