@@ -330,7 +330,7 @@ buildgcc()
             then
                 # No MinGW isntall I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
-                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$binutils/libiberty/simple-object-elf.c
+                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/simple-object-elf.c
             fi
         fi
         mkdir -p "$HOMEDIR"/build-binutils-$1
@@ -390,6 +390,19 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then                                                                       
+    # For gcc 8.x and MinGW, patch some nuisances in the source
+        if [ "$machine" == "MinGw" ]
+        then
+            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ]
+            then
+                # No MinGW install I have knows what ENOTSUP is.
+                # Random internet suggestions said to replace this with ENOSYS so here we go
+                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
+                # The following two defines appear on most windows.h versions I have here
+                # but not on MinGW. Who knows
+                $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
+            fi
+        fi
         mkdir -p "$HOMEDIR"/build-gcc-$1
         cd "$HOMEDIR"/build-gcc-$1
         ../gcc-$1/configure \
@@ -434,19 +447,6 @@ buildgcc()
     #        --with-arch=m68k
     
    
-    # For gcc 8.x and MinGW, patch some nuisances in the source
-    if [ "$machine" == "MinGw" ]
-    then
-        if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ]
-        then
-            # No MinGW isntall I have knows what ENOTSUP is.
-            # Random internet suggestions said to replace this with ENOSYS so here we go
-            $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
-            # The following two defines appear on most windows.h versions I have here
-            # but not on MinGW. Who knows
-            $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
-        fi
-    fi
     
 
     #INSTALL_PREFIX
@@ -538,7 +538,7 @@ buildgcc()
             
             # When building using cross-gcc-4.6.4 the compilers ICE with coldifre targets at
             # stdio/printf_fp.c. So let's disable this...
-            if [ "$SKIP_464_CF" == "Y" ] || [ "$SKIP_464_CF" == "y" ]
+            if [ "$SKIP_464_CF" == "Y" ] || [ "$SKIP_464_CF" == "y" ]; then
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
             
