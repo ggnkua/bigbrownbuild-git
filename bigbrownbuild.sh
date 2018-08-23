@@ -326,15 +326,15 @@ buildgcc()
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
         ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
-        make
-        $SUDO make install
+        make $JMULT
+        $SUDO make install $JMULT
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         $SUDO strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
     
         # Package up binutils
     
-        make install DESTDIR=$BINPACKAGE_DIR
+        make install DESTDIR=$BINPACKAGE_DIR $JMULT
         cd $BINPACKAGE_DIR
         strip .$INSTALL_PREFIX/bin/*
         strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
@@ -400,7 +400,7 @@ buildgcc()
             CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
             LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
         $NICE make all-gcc $JMULT
-        $SUDO make install-gcc
+        $SUDO make install-gcc $JMULT
     
         # In some linux distros (linux mint for example) it was observed
         # that make install-gcc didn't set the read permission for users
@@ -453,8 +453,8 @@ buildgcc()
     fi
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
-        make all-target-libgcc
-        $SUDO make install-target-libgcc
+        make all-target-libgcc $JMULT
+        $SUDO make install-target-libgcc $JMULT
     
         # Some extra permissions
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
@@ -940,7 +940,7 @@ buildgcc()
         #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
         
         cd "$HOMEDIR"/build-gcc-$1
-        $NICE make configure-target-libstdc++-v3
+        $NICE make configure-target-libstdc++-v3 $JMULT
      
         #$SED -i -e "s/-std=gnu++98//gI" "$HOMEDIR"/gcc-$1/build/src/Makefile
         $SED -i -e "s/-std=gnu++98//gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/src/Makefile
@@ -1043,9 +1043,9 @@ buildgcc()
             $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
         
-            make configure-target-libgfortran
-            $NICE make $JMULT all-target-libgfortran
-            make install-target-libgfortran
+            make configure-target-libgfortran $JMULT
+            $NICE make $JMULT all-target-libgfortran $JMULT
+            make install-target-libgfortran $JMULT
         fi
     fi 
     #*** build it
@@ -1060,7 +1060,7 @@ buildgcc()
     then
         cd "$HOMEDIR"/build-gcc-$1
         make all-target-libstdc++-v3 $JMULT
-        $SUDO make install-target-libstdc++-v3
+        $SUDO make install-target-libstdc++-v3 $JMULT
     fi
     
     # gcc build dir
@@ -1090,7 +1090,7 @@ buildgcc()
         fi 
     
         $NICE make all $JMULT
-        $SUDO make install
+        $SUDO make install $JMULT
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
         then
