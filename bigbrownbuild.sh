@@ -30,15 +30,15 @@ mainbrown()
     GLOBAL_DOWNLOAD_PREREQUISITES=1
 
     # Which gccs to build. 1=Build, anything else=Don't build
-    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=0
-    BUILD_5_4_0=0
-    BUILD_6_2_0=0
-    BUILD_7_1_0=0
-    BUILD_7_2_0=0
-    BUILD_7_3_0=0
-    BUILD_8_1_0=0
-    BUILD_8_2_0=0
+    BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_9_4=1
+    BUILD_5_4_0=1
+    BUILD_6_2_0=1
+    BUILD_7_1_0=1
+    BUILD_7_2_0=1
+    BUILD_7_3_0=1
+    BUILD_8_1_0=1
+    BUILD_8_2_0=1
     BUILD_8_3_0=1
 
     # Should we run this as an administrator or user?
@@ -401,7 +401,7 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then                                                                       
-    # For gcc 8.x and MinGW, patch some nuisances in the source
+        # For gcc 8.x and MinGW, patch some nuisances in the source
         if [ "$machine" == "MinGw" ]
         then
             if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ]
