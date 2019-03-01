@@ -30,15 +30,16 @@ mainbrown()
     GLOBAL_DOWNLOAD_PREREQUISITES=1
 
     # Which gccs to build. 1=Build, anything else=Don't build
-    BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=1
-    BUILD_5_4_0=1
-    BUILD_6_2_0=1
-    BUILD_7_1_0=1
-    BUILD_7_2_0=1
-    BUILD_7_3_0=1
-    BUILD_8_1_0=1
-    BUILD_8_2_0=1
+    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_9_4=0
+    BUILD_5_4_0=0
+    BUILD_6_2_0=0
+    BUILD_7_1_0=0
+    BUILD_7_2_0=0
+    BUILD_7_3_0=0
+    BUILD_8_1_0=0
+    BUILD_8_2_0=0
+    BUILD_8_3_0=1
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -176,11 +177,12 @@ mainbrown()
         read -p "Cleanup build dirs from previous build?" -n 1 -r
         echo
     fi
-    if [[ $CLEANUP =~ ^[Yy]$ ]]
+    if [ "$CLEANUP" == "Y" ] || [ "$CLEANUP" == "y" ]
     then
         rm -rf binary-package 
         rm -rf binutils-2.27
         rm -rf binutils-2.31
+        rm -rf binutils-2.32
         rm -rf mintlib-bigbrownbuild
     fi
     
@@ -195,8 +197,10 @@ mainbrown()
     if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
     if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz; fi; fi
     if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
+    if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
+    if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
@@ -208,7 +212,7 @@ mainbrown()
         read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         if [ "$CLEANUP" == "Y" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4; fi
@@ -220,6 +224,7 @@ mainbrown()
             if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0; fi
             if [ "$BUILD_8_1_0" == "1" ]; then rm -rf gcc-8.1.0; fi
             if [ "$BUILD_8_2_0" == "1" ]; then rm -rf gcc-8.2.0; fi
+            if [ "$BUILD_8_3_0" == "1" ]; then rm -rf gcc-8.3.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -230,6 +235,7 @@ mainbrown()
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
         if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxvf gcc-8.1.0.tar.xz; fi
         if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf gcc-8.2.0.tar.xz; fi
+        if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxvf gcc-8.3.0.tar.xz; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -240,9 +246,11 @@ mainbrown()
             if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
         tar -Jxvf binutils-2.31.tar.xz
+        tar -Jxvf binutils-2.32.tar.xz
     fi
    
     # 
@@ -284,6 +292,8 @@ mainbrown()
     if [ "$BUILD_8_1_0" == "1" ]; then buildgcc 8.1.0; fi
     BINUTILS=2.31
     if [ "$BUILD_8_2_0" == "1" ]; then buildgcc 8.2.0; fi
+    BINUTILS=2.32
+    if [ "$BUILD_8_3_0" == "1" ]; then buildgcc 8.3.0; fi
     
     echo "All done!"
 }
@@ -307,6 +317,7 @@ buildgcc()
     7.3.0)    VENDOR=ataribrownest;;
     8.1.0)    VENDOR=atariultrabrown;;
     8.2.0)    VENDOR=ataribrownart;;
+    8.3.0)    VENDOR=atariultrabrowner;;
     esac            # Brooooooooown
 
     # Clean build folders if requested
@@ -321,8 +332,18 @@ buildgcc()
         read -p "Configure build, install and package up binutils?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
+        # For gcc 8.x and MinGW, patch some nuisances in the source
+        if [ "$machine" == "MinGw" ]
+        then
+            if [ "$BINUTILS" == "2.31" ]
+            then
+                # No MinGW isntall I have knows what ENOTSUP is.
+                # Random internet suggestions said to replace this with ENOSYS so here we go
+                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/simple-object-elf.c
+            fi
+        fi
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
         ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
@@ -378,8 +399,21 @@ buildgcc()
         read -p "Configure, build and install gcc (without libs)?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then                                                                       
+    # For gcc 8.x and MinGW, patch some nuisances in the source
+        if [ "$machine" == "MinGw" ]
+        then
+            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ]
+            then
+                # No MinGW install I have knows what ENOTSUP is.
+                # Random internet suggestions said to replace this with ENOSYS so here we go
+                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
+                # The following two defines appear on most windows.h versions I have here
+                # but not on MinGW. Who knows
+                $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
+            fi
+        fi
         mkdir -p "$HOMEDIR"/build-gcc-$1
         cd "$HOMEDIR"/build-gcc-$1
         ../gcc-$1/configure \
@@ -424,19 +458,6 @@ buildgcc()
     #        --with-arch=m68k
     
    
-    # For gcc 8.1 and MinGW, patch some nuisances in the source
-    if [ "$machine" == "MinGw" ]
-    then
-        if [ "$1" == "8.1.0" ]
-        then
-            # No MinGW isntall I have knows what ENOTSUP is.
-            # Random internet suggestions said to replace this with ENOSYS so here we go
-            $SED -i -e "s/ENOTSUP/ENOSYS/gI" gcc-8.1.0/libiberty/simple-object-elf.c
-            # The following two defines appear on most windows.h versions I have here
-            # but not on MinGW. Who knows
-            $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' gcc-8.1.0/gcc/pretty-print.c
-        fi
-    fi
     
 
     #INSTALL_PREFIX
@@ -451,7 +472,7 @@ buildgcc()
         read -p "Build and install libgcc?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         make all-target-libgcc $JMULT
         $SUDO make install-target-libgcc $JMULT
@@ -480,7 +501,7 @@ buildgcc()
             read -p "Source patch and build mintlib?" -n 1 -r
             echo
         fi
-        if [[ $REPLY =~ ^[Yy]$ ]]
+        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
         then
         
             MINTLIBDIR="$HOMEDIR"/mintlib-bigbrownbuild-$1
@@ -528,7 +549,7 @@ buildgcc()
             
             # When building using cross-gcc-4.6.4 the compilers ICE with coldifre targets at
             # stdio/printf_fp.c. So let's disable this...
-            if [[ $SKIP_464_CF =~ ^[Yy]$ ]]; then
+            if [ "$SKIP_464_CF" == "Y" ] || [ "$SKIP_464_CF" == "y" ]; then
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
             
@@ -876,7 +897,7 @@ buildgcc()
         read -p "Patch libstdc++v3 at the source level (meaning the gcc-$1 files will be tinkered)?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
     
         # edit file gcc-$1/libstdc++-v3/configure - comment out the line:
@@ -927,7 +948,7 @@ buildgcc()
         read -p "Patch libstdc++v3's configure scripts?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         #*** remove -std=gnu++98 from the toplevel makefile - it gets combined with the c++11 Makefile and causes problems
         #
@@ -1031,7 +1052,7 @@ buildgcc()
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
             echo
         fi
-        if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
         then
             # From what I could see libgfortran only has some function re-declarations
             # This might be possible to fix by passing proper configuration options
@@ -1056,7 +1077,7 @@ buildgcc()
         read -p "Build and install libstdc++v3?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         cd "$HOMEDIR"/build-gcc-$1
         make all-target-libstdc++-v3 $JMULT
@@ -1075,7 +1096,7 @@ buildgcc()
         read -p "Build and install the rest?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
         # I dunno why this must be done.
         # It happens on linux mint
@@ -1120,7 +1141,7 @@ buildgcc()
         read -p "Package up gcc binaries?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
         #make install DESTDIR=$PWD/binary-package $JMULT
         make install DESTDIR=$BINPACKAGE_DIR $JMULT
@@ -1160,7 +1181,7 @@ buildgcc()
         read -p "Reorganise MiNTlib folders?" -n 1 -r
         echo
     fi
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then
         # reorganise install dirs to map libs to all processor switches
         #
