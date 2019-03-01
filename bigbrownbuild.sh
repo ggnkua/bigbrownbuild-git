@@ -30,15 +30,16 @@ mainbrown()
     GLOBAL_DOWNLOAD_PREREQUISITES=1
 
     # Which gccs to build. 1=Build, anything else=Don't build
-    BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=1
-    BUILD_5_4_0=1
-    BUILD_6_2_0=1
-    BUILD_7_1_0=1
-    BUILD_7_2_0=1
-    BUILD_7_3_0=1
-    BUILD_8_1_0=1
-    BUILD_8_2_0=1
+    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_9_4=0
+    BUILD_5_4_0=0
+    BUILD_6_2_0=0
+    BUILD_7_1_0=0
+    BUILD_7_2_0=0
+    BUILD_7_3_0=0
+    BUILD_8_1_0=0
+    BUILD_8_2_0=0
+    BUILD_8_3_0=1
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -181,6 +182,7 @@ mainbrown()
         rm -rf binary-package 
         rm -rf binutils-2.27
         rm -rf binutils-2.31
+        rm -rf binutils-2.32
         rm -rf mintlib-bigbrownbuild
     fi
     
@@ -195,8 +197,10 @@ mainbrown()
     if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
     if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz; fi; fi
     if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
+    if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
+    if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
@@ -220,6 +224,7 @@ mainbrown()
             if [ "$BUILD_7_3_0" == "1" ]; then rm -rf gcc-7.3.0; fi
             if [ "$BUILD_8_1_0" == "1" ]; then rm -rf gcc-8.1.0; fi
             if [ "$BUILD_8_2_0" == "1" ]; then rm -rf gcc-8.2.0; fi
+            if [ "$BUILD_8_3_0" == "1" ]; then rm -rf gcc-8.3.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -230,6 +235,7 @@ mainbrown()
         if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
         if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxvf gcc-8.1.0.tar.xz; fi
         if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf gcc-8.2.0.tar.xz; fi
+        if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxvf gcc-8.3.0.tar.xz; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -240,9 +246,11 @@ mainbrown()
             if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
         tar -Jxvf binutils-2.31.tar.xz
+        tar -Jxvf binutils-2.32.tar.xz
     fi
    
     # 
@@ -284,6 +292,8 @@ mainbrown()
     if [ "$BUILD_8_1_0" == "1" ]; then buildgcc 8.1.0; fi
     BINUTILS=2.31
     if [ "$BUILD_8_2_0" == "1" ]; then buildgcc 8.2.0; fi
+    BINUTILS=2.32
+    if [ "$BUILD_8_3_0" == "1" ]; then buildgcc 8.3.0; fi
     
     echo "All done!"
 }
@@ -307,6 +317,7 @@ buildgcc()
     7.3.0)    VENDOR=ataribrownest;;
     8.1.0)    VENDOR=atariultrabrown;;
     8.2.0)    VENDOR=ataribrownart;;
+    8.3.0)    VENDOR=atariultrabrowner;;
     esac            # Brooooooooown
 
     # Clean build folders if requested
@@ -393,7 +404,7 @@ buildgcc()
     # For gcc 8.x and MinGW, patch some nuisances in the source
         if [ "$machine" == "MinGw" ]
         then
-            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ]
+            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ]
             then
                 # No MinGW install I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
