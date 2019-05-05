@@ -14,6 +14,15 @@ mainbrown()
         exit
     fi	
 
+    #
+    # Ensure flex and bison is installed
+    # Don't look at me about what this does, I just copied it from stack overflow...
+    # (https://stackoverflow.com/a/677212)
+    #
+
+    command -v bison >/dev/null 2>&1 || { echo >&2 "I require bison but it's not installed.  Aborting."; exit 1; }
+    command -v flex >/dev/null 2>&1 || { echo >&2 "I require flex but it's not installed.  Aborting."; exit 1; }
+
     #   
     # User definable stuff
     #
@@ -40,6 +49,7 @@ mainbrown()
     BUILD_8_1_0=1
     BUILD_8_2_0=1
     BUILD_8_3_0=1
+    BUILD_9_1_0=1
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -198,6 +208,7 @@ mainbrown()
     if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz; fi; fi
     if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
     if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz; fi; fi
+    if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
     if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
@@ -225,6 +236,7 @@ mainbrown()
             if [ "$BUILD_8_1_0" == "1" ]; then rm -rf gcc-8.1.0; fi
             if [ "$BUILD_8_2_0" == "1" ]; then rm -rf gcc-8.2.0; fi
             if [ "$BUILD_8_3_0" == "1" ]; then rm -rf gcc-8.3.0; fi
+            if [ "$BUILD_9_1_0" == "1" ]; then rm -rf gcc-9.1.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -236,6 +248,7 @@ mainbrown()
         if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxvf gcc-8.1.0.tar.xz; fi
         if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf gcc-8.2.0.tar.xz; fi
         if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxvf gcc-8.3.0.tar.xz; fi
+        if [ "$BUILD_9_1_0" == "1" ]; then tar -Jxvf gcc-9.1.0.tar.xz; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -247,6 +260,7 @@ mainbrown()
             if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_9_1_0" == "1" ]; then cd gcc-9.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
         tar -Jxvf binutils-2.31.tar.xz
@@ -294,6 +308,8 @@ mainbrown()
     if [ "$BUILD_8_2_0" == "1" ]; then buildgcc 8.2.0; fi
     BINUTILS=2.32
     if [ "$BUILD_8_3_0" == "1" ]; then buildgcc 8.3.0; fi
+
+    if [ "$BUILD_9_1_0" == "1" ]; then buildgcc 9.1.0; fi
     
     echo "All done!"
 }
@@ -318,6 +334,7 @@ buildgcc()
     8.1.0)    VENDOR=atariultrabrown;;
     8.2.0)    VENDOR=ataribrownart;;
     8.3.0)    VENDOR=atariultrabrowner;;
+    9.1.0)    VENDOR=atarihyperbrown;;
     esac            # Brooooooooown
 
     # Clean build folders if requested
@@ -344,6 +361,7 @@ buildgcc()
                 $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/simple-object-elf.c
             fi
         fi
+
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
         ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
@@ -401,10 +419,10 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then                                                                       
-        # For gcc 8.x and MinGW, patch some nuisances in the source
+        # For gcc 8.x/9.x and MinGW, patch some nuisances in the source
         if [ "$machine" == "MinGw" ]
         then
-            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ]
+            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ]
             then
                 # No MinGW install I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
@@ -897,13 +915,13 @@ buildgcc()
         read -p "Patch libstdc++v3 at the source level (meaning the gcc-$1 files will be tinkered)?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
     
         # edit file gcc-$1/libstdc++-v3/configure - comment out the line:
         ##as_fn_error "No support for this host/target combination." "$LINENO" 5
+        # see comment below for gcc 9.1.0
     
-        $SED -i -e 's/as_fn_error \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
+        $SED -i -e 's/as_fn_error .* \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
         
         # *** hack configure to remove dlopen stuff
         
@@ -918,9 +936,11 @@ buildgcc()
         #
         #*** for every instance of: as_fn_error "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
         #*** change to as_echo_n so the configure doesn't halt on this error
+        #*** as of gcc 9.1.0 a .* was added to the search pattern of sed as they seem to have added the characters $? in there. Hopefully this doesn't break older builds
+        #*** (gee, they are full of surprises, aren't they?)
         #
         #  as_echo_n "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
-        $SED -i -e "s/  as_fn_error \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
+        $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
     
         #*** remove the contents of cow-stdexcept.cc
         #
@@ -930,13 +950,22 @@ buildgcc()
         #...everything...
         ##endif
    
-	if [ -f "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ];
-        then
+	    if [ -f "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ]; then
             echo "#if (0)" > "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
             cat "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc >> "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
             echo "#endif" >> "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
             mv "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc
-	fi
+	    fi
+
+        # Seems that gcc 9.1.0 also doesn't know what ENOTSUP is, which also cascades to std::errc::not_supported
+        # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
+        # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
+        #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
+        if [ "$1" == "9.1.0" ]; then
+            $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
+            $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
+            $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
+        fi
     
     fi
     
