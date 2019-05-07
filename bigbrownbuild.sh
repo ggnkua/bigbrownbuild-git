@@ -119,12 +119,10 @@ mainbrown()
         fi
     fi
   
-    if [ "$RUN_MODE" == "Admin" ]
-    then
+    if [ "$RUN_MODE" == "Admin" ]; then
         # Administrator mode
         SUDO=sudo
-        if [ "$machine" == "Mac" ]
-        then
+        if [ "$machine" == "Mac" ]; then
             INSTALL_PREFIX=/opt/local/
         else
             INSTALL_PREFIX=/opt/compiler-explorer
@@ -136,8 +134,7 @@ mainbrown()
         INSTALL_PREFIX=${HOME}/brown
     fi
 
-    if [ "$machine" == "Mac" ]
-    then
+    if [ "$machine" == "Mac" ]; then
         TAR=tar
         SED=gsed
         TAROPTS=
@@ -153,16 +150,14 @@ mainbrown()
         CXX8=g++
     fi
     
-    if [ "$machine" == "MinGw" ]
-    then
+    if [ "$machine" == "MinGw" ]; then
         # Msys has no idea what "sudo" and "nice" are.
         # Also, it's not liking parallel builds that much.
         unset SUDO
         unset NICE
         unset JMULT
     fi
-    if [ "$machine" == "Cygwin" ]
-    then
+    if [ "$machine" == "Cygwin" ]; then
         # Disable some stuff for cygwin as well
         unset SUDO
         unset NICE
@@ -187,8 +182,7 @@ mainbrown()
         read -p "Cleanup build dirs from previous build?" -n 1 -r
         echo
     fi
-    if [ "$CLEANUP" == "Y" ] || [ "$CLEANUP" == "y" ]
-    then
+    if [ "$CLEANUP" == "Y" ] || [ "$CLEANUP" == "y" ]; then
         rm -rf binary-package 
         rm -rf binutils-2.27
         rm -rf binutils-2.31
@@ -223,8 +217,7 @@ mainbrown()
         read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         if [ "$CLEANUP" == "Y" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then rm -rf gcc-4.6.4; fi
             if [ "$BUILD_4_9_4" == "1" ]; then rm -rf gcc-4.9.4; fi
@@ -349,13 +342,10 @@ buildgcc()
         read -p "Configure build, install and package up binutils?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         # For gcc 8.x and MinGW, patch some nuisances in the source
-        if [ "$machine" == "MinGw" ]
-        then
-            if [ "$BINUTILS" == "2.31" ]
-            then
+        if [ "$machine" == "MinGw" ]; then
+            if [ "$BINUTILS" == "2.31" ]; then
                 # No MinGW isntall I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
                 $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/simple-object-elf.c
@@ -397,8 +387,7 @@ buildgcc()
     
     # Fortran is enabled now, but there are still issues when compiling
     # a program with it...
-    if [ "$BUILD_FORTRAN" == "1" ]
-    then
+    if [ "$BUILD_FORTRAN" == "1" ]; then
         LANGUAGES=c,c++,fortran
     else
         LANGUAGES=c,c++
@@ -417,13 +406,10 @@ buildgcc()
         read -p "Configure, build and install gcc (without libs)?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then                                                                       
-        # For gcc 8.x/9.x and MinGW, patch some nuisances in the source
-        if [ "$machine" == "MinGw" ]
-        then
-            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ]
-            then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then                                                                       
+        # For gcc 8.x and MinGW, patch some nuisances in the source
+        if [ "$machine" == "MinGw" ]; then
+            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ]; then
                 # No MinGW install I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
                 $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
@@ -458,8 +444,7 @@ buildgcc()
         # that make install-gcc didn't set the read permission for users
         # so gcc couldn't work properly. No idea how to fix this propery
         # which means - botch time!                                     
-        if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
-        then
+        if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]; then
             $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/
             $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/
             $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/
@@ -490,14 +475,12 @@ buildgcc()
         read -p "Build and install libgcc?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         make all-target-libgcc $JMULT
         $SUDO make install-target-libgcc $JMULT
     
         # Some extra permissions
-        if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]
-        then
+        if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]; then
             $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
         fi
     fi
@@ -506,8 +489,7 @@ buildgcc()
     # Mintlib 
     #
 
-    if [ "$BUILD_MINTLIB" != "0" ]
-    then
+    if [ "$BUILD_MINTLIB" != "0" ]; then
 
         # Patch mintlib at the source level
         cd "$HOMEDIR"
@@ -519,8 +501,7 @@ buildgcc()
             read -p "Source patch and build mintlib?" -n 1 -r
             echo
         fi
-        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-        then
+        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         
             MINTLIBDIR="$HOMEDIR"/mintlib-bigbrownbuild-$1
         
@@ -571,8 +552,7 @@ buildgcc()
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
             
-            if [ "$machine" == "MinGw" ]
-            then
+            if [ "$machine" == "MinGw" ]; then
         
             #   Because MinGW/Msys has mixed forward/backward slashs in paths, convert
             #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }'`; \
@@ -862,8 +842,7 @@ buildgcc()
             $SED -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-$VENDOR-elf|gI" $MINTLIBDIR/buildrules
 
-            if [ "$machine" == "Mac" ]
-            then
+            if [ "$machine" == "Mac" ]; then
                 # MacOS 10.11.6 ("El Capitan") has a slightly different flex installation
                 # via macports, so we can't link using -lfl. Instead we need to link
                 # against -ll
@@ -880,8 +859,7 @@ buildgcc()
             # ¯\_(ツ)_/¯ 
             $SUDO make install
             $SUDO cp include/math.h $INSTALL_PREFIX/m68k-$VENDOR-elf/include
-            if [ "$machine" == "Mac" ]
-            then
+            if [ "$machine" == "Mac" ]; then
                 $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
             fi
         
@@ -900,10 +878,8 @@ buildgcc()
     cd "$HOMEDIR"/gcc-$1
     
     # Some more permissions need to be fixed here
-    if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ] && [ "$machine" != "Mac" ]
-    then
-        if [ "$BUILD_MINTLIB" != "0" ]
-        then
+    if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ] && [ "$machine" != "Mac" ]; then
+        if [ "$BUILD_MINTLIB" != "0" ]; then
             $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include/
             $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/share/
         fi
@@ -977,8 +953,7 @@ buildgcc()
         read -p "Patch libstdc++v3's configure scripts?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         #*** remove -std=gnu++98 from the toplevel makefile - it gets combined with the c++11 Makefile and causes problems
         #
         #gcc-$1/build/src/Makefile:
@@ -1012,8 +987,7 @@ buildgcc()
         # Patch all multilib instances
         # TODO: replace this with a grep or find command
         #       (yeah right, that will happen soon)
-        if [ "$BUILD_MINTLIB" != "0" ]
-        then
+        if [ "$BUILD_MINTLIB" != "0" ]; then
             $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/softfp/libstdc++-v3/include/type_traits
             $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68060/libstdc++-v3/include/type_traits
             $SED -i -e "s/_CTp/_xCTp/gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/m68060/softfp/libstdc++-v3/include/type_traits
@@ -1081,8 +1055,7 @@ buildgcc()
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
             echo
         fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-        then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
             # From what I could see libgfortran only has some function re-declarations
             # This might be possible to fix by passing proper configuration options
             # during configuration, but lolwtfwhocares - let's patch some files! 
@@ -1092,9 +1065,15 @@ buildgcc()
             $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
+            
+            if [ "$1" == "9.1.0" ]; then
+                # Some weird inconsistency in gf_vsnprintf - let's patch it up
+                $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
+                $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
+            fi
         
             make configure-target-libgfortran $JMULT
-            $NICE make $JMULT all-target-libgfortran $JMULT
+            $NICE make $JMULT all-target-libgfortran
             make install-target-libgfortran $JMULT
         fi
     fi 
@@ -1106,8 +1085,7 @@ buildgcc()
         read -p "Build and install libstdc++v3?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         cd "$HOMEDIR"/build-gcc-$1
         make all-target-libstdc++-v3 $JMULT
         $SUDO make install-target-libstdc++-v3 $JMULT
@@ -1129,21 +1107,18 @@ buildgcc()
     then    
         # I dunno why this must be done.
         # It happens on linux mint
-        if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]
-        then
+        if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]; then
             $SUDO chmod 775 "$HOMEDIR"/build-gcc-$1/gcc/b-header-vars
         fi
         # This system include isn't picked up for some reason 
-        if [ "$machine" == "Mac" ]
-        then
+        if [ "$machine" == "Mac" ]; then
             $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
         fi 
     
         $NICE make all $JMULT
         $SUDO make install $JMULT
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
-        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
-        then
+        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
             $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
     			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
     			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
@@ -1181,8 +1156,7 @@ buildgcc()
         for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
     
         strip .$INSTALL_PREFIX/bin/*
-        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]
-        then
+        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
             $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
     			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
     			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
@@ -1210,8 +1184,7 @@ buildgcc()
         read -p "Reorganise MiNTlib folders?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         # reorganise install dirs to map libs to all processor switches
         #
         # on completion the target:lib variants will be:

@@ -30,11 +30,11 @@ Make sure you have installed the following libraries and tools.
 
 ###Linux/Windows
 
-* GMP (dev)
+* GMP (dev) (if you don't download prerequisites)
 
-* MPFR (dev)
+* MPFR (dev) (if you don't download prerequisites)
 
-* MPC (dev)
+* MPC (dev) (if you don't download prerequisites)
 
 * bison-bin
 
