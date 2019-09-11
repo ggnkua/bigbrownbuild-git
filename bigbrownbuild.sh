@@ -800,7 +800,7 @@ buildgcc()
         ##as_fn_error "No support for this host/target combination." "$LINENO" 5
         # see comment below for gcc 9.1.0
     
-        $SED -i -e 's/as_fn_error .* \"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
+        $SED -i -e 's/as_fn_error .*\"No support for this host\/target combination.\" \"\$LINENO\" 5/#ignored/gI' "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
         
         # *** hack configure to remove dlopen stuff
         
