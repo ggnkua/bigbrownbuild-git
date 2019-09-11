@@ -819,7 +819,7 @@ buildgcc()
         #*** (gee, they are full of surprises, aren't they?)
         #
         #  as_echo_n "Link tests are not allowed after GCC_NO_EXECUTABLES." "$LINENO" 5
-        $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
+        $SED -i -e "s/  as_fn_error .*\"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
     
         #*** remove the contents of cow-stdexcept.cc
         #
