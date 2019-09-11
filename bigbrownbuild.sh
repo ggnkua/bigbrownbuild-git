@@ -14,15 +14,6 @@ mainbrown()
         exit
     fi	
 
-    #
-    # Ensure flex and bison is installed
-    # Don't look at me about what this does, I just copied it from stack overflow...
-    # (https://stackoverflow.com/a/677212)
-    #
-
-    command -v bison >/dev/null 2>&1 || { echo >&2 "I require bison but it's not installed.  Aborting."; exit 1; }
-    command -v flex >/dev/null 2>&1 || { echo >&2 "I require flex but it's not installed.  Aborting."; exit 1; }
-
     #   
     # User definable stuff
     #
@@ -32,7 +23,7 @@ mainbrown()
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
-    GLOBAL_BUILD_FORTRAN=0
+    GLOBAL_BUILD_FORTRAN=1
     # Set this to 1 if you want to tell gcc to download and
     # build prerequisite libraries if they are not installed
     # on your system
@@ -54,8 +45,8 @@ mainbrown()
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
     # the system's folders and will require root priviledges
-    #RUN_MODE=Admin
-    RUN_MODE=User
+    RUN_MODE=Admin
+    #RUN_MODE=User
 
     # How are the various gcc versions named. This is tuned for ubuntu 17.10
     # so your mileage may vary! Also you might be able to build all gcc versions using one
@@ -134,46 +125,8 @@ mainbrown()
         INSTALL_PREFIX=${HOME}/brown
     fi
 
-    if [ "$machine" == "Mac" ]; then
-        TAR=tar
-        SED=gsed
-        TAROPTS=
-        CC4=gcc
-        CXX4=g++
-        CC5=gcc
-        CXX5=g++
-        CC6=gcc
-        CXX6=g++
-        CC7=gcc
-        CXX7=g++
-        CC8=gcc
-        CXX8=g++
-    fi
-    
-    if [ "$machine" == "MinGw" ]; then
-        # Msys has no idea what "sudo" and "nice" are.
-        # Also, it's not liking parallel builds that much.
-        unset SUDO
-        unset NICE
-        unset JMULT
-    fi
-    if [ "$machine" == "Cygwin" ]; then
-        # Disable some stuff for cygwin as well
-        unset SUDO
-        unset NICE
-        # This is probably safe for cygwin, but only been tested
-        # when building gcc 7.x
-        CC4=gcc
-        CXX4=g++
-        CC5=gcc
-        CXX5=g++
-        CC6=gcc
-        CXX6=g++
-        CC7=gcc
-        CXX7=g++
-        CC8=gcc
-        CXX8=g++
-    fi
+    # Seems that docker doesn't like/need sudo?
+    SUDO=    
 
     # Cleanup folders
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -314,21 +267,9 @@ buildgcc()
 {
     # Construct compiler vendor name
 
-    VENDOR=atari$1
-
-    case "$1" in    # Brown up the names
-    4.6.4)    VENDOR=atarioriginalbrown;;
-    4.9.4)    VENDOR=atarioriginalbrowner;;
-    5.4.0)    VENDOR=ataribrownish;;
-    6.2.0)    VENDOR=ataribrown;;
-    7.1.0)    VENDOR=ataribrowner;;
-    7.2.0)    VENDOR=ataribrownerer;;
-    7.3.0)    VENDOR=ataribrownest;;
-    8.1.0)    VENDOR=atariultrabrown;;
-    8.2.0)    VENDOR=ataribrownart;;
-    8.3.0)    VENDOR=atariultrabrowner;;
-    9.1.0)    VENDOR=atarihyperbrown;;
-    esac            # Brooooooooown
+    VENDOR=$1
+    INSTALL_PREFIX=$INSTALL_PREFIX_GLOBAL/gcc68k-$VENDOR
+    export PATH=${INSTALL_PREFIX}/bin:$PATH
 
     # Clean build folders if requested
     if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
@@ -343,14 +284,7 @@ buildgcc()
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
-        # For gcc 8.x and MinGW, patch some nuisances in the source
-        if [ "$machine" == "MinGw" ]; then
-            if [ "$BINUTILS" == "2.31" ]; then
-                # No MinGW isntall I have knows what ENOTSUP is.
-                # Random internet suggestions said to replace this with ENOSYS so here we go
-                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/simple-object-elf.c
-            fi
-        fi
+
 
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
@@ -360,15 +294,6 @@ buildgcc()
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         $SUDO strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
-    
-        # Package up binutils
-    
-        make install DESTDIR=$BINPACKAGE_DIR $JMULT
-        cd $BINPACKAGE_DIR
-        strip .$INSTALL_PREFIX/bin/*
-        strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
-        gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-        $TAR $TAROPTS -jcvf binutils-$BINUTILS-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
     # Clean install dir
@@ -407,17 +332,7 @@ buildgcc()
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then                                                                       
-        # For gcc 8.x and MinGW, patch some nuisances in the source
-        if [ "$machine" == "MinGw" ]; then
-            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ]; then
-                # No MinGW install I have knows what ENOTSUP is.
-                # Random internet suggestions said to replace this with ENOSYS so here we go
-                $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
-                # The following two defines appear on most windows.h versions I have here
-                # but not on MinGW. Who knows
-                $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
-            fi
-        fi
+
         mkdir -p "$HOMEDIR"/build-gcc-$1
         cd "$HOMEDIR"/build-gcc-$1
         ../gcc-$1/configure \
@@ -460,9 +375,7 @@ buildgcc()
     # This ditches all coldfire lib building stuff:
     #        --with-arch=m68k
     
-   
     
-
     #INSTALL_PREFIX
     # Build/install libgcc
     #
@@ -841,13 +754,6 @@ buildgcc()
             $SED -i -e 's/\\"a1\\"/\\"%%%%a1\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e 's/\\"a2\\"/\\"%%%%a2\\"/gI' $MINTLIBDIR/syscall/traps.c
             $SED -i -e "s|/usr\$\$local/m68k-atari-mint|${INSTALL_PREFIX}/m68k-$VENDOR-elf|gI" $MINTLIBDIR/buildrules
-
-            if [ "$machine" == "Mac" ]; then
-                # MacOS 10.11.6 ("El Capitan") has a slightly different flex installation
-                # via macports, so we can't link using -lfl. Instead we need to link
-                # against -ll
-                $SED -i -e 's/-lfl/-ll/gI' $MINTLIBDIR/syscall/Makefile
-            fi
         
             cd $MINTLIBDIR
         
@@ -862,9 +768,6 @@ buildgcc()
             if [ "$machine" == "Mac" ]; then
                 $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
             fi
-        
-            # Create lib binary package
-            make bin-dist
         
         fi
     fi
@@ -1050,7 +953,7 @@ buildgcc()
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
     if [ "$BUILD_FORTRAN" == "1" ]; then
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-            REPLY=Y
+            REPLY=N
         else    
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
             echo
@@ -1139,45 +1042,6 @@ buildgcc()
         
     fi
     
-    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        REPLY=Y
-    else    
-        read -p "Package up gcc binaries?" -n 1 -r
-        echo
-    fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then    
-        #make install DESTDIR=$PWD/binary-package $JMULT
-        make install DESTDIR=$BINPACKAGE_DIR $JMULT
-        #cd binary-package
-        cd $BINPACKAGE_DIR
-        # Since make install uses the non-patched type_traits file let's patch them here too
-        # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
-        for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
-    
-        strip .$INSTALL_PREFIX/bin/*
-        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
-        else
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
-        fi
-    
-        find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        $TAR $TAROPTS -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
-    fi
-
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
     else    
