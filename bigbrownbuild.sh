@@ -31,16 +31,16 @@ mainbrown()
 
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=1
-    BUILD_5_4_0=1
-    BUILD_6_2_0=1
+    BUILD_4_9_4=0
+    BUILD_5_4_0=0
+    BUILD_6_2_0=0
     BUILD_7_1_0=1
-    BUILD_7_2_0=1
-    BUILD_7_3_0=1
-    BUILD_8_1_0=1
-    BUILD_8_2_0=1
-    BUILD_8_3_0=1
-    BUILD_9_1_0=1
+    BUILD_7_2_0=0
+    BUILD_7_3_0=0
+    BUILD_8_1_0=0
+    BUILD_8_2_0=0
+    BUILD_8_3_0=0
+    BUILD_9_1_0=0
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -113,12 +113,12 @@ mainbrown()
     if [ "$RUN_MODE" == "Admin" ]; then
         # Administrator mode
         SUDO=sudo
-        INSTALL_PREFIX=/opt/compiler-explorer
+        INSTALL_PREFIX_GLOBAL=/opt/compiler-explorer
     else
         # User mode
         SUDO=
-        #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=${HOME}/brown
+        #INSTALL_PREFIX_GLOBAL=${HOME}/localINSTALL_PREFIX
+        INSTALL_PREFIX_GLOBAL=${HOME}/brown
     fi
 
     # Seems that docker doesn't like/need sudo?
@@ -264,7 +264,7 @@ buildgcc()
     # Construct compiler vendor name
 
     VENDOR=$1
-    INSTALL_PREFIX=$INSTALL_PREFIX/gcc68k-$VENDOR
+    INSTALL_PREFIX=$INSTALL_PREFIX_GLOBAL/gcc68k-$VENDOR
     export PATH=${INSTALL_PREFIX}/bin:$PATH
 
     # Clean build folders if requested
