@@ -113,11 +113,7 @@ mainbrown()
     if [ "$RUN_MODE" == "Admin" ]; then
         # Administrator mode
         SUDO=sudo
-        if [ "$machine" == "Mac" ]; then
-            INSTALL_PREFIX=/opt/local/
-        else
-            INSTALL_PREFIX=/opt/compiler-explorer
-        fi
+        INSTALL_PREFIX=/opt/compiler-explorer
     else
         # User mode
         SUDO=
@@ -465,17 +461,6 @@ buildgcc()
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
             
-            if [ "$machine" == "MinGw" ]; then
-        
-            #   Because MinGW/Msys has mixed forward/backward slashs in paths, convert
-            #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }'`; \
-            #   to:
-            #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
-            #   .....
-            #   I need a drink...
-                $SED -i -e $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
-            fi
-        
             # Set C standard to prevent shit from blowing up
             $SED -i -e "s/-O2 -fomit-frame-pointer/-O2 -fomit-frame-pointer -std=gnu89/gI" $MINTLIBDIR/configvars
         
@@ -765,9 +750,6 @@ buildgcc()
             # ¯\_(ツ)_/¯ 
             $SUDO make install
             $SUDO cp include/math.h $INSTALL_PREFIX/m68k-$VENDOR-elf/include
-            if [ "$machine" == "Mac" ]; then
-                $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
-            fi
         
         fi
     fi
@@ -1013,10 +995,6 @@ buildgcc()
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]; then
             $SUDO chmod 775 "$HOMEDIR"/build-gcc-$1/gcc/b-header-vars
         fi
-        # This system include isn't picked up for some reason 
-        if [ "$machine" == "Mac" ]; then
-            $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
-        fi 
     
         $NICE make all $JMULT
         $SUDO make install $JMULT
