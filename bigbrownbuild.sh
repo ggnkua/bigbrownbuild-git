@@ -60,8 +60,8 @@ mainbrown()
     CXX6=g++-6
     CC7=gcc-7
     CXX7=g++-7
-    CC8=gcc
-    CXX8=g++
+    CC8=gcc-8
+    CXX8=g++-8
 
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
@@ -268,7 +268,7 @@ buildgcc()
     # Construct compiler vendor name
 
     VENDOR=$1
-    INSTALL_PREFIX=$INSTALL_PREFIX_GLOBAL/gcc68k-$VENDOR
+    INSTALL_PREFIX=$INSTALL_PREFIX/gcc68k-$VENDOR
     export PATH=${INSTALL_PREFIX}/bin:$PATH
 
     # Clean build folders if requested
