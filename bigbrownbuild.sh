@@ -50,6 +50,7 @@ mainbrown()
     BUILD_8_2_0=1
     BUILD_8_3_0=1
     BUILD_9_1_0=1
+    BUILD_9_2_0=1
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -71,6 +72,8 @@ mainbrown()
     CXX7=g++-7
     CC8=gcc
     CXX8=g++
+    CC9=gcc
+    CXX9=g++
 
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
@@ -148,6 +151,8 @@ mainbrown()
         CXX7=g++
         CC8=gcc
         CXX8=g++
+        CC9=gcc
+        CXX9=g++
     fi
     
     if [ "$machine" == "MinGw" ]; then
@@ -173,6 +178,8 @@ mainbrown()
         CXX7=g++
         CC8=gcc
         CXX8=g++
+        CC9=gcc
+        CXX9=g++
     fi
 
     # Cleanup folders
@@ -203,6 +210,7 @@ mainbrown()
     if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
     if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz; fi; fi
     if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz; fi; fi
+    if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
     if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
@@ -230,6 +238,7 @@ mainbrown()
             if [ "$BUILD_8_2_0" == "1" ]; then rm -rf gcc-8.2.0; fi
             if [ "$BUILD_8_3_0" == "1" ]; then rm -rf gcc-8.3.0; fi
             if [ "$BUILD_9_1_0" == "1" ]; then rm -rf gcc-9.1.0; fi
+            if [ "$BUILD_9_2_0" == "1" ]; then rm -rf gcc-9.2.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -242,6 +251,7 @@ mainbrown()
         if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf gcc-8.2.0.tar.xz; fi
         if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxvf gcc-8.3.0.tar.xz; fi
         if [ "$BUILD_9_1_0" == "1" ]; then tar -Jxvf gcc-9.1.0.tar.xz; fi
+        if [ "$BUILD_9_2_0" == "1" ]; then tar -Jxvf gcc-9.2.0.tar.xz; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -254,6 +264,7 @@ mainbrown()
             if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_9_1_0" == "1" ]; then cd gcc-9.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_9_2_0" == "1" ]; then cd gcc-9.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
         tar -Jxvf binutils-2.31.tar.xz
@@ -302,7 +313,10 @@ mainbrown()
     BINUTILS=2.32
     if [ "$BUILD_8_3_0" == "1" ]; then buildgcc 8.3.0; fi
 
+    export CC=$CC9
+    export CXX=$CXX9
     if [ "$BUILD_9_1_0" == "1" ]; then buildgcc 9.1.0; fi
+    if [ "$BUILD_9_2_0" == "1" ]; then buildgcc 9.2.0; fi
     
     echo "All done!"
 }
@@ -328,6 +342,7 @@ buildgcc()
     8.2.0)    VENDOR=ataribrownart;;
     8.3.0)    VENDOR=atariultrabrowner;;
     9.1.0)    VENDOR=atarihyperbrown;;
+    9.2.0)    VENDOR=atarihyperbrowner;;
     esac            # Brooooooooown
 
     # Clean build folders if requested
@@ -409,7 +424,7 @@ buildgcc()
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then                                                                       
         # For gcc 8.x and MinGW, patch some nuisances in the source
         if [ "$machine" == "MinGw" ]; then
-            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ]; then
+            if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ]; then
                 # No MinGW install I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
                 $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
@@ -937,10 +952,10 @@ buildgcc()
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
         # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
         #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
-        if [ "$1" == "9.1.0" ]; then
-            $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
-            $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
-            $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
+        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ]; then
+            $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
+            $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
+            $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
         fi
     
     fi
@@ -1066,7 +1081,7 @@ buildgcc()
             $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
             
-            if [ "$1" == "9.1.0" ]; then
+            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ]; then
                 # Some weird inconsistency in gf_vsnprintf - let's patch it up
                 $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
                 $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
