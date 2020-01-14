@@ -430,7 +430,7 @@ buildgcc()
                 $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libiberty/simple-object-elf.c
                 # The following two defines appear on most windows.h versions I have here
                 # but not on MinGW. Who knows
-                $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
+                $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.\n;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
             fi
         fi
         mkdir -p "$HOMEDIR"/build-gcc-$1
