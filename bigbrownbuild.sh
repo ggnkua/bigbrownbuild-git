@@ -161,6 +161,23 @@ mainbrown()
         unset SUDO
         unset NICE
         unset JMULT
+        CC4=i686-w64-mingw32-gcc
+        CXX4=i686-w64-mingw32-g++
+        CC5=i686-w64-mingw32-gcc
+        CXX5=i686-w64-mingw32-g++
+        CC6=i686-w64-mingw32-gcc
+        CXX6=i686-w64-mingw32-g++
+        CC7=i686-w64-mingw32-gcc
+        CXX7=i686-w64-mingw32-g++
+        CC8=i686-w64-mingw32-gcc
+        CXX8=i686-w64-mingw32-g++
+        CC9=i686-w64-mingw32-gcc
+        CXX9=i686-w64-mingw32-g++
+        # Flex is a msys built package but we use the mingw32 compiler.
+        # Instead of modifying the Makefiles (urgh) just copy the
+        # flex library over where mingw's lib search path will find it.
+        # Not the best practice but hey...
+        cp /usr/lib/libfl.a /mingw32/lib
     fi
     if [ "$machine" == "Cygwin" ]; then
         # Disable some stuff for cygwin as well
