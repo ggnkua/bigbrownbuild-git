@@ -100,10 +100,20 @@ mainbrown()
         Darwin*)    machine=Mac;;
         CYGWIN*)    machine=Cygwin;;
         MINGW*)     machine=MinGw;;
+        MSYS*)      machine=msys;;
         *)          machine="UNKNOWN:${unameOut}"
     esac
     echo Host machine: $machine
-   
+  
+    if [ "$machine" == "msys" ]; then
+        # msys default compilers generate binaries that are dependent
+        # on msys dlls. Which means you need to ship msys dlls alongside.
+        # So let's just refuse to build on msys and force people to use
+        # a MinGW shell instead (which is what people wanted anyway)
+        echo "Refusing to build on Msys shell, use a MinGW shell instead!"
+        exit
+    fi
+
     # If building 4.6.4 warn the user that the coldfire mintlib is hosed
     # and thus disabled for now
 
