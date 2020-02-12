@@ -1,0 +1,7 @@
+gcc-*
+build-*
+binary-package*
+mintlib-bigbrownbuild*
+*.bz2
+*.xz
+binutils-*

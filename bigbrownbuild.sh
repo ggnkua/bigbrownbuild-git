@@ -51,6 +51,7 @@ mainbrown()
     BUILD_8_3_0=1
     BUILD_9_1_0=1
     BUILD_9_2_0=1
+    BUILD_TRUNK=1   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -138,7 +139,7 @@ mainbrown()
         if [ "$machine" == "Mac" ]; then
             INSTALL_PREFIX=/opt/local/
         else
-            INSTALL_PREFIX=/opt/compiler-explorer
+            INSTALL_PREFIX=${HOME}/brown
         fi
     else
         # User mode
@@ -221,6 +222,7 @@ mainbrown()
         rm -rf binutils-2.27
         rm -rf binutils-2.31
         rm -rf binutils-2.32
+        rm -rf binutils-2.34
         rm -rf mintlib-bigbrownbuild
     fi
     
@@ -238,9 +240,11 @@ mainbrown()
     if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz; fi; fi
     if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz; fi; fi
     if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz; fi; fi
+    if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
     if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
+    if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
@@ -279,6 +283,7 @@ mainbrown()
         if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxvf gcc-8.3.0.tar.xz; fi
         if [ "$BUILD_9_1_0" == "1" ]; then tar -Jxvf gcc-9.1.0.tar.xz; fi
         if [ "$BUILD_9_2_0" == "1" ]; then tar -Jxvf gcc-9.2.0.tar.xz; fi
+        if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -292,10 +297,12 @@ mainbrown()
             if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_9_1_0" == "1" ]; then cd gcc-9.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_9_2_0" == "1" ]; then cd gcc-9.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
         tar -Jxvf binutils-2.31.tar.xz
         tar -Jxvf binutils-2.32.tar.xz
+        tar -Jxvf binutils-2.34.tar.xz
     fi
    
     # 
@@ -345,6 +352,9 @@ mainbrown()
     if [ "$BUILD_9_1_0" == "1" ]; then buildgcc 9.1.0; fi
     if [ "$BUILD_9_2_0" == "1" ]; then buildgcc 9.2.0; fi
     
+    BINUTILS=2.34
+    if [ "$BUILD_TRUNK" == "1" ]; then buildgcc TRUNK; fi
+    
     echo "All done!"
 }
 
@@ -370,6 +380,7 @@ buildgcc()
     8.3.0)    VENDOR=atariultrabrowner;;
     9.1.0)    VENDOR=atarihyperbrown;;
     9.2.0)    VENDOR=atarihyperbrowner;;
+    TRUNK)    VENDOR=ataribleedingbrown;;
     esac            # Brooooooooown
 
     # Clean build folders if requested
@@ -588,12 +599,18 @@ buildgcc()
             # Force 68000 mode in the default lib since our gcc defaults to 68020
             $SED -i -e "s/cflags = /cflags = -m68000/gI " $MINTLIBDIR/lib/Makefile
             
-            # When building using cross-gcc-4.6.4 the compilers ICE with coldifre targets at
+            # When building using cross-gcc-4.6.4 the compilers ICE with coldfire targets at
             # stdio/printf_fp.c. So let's disable this...
             if [ "$SKIP_464_CF" == "Y" ] || [ "$SKIP_464_CF" == "y" ]; then
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
-            
+           
+            if [ "$1" == "TRUNK" ]; then
+                # h_errno is defined in 2 sources of MiNTlib and up till gcc 9 it was
+                # fine. But not anymore O_o
+                $SED -i -e 's/int h_errno/extern int h_errno/gI' $MINTLIBDIR/socket/res_query.c
+            fi
+
             if [ "$machine" == "MinGw" ]; then
         
             #   Because MinGW/Msys has mixed forward/backward slashs in paths, convert
@@ -979,7 +996,7 @@ buildgcc()
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
         # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
         #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
-        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ]; then
+        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
