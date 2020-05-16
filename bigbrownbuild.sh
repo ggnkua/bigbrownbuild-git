@@ -29,14 +29,19 @@ mainbrown()
 
     # Set this to "A" if you want a completely automated run
     GLOBAL_OVERRIDE=A
+
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
     GLOBAL_BUILD_FORTRAN=0
+
     # Set this to 1 if you want to tell gcc to download and
     # build prerequisite libraries if they are not installed
     # on your system
     GLOBAL_DOWNLOAD_PREREQUISITES=1
+
+    # Use less RAM when compiling, for low end systems
+    USE_MIN_RAM=0
 
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
@@ -52,7 +57,8 @@ mainbrown()
     BUILD_9_1_0=1
     BUILD_9_2_0=1
     BUILD_9_3_0=1
-    BUILD_TRUNK=0   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
+    BUILD_10_1_0=1
+    BUILD_TRUNK=1   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -76,6 +82,8 @@ mainbrown()
     CXX8=g++
     CC9=gcc
     CXX9=g++
+    CC10=gcc
+    CXX10=g++
 
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
@@ -165,6 +173,8 @@ mainbrown()
         CXX8=g++
         CC9=gcc
         CXX9=g++
+        CC10=gcc
+        CXX10=g++
     fi
     
     if [ "$machine" == "MinGw" ]; then
@@ -185,6 +195,8 @@ mainbrown()
         CXX8=i686-w64-mingw32-g++
         CC9=i686-w64-mingw32-gcc
         CXX9=i686-w64-mingw32-g++
+        CC10=i686-w64-mingw32-gcc
+        CXX10=i686-w64-mingw32-g++
         # Flex is a msys built package but we use the mingw32 compiler.
         # Instead of modifying the Makefiles (urgh) just copy the
         # flex library over where mingw's lib search path will find it.
@@ -209,6 +221,8 @@ mainbrown()
         CXX8=g++
         CC9=gcc
         CXX9=g++
+        CC10=gcc
+        CXX10=g++
     fi
 
     # Cleanup folders
@@ -242,6 +256,7 @@ mainbrown()
     if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz; fi; fi
     if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz; fi; fi
     if [ "$BUILD_9_3_0" == "1" ]; then if [ ! -f gcc-9.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.3.0/gcc-9.3.0.tar.xz; fi; fi
+    if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
@@ -273,6 +288,7 @@ mainbrown()
             if [ "$BUILD_9_1_0" == "1" ]; then rm -rf gcc-9.1.0; fi
             if [ "$BUILD_9_2_0" == "1" ]; then rm -rf gcc-9.2.0; fi
             if [ "$BUILD_9_3_0" == "1" ]; then rm -rf gcc-9.3.0; fi
+            if [ "$BUILD_10_1_0" == "1" ]; then rm -rf gcc-10.1.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -287,6 +303,7 @@ mainbrown()
         if [ "$BUILD_9_1_0" == "1" ]; then tar -Jxvf gcc-9.1.0.tar.xz; fi
         if [ "$BUILD_9_2_0" == "1" ]; then tar -Jxvf gcc-9.2.0.tar.xz; fi
         if [ "$BUILD_9_3_0" == "1" ]; then tar -Jxvf gcc-9.3.0.tar.xz; fi
+        if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxvf gcc-10.1.0.tar.xz; fi
         if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -302,6 +319,7 @@ mainbrown()
             if [ "$BUILD_9_1_0" == "1" ]; then cd gcc-9.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_9_2_0" == "1" ]; then cd gcc-9.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_9_3_0" == "1" ]; then cd gcc-9.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_10_1_0" == "1" ]; then cd gcc-10.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
@@ -359,8 +377,12 @@ mainbrown()
     if [ "$BUILD_9_3_0" == "1" ]; then buildgcc 9.3.0; fi
     
     BINUTILS=2.34
+    export CC=$CC10
+    export CXX=$CXX10
+    if [ "$BUILD_10_1_0" == "1" ]; then buildgcc 10.1.0; fi
+
     if [ "$BUILD_TRUNK" == "1" ]; then buildgcc TRUNK; fi
-    
+
     echo "All done!"
 }
 
@@ -387,6 +409,7 @@ buildgcc()
     9.1.0)    VENDOR=atarihyperbrown;;
     9.2.0)    VENDOR=atarihyperbrowner;;
     9.3.0)    VENDOR=atarihyperbrownest;;
+    10.1.0)   VENDOR=atariextrabrown;;
     TRUNK)    VENDOR=ataribleedingbrown;;
     esac            # Brooooooooown
 
@@ -454,8 +477,15 @@ buildgcc()
     fi
     WL=
     
-    export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
-    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
+    if [ "$USE_MIN_RAM" == "1" ]; then
+        export CFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
+        export CXXFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
+        export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768"
+        export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768"
+    else
+        export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
+        export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
+    fi
     export LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
     # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
     #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
@@ -494,8 +524,8 @@ buildgcc()
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
             --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
-            CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore" \
-            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore" \
+            CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
+            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
             LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
         $NICE make all-gcc $JMULT
         $SUDO make install-gcc $JMULT
@@ -612,7 +642,7 @@ buildgcc()
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
            
-            if [ "$1" == "TRUNK" ]; then
+            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ]; then
                 # h_errno is defined in 2 sources of MiNTlib and up till gcc 9 it was
                 # fine. But not anymore O_o
                 $SED -i -e 's/int h_errno/extern int h_errno/gI' $MINTLIBDIR/socket/res_query.c
@@ -1003,7 +1033,7 @@ buildgcc()
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
         # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
         #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
-        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
@@ -1132,7 +1162,7 @@ buildgcc()
             $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
             
-            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ]; then
+            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ]; then
                 # Some weird inconsistency in gf_vsnprintf - let's patch it up
                 $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
                 $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
