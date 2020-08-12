@@ -33,7 +33,7 @@ mainbrown()
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
-    GLOBAL_BUILD_FORTRAN=0
+    GLOBAL_BUILD_FORTRAN=1
 
     # Set this to 1 if you want to tell gcc to download and
     # build prerequisite libraries if they are not installed
@@ -41,24 +41,25 @@ mainbrown()
     GLOBAL_DOWNLOAD_PREREQUISITES=1
 
     # Use less RAM when compiling, for low end systems
-    USE_MIN_RAM=0
+    USE_MIN_RAM=1
 
     # Which gccs to build. 1=Build, anything else=Don't build
-    BUILD_4_6_4=1  # Produces Internal Compiler Error when built with gcc 4.8.5?
-    BUILD_4_9_4=1
-    BUILD_5_4_0=1
-    BUILD_6_2_0=1
-    BUILD_7_1_0=1
-    BUILD_7_2_0=1
-    BUILD_7_3_0=1
-    BUILD_8_1_0=1
-    BUILD_8_2_0=1
-    BUILD_8_3_0=1
-    BUILD_9_1_0=1
-    BUILD_9_2_0=1
-    BUILD_9_3_0=1
-    BUILD_10_1_0=1
-    BUILD_TRUNK=1   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
+    BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
+    BUILD_4_9_4=0
+    BUILD_5_4_0=0
+    BUILD_6_2_0=0
+    BUILD_7_1_0=0
+    BUILD_7_2_0=0
+    BUILD_7_3_0=0
+    BUILD_8_1_0=0
+    BUILD_8_2_0=0
+    BUILD_8_3_0=0
+    BUILD_9_1_0=0
+    BUILD_9_2_0=0
+    BUILD_9_3_0=0
+    BUILD_10_1_0=0
+    BUILD_10_2_0=1
+    BUILD_TRUNK=0   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -87,8 +88,8 @@ mainbrown()
 
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
-    NICE='nice -20'
-    JMULT=-j4
+    NICE='nice -n 19'
+    JMULT=-j1
     BINPACKAGE_DIR=$PWD/binary-package
     SED=sed
     TAR=tar
@@ -148,13 +149,13 @@ mainbrown()
         if [ "$machine" == "Mac" ]; then
             INSTALL_PREFIX=/opt/local/
         else
-            INSTALL_PREFIX=${HOME}/brown
+            INSTALL_PREFIX=/brown
         fi
     else
         # User mode
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=${HOME}/brown
+        INSTALL_PREFIX=/brown
     fi
 
     if [ "$machine" == "Mac" ]; then
@@ -238,6 +239,7 @@ mainbrown()
         rm -rf binutils-2.31
         rm -rf binutils-2.32
         rm -rf binutils-2.34
+        rm -rf binutils-2.35
         rm -rf mintlib-bigbrownbuild
     fi
     
@@ -257,11 +259,13 @@ mainbrown()
     if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz; fi; fi
     if [ "$BUILD_9_3_0" == "1" ]; then if [ ! -f gcc-9.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.3.0/gcc-9.3.0.tar.xz; fi; fi
     if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz; fi; fi
+    if [ "$BUILD_10_2_0" == "1" ]; then if [ ! -f gcc-10.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK; fi; fi
     if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
     if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
     if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
     if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz; fi
+    if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
@@ -289,6 +293,7 @@ mainbrown()
             if [ "$BUILD_9_2_0" == "1" ]; then rm -rf gcc-9.2.0; fi
             if [ "$BUILD_9_3_0" == "1" ]; then rm -rf gcc-9.3.0; fi
             if [ "$BUILD_10_1_0" == "1" ]; then rm -rf gcc-10.1.0; fi
+            if [ "$BUILD_10_2_0" == "1" ]; then rm -rf gcc-10.2.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -304,6 +309,7 @@ mainbrown()
         if [ "$BUILD_9_2_0" == "1" ]; then tar -Jxvf gcc-9.2.0.tar.xz; fi
         if [ "$BUILD_9_3_0" == "1" ]; then tar -Jxvf gcc-9.3.0.tar.xz; fi
         if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxvf gcc-10.1.0.tar.xz; fi
+        if [ "$BUILD_10_2_0" == "1" ]; then tar -Jxvf gcc-10.2.0.tar.xz; fi
         if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -320,12 +326,14 @@ mainbrown()
             if [ "$BUILD_9_2_0" == "1" ]; then cd gcc-9.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_9_3_0" == "1" ]; then cd gcc-9.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_10_1_0" == "1" ]; then cd gcc-10.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_10_2_0" == "1" ]; then cd gcc-10.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
         tar -jxvf binutils-2.27.tar.bz2
         tar -Jxvf binutils-2.31.tar.xz
         tar -Jxvf binutils-2.32.tar.xz
         tar -Jxvf binutils-2.34.tar.xz
+        tar -Jxvf binutils-2.35.tar.xz
     fi
    
     # 
@@ -380,6 +388,8 @@ mainbrown()
     export CC=$CC10
     export CXX=$CXX10
     if [ "$BUILD_10_1_0" == "1" ]; then buildgcc 10.1.0; fi
+    BINUTILS=2.34
+    if [ "$BUILD_10_2_0" == "1" ]; then buildgcc 10.2.0; fi
 
     if [ "$BUILD_TRUNK" == "1" ]; then buildgcc TRUNK; fi
 
@@ -410,6 +420,7 @@ buildgcc()
     9.2.0)    VENDOR=atarihyperbrowner;;
     9.3.0)    VENDOR=atarihyperbrownest;;
     10.1.0)   VENDOR=atariextrabrown;;
+    10.2.0)   VENDOR=atariextrabrowner;;
     TRUNK)    VENDOR=ataribleedingbrown;;
     esac            # Brooooooooown
 
@@ -642,7 +653,7 @@ buildgcc()
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
            
-            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ]; then
+            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ]; then
                 # h_errno is defined in 2 sources of MiNTlib and up till gcc 9 it was
                 # fine. But not anymore O_o
                 $SED -i -e 's/int h_errno/extern int h_errno/gI' $MINTLIBDIR/socket/res_query.c
@@ -1033,7 +1044,7 @@ buildgcc()
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
         # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
         #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
-        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
@@ -1161,11 +1172,19 @@ buildgcc()
             $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
-            
-            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ]; then
+            # Same as libstc++v3
+            $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libgfortran/configure
+
+            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "TRUNK" ]; then
                 # Some weird inconsistency in gf_vsnprintf - let's patch it up
                 $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
                 $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
+            fi
+            if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "TRUNK" ]; then
+                # Starting with 9.2.0 onwards, async execution was added. Most likely our capabilities don't allow this
+                # so we don't get the define SA_RESTART in our signal.h. So let's just silently define it (its value seems
+                # to be uniformally the same) and move on
+                $SED -i -e "s/#include <string.h>/#include <string.h>\n#define SA_RESTART        0x10000000/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/execute_command_line.c
             fi
         
             make configure-target-libgfortran $JMULT
