@@ -329,11 +329,13 @@ mainbrown()
             if [ "$BUILD_10_2_0" == "1" ]; then cd gcc-10.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
-        tar -jxvf binutils-2.27.tar.bz2
-        tar -Jxvf binutils-2.31.tar.xz
-        tar -Jxvf binutils-2.32.tar.xz
-        tar -Jxvf binutils-2.34.tar.xz
-        tar -Jxvf binutils-2.35.tar.xz
+        if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || "$BUILD_5_4_0" == "1" || "$BUILD_6_2_0" == "1" || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
+            tar -jxvf binutils-2.27.tar.bz2
+        fi
+        if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf binutils-2.31.tar.xz; fi
+        if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then tar -Jxvf binutils-2.32.tar.xz; fi
+        if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxvf binutils-2.34.tar.xz; fi
+        if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then tar -Jxvf binutils-2.35.tar.xz; fi
     fi
    
     # 
@@ -388,7 +390,7 @@ mainbrown()
     export CC=$CC10
     export CXX=$CXX10
     if [ "$BUILD_10_1_0" == "1" ]; then buildgcc 10.1.0; fi
-    BINUTILS=2.34
+    BINUTILS=2.35
     if [ "$BUILD_10_2_0" == "1" ]; then buildgcc 10.2.0; fi
 
     if [ "$BUILD_TRUNK" == "1" ]; then buildgcc TRUNK; fi
