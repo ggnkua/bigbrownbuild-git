@@ -184,25 +184,25 @@ mainbrown()
         unset SUDO
         unset NICE
         unset JMULT
-        CC4=i686-w64-mingw32-gcc
-        CXX4=i686-w64-mingw32-g++
-        CC5=i686-w64-mingw32-gcc
-        CXX5=i686-w64-mingw32-g++
-        CC6=i686-w64-mingw32-gcc
-        CXX6=i686-w64-mingw32-g++
-        CC7=i686-w64-mingw32-gcc
-        CXX7=i686-w64-mingw32-g++
-        CC8=i686-w64-mingw32-gcc
-        CXX8=i686-w64-mingw32-g++
-        CC9=i686-w64-mingw32-gcc
-        CXX9=i686-w64-mingw32-g++
-        CC10=i686-w64-mingw32-gcc
-        CXX10=i686-w64-mingw32-g++
+        CC4=x86_64-w64-mingw32-gcc
+        CXX4=x86_64-w64-mingw32-g++
+        CC5=x86_64-w64-mingw32-gcc
+        CXX5=x86_64-w64-mingw32-g++
+        CC6=x86_64-w64-mingw32-gcc
+        CXX6=x86_64-w64-mingw32-g++
+        CC7=x86_64-w64-mingw32-gcc
+        CXX7=x86_64-w64-mingw32-g++
+        CC8=x86_64-w64-mingw32-gcc
+        CXX8=x86_64-w64-mingw32-g++
+        CC9=x86_64-w64-mingw32-gcc
+        CXX9=x86_64-w64-mingw32-g++
+        CC10=x86_64-w64-mingw32-gcc
+        CXX10=x86_64-w64-mingw32-g++
         # Flex is a msys built package but we use the mingw32 compiler.
         # Instead of modifying the Makefiles (urgh) just copy the
         # flex library over where mingw's lib search path will find it.
         # Not the best practice but hey...
-        cp /usr/lib/libfl.a /mingw32/lib
+        cp /usr/lib/libfl.a /mingw64/lib
     fi
     if [ "$machine" == "Cygwin" ]; then
         # Disable some stuff for cygwin as well
@@ -261,11 +261,22 @@ mainbrown()
     if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz; fi; fi
     if [ "$BUILD_10_2_0" == "1" ]; then if [ ! -f gcc-10.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK; fi; fi
-    if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
-    if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
-    if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
-    if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz; fi
-    if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz; fi
+
+    if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
+        if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
+    fi
+    if [ "$BUILD_8_2_0" == "1" ]; then
+        if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
+    fi
+    if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then
+        if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
+    fi
+    if [ "$BUILD_10_1_0" == "1" ]; then
+        if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz; fi
+    fi
+    if [ "$BUILD_10_2_0" == "1" ]; then
+        if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz; fi
+    fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     # requires GMP, MPFR and MPC
     
