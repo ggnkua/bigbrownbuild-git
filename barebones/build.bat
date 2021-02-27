@@ -54,13 +54,13 @@ for %%I in (%GASFILES%) do call :checkrun "obj\%%I.o" "%%I.gas" "%GCCPATH%\bin\m
 rem Link
 del %OUTPUT_FOLDER%\%PROJNAME%.tos 2>NUL
 
-%GPP% -L/lib/gcc/m68k-atariextrabrowner-elf/10.2.0/m68000 -L/usr/m68k-atariultrabrown-elf/lib/m68000 -o lolworld.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/lolworld.o -Wl,-Map,lolworld.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -o lolworld.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/lolworld.o -Wl,-Map,lolworld.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
-%GPP% -L/lib/gcc/m68k-atariextrabrowner-elf/10.2.0/m68000 -L/usr/m68k-atariultrabrown-elf/lib/m68000 -o ctest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/ctest.o -Wl,-Map,ctest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -o ctest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/ctest.o -Wl,-Map,ctest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
-%GPP% -L/lib/gcc/m68k-atariextrabrowner-elf/10.2.0/m68000 -L/usr/m68k-atariultrabrown-elf/lib/m68000 -o cpptest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/cpptest.o -Wl,-Map,cpptest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
+%GPP% -o cpptest.elf  libcxx/brownboot.o libcxx/browncrti.o libcxx/browncrt++.o libcxx/zerolibc.o libcxx/zerocrtfini.o obj/vsnprint.o obj/printf.o  obj/cpptest.o -Wl,-Map,cpptest.map -Wl,--emit-relocs -Wl,-e_start -Ttext=0 -nostdlib -nostartfiles -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore  libcxx/browncrtn.o
 if errorlevel 1 exit /b
 
 rem brown up the elf
