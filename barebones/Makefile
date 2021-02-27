@@ -21,8 +21,8 @@ USE_CFG=release
 TARGETFLAGS =	-m68000
 
 LIBPATHS =	\
-		-L/mingw32/lib/gcc/m68k-atarihyperbrowner-elf/8.2.0/m68000 \
-		-L/mingew32/m68k-atarihyperbrowner-elf/lib/m68000
+		-L/brown/lib/gcc/m68k-atariextrabrowner-elf/10.2.0/m68000 \
+		-L/brownm68k-atariextrabrowner-elf/lib/m68000
 
 LIBS =		\
 
@@ -77,7 +77,7 @@ else
 #  implements __cxa_atexit/__cxa_finalize needed by C++ static init. missing
 #  from MiNTlib and reused for bare-bones builds on both compilers.
 
-CRTSEQ_G = /mingw32/m68k-atarihyperbrowner-elf/lib/crt0.o
+CRTSEQ_G = /brown/m68k-atariextrabrowner-elf/lib/crt0.o
 CRTSEQ_S = \
 	$(LIBCXX)/browncrti.o \
 	$(LIBCXX)/browncrt++.o \
@@ -93,8 +93,8 @@ LIBS = -lgcc -lc
 endif
 # -----------------------------------------------------------------------------
 
-VASM = vasm16c -Felf -showcrit -noesc
-TOOLCHAIN_PREFIX = /mingw32/bin/m68k-atarihyperbrowner-elf-
+VASM = ./vasmm68k_mot.exe -Felf -showcrit -noesc
+TOOLCHAIN_PREFIX = /brown/bin/m68k-atariextrabrowner-elf-
 
 # -----------------------------------------------------------------------------
 
@@ -191,12 +191,12 @@ clean:
 # -----------------------------------------------------------------------------
 ifeq ($(USE_CFG),release)
 # -----------------------------------------------------------------------------
-	brownout -p 0 -i $*.elf -o $*.tos
+	./brownout.exe -p 0 -i $*.elf -o $*.tos
 # -----------------------------------------------------------------------------
 else
 # -----------------------------------------------------------------------------
 	$(TOOLCHAIN_PREFIX)objdump -h $*.elf
-	brownout -s -x -p 0 -i $*.elf -o $*.tos
+	./brownout.exe -s -x -p 0 -i $*.elf -o $*.tos
 # -----------------------------------------------------------------------------
 endif
 # -----------------------------------------------------------------------------
@@ -217,9 +217,9 @@ endif
 $(LIBCXX)/brownmint++.o: $(LIBCXX)/brownmint++.c
 	$(TOOLCHAIN_PREFIX)gcc -Wall -m68000 -O2 -std=gnu89 -fleading-underscore -nostdinc \
 	-I$(LIBCXX) \
-	-I/usr/lib/gcc/m68k-atarihyperbrowner-elf/8.2.0/include \
-	-I/usr/lib/gcc/m68k-atarihyperbrowner-elf/8.2.0/include-fixed \
-	-I/usr/m68k-atarihyperbrowner-elf/include \
+	-I/usr/lib/gcc/m68k-atariextrabrowner-elf/8.2.0/include \
+	-I/usr/lib/gcc/m68k-atariextrabrowner-elf/8.2.0/include-fixed \
+	-I/usr/m68k-atariextrabrowner-elf/include \
 	-DHAVE_CONFIG_H -D_LIBC -D_REENTRANT \
 	-c $< -o $@
 
