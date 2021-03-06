@@ -5,3 +5,4 @@ mintlib-bigbrownbuild*
 *.bz2
 *.xz
 binutils-*
+newlib*

@@ -1,4 +1,4 @@
-set -e			#stop on any error encountered
+set -e          #stop on any error encountered
 #set -x                  #echo all commands
 
 mainbrown()
@@ -12,7 +12,7 @@ mainbrown()
     if [ -z "$BASH_VERSION"  ]; then
         echo "Please run this script under bash!"
         exit
-    fi	
+    fi  
 
     #
     # Ensure flex and bison is installed
@@ -20,8 +20,8 @@ mainbrown()
     # (https://stackoverflow.com/a/677212)
     #
 
-    command -v bison >/dev/null 2>&1 || { echo >&2 "I require bison but it's not installed.  Aborting."; exit 1; }
-    command -v flex >/dev/null 2>&1 || { echo >&2 "I require flex but it's not installed.  Aborting."; exit 1; }
+    #command -v bison >/dev/null 2>&1 || { echo >&2 "I require bison but it's not installed.  Aborting."; exit 1; }
+    #command -v flex >/dev/null 2>&1 || { echo >&2 "I require flex but it's not installed.  Aborting."; exit 1; }
 
     #   
     # User definable stuff
@@ -33,7 +33,7 @@ mainbrown()
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
-    GLOBAL_BUILD_FORTRAN=1
+    GLOBAL_BUILD_FORTRAN=0
 
     # Set this to 1 if you want to tell gcc to download and
     # build prerequisite libraries if they are not installed
@@ -89,7 +89,7 @@ mainbrown()
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
     NICE='nice -n 19'
-    JMULT=-j1
+    JMULT=-j12
     BINPACKAGE_DIR=$PWD/binary-package
     SED=sed
     TAR=tar
@@ -98,6 +98,9 @@ mainbrown()
     # Only set this to nonzero when you do want to build mintlib
     # Note that if you don't build mintlib then libstdc++v3 will also fail to build
     BUILD_MINTLIB=1
+
+    # Set this to nonzero to build Newlib instead of MiNTlib (experimental for now)
+    BUILD_NEWLIB=0
     
     #
     # Setup stuff
@@ -149,13 +152,13 @@ mainbrown()
         if [ "$machine" == "Mac" ]; then
             INSTALL_PREFIX=/opt/local/
         else
-            INSTALL_PREFIX=/brown
+            INSTALL_PREFIX=/home/ggn/brown
         fi
     else
         # User mode
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=/brown
+        INSTALL_PREFIX=${HOME}/brown
     fi
 
     if [ "$machine" == "Mac" ]; then
@@ -241,6 +244,7 @@ mainbrown()
         rm -rf binutils-2.34
         rm -rf binutils-2.35
         rm -rf mintlib-bigbrownbuild
+        rm -rf build-newlib*
     fi
     
     # Get all the things
@@ -278,6 +282,7 @@ mainbrown()
         if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz; fi
     fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
+    if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz; fi; fi
     # requires GMP, MPFR and MPC
     
     # Unpack all the things
@@ -285,7 +290,7 @@ mainbrown()
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
     else    
-        read -p "Unpack gcc, binutils and mintlib?" -n 1 -r
+        read -p "Unpack gcc, binutils, Newlib and mintlib?" -n 1 -r
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
@@ -340,6 +345,7 @@ mainbrown()
             if [ "$BUILD_10_2_0" == "1" ]; then cd gcc-10.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
+    if [ "$BUILD_NEWLIB" != "0" ]; then tar -zxvf newlib-4.1.0.tar.gz; fi
         if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || "$BUILD_5_4_0" == "1" || "$BUILD_6_2_0" == "1" || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
             tar -jxvf binutils-2.27.tar.bz2
         fi
@@ -438,7 +444,8 @@ buildgcc()
     esac            # Brooooooooown
 
     # Clean build folders if requested
-    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
+    if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1 build-newlib-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
+    if [ "$BUILD_NEWLIB" != "0" ]; then cp -frp newlib-4.1.0 newlib-4.1.0-$1; fi
 
     # binutils build dir
     # Configure, build and install binutils for m68k elf
@@ -520,7 +527,7 @@ buildgcc()
         read -p "Configure, build and install gcc (without libs)?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then                                                                       
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         # For gcc 8.x and MinGW, patch some nuisances in the source
         if [ "$machine" == "MinGw" ]; then
             if [ "$1" == "8.1.0" ] || [ "$1" == "8.2.0" ] || [ "$1" == "8.3.0" ] || [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ]; then
@@ -598,7 +605,55 @@ buildgcc()
             $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
         fi
     fi
+        
+    export PATH=${INSTALL_PREFIX}/bin:$PATH
     
+    #
+    # Newlib
+    # This will require building a second version of gcc so we can tell it to use Newlib instead of libgcc.
+    # Who knows, maybe this is not super required. But install guides on the internets seem to suggest doing this.
+    #
+
+    if [ "$BUILD_NEWLIB" != "0" ]; then
+        if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+            REPLY=Y
+        else    
+            read -p "Build and install newlib (and custom gcc)?" -n 1 -r
+            echo
+        fi
+        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+            mkdir -p "$HOMEDIR/build-newlib-$1/build"
+            cd "$HOMEDIR/build-newlib-$1/build"
+            CC=m68k-$VENDOR-elf-gcc $HOMEDIR/newlib-4.1.0-$1/newlib/configure --target=m68k-$VENDOR-elf --build=m68k-$VENDOR-elf --host=m68k-$VENDOR-elf --prefix=${INSTALL_PREFIX}-newlib
+            $NICE make $JMULT
+            $SUDO make install
+   
+            # Re-configure and build gcc with "--with-newlib". Exciting.
+            mkdir -p "$HOMEDIR"/build-gcc-newlib-$1
+            cd "$HOMEDIR"/build-gcc-newlib-$1
+            ../gcc-$1/configure \
+                --with-newlib \
+                --target=m68k-$VENDORnewlib-elf \
+                --disable-nls \
+                --enable-languages=$LANGUAGES \
+                --enable-lto \
+                --prefix=${INSTALL_PREFIX}-newlib \
+                --disable-libssp \
+                --enable-softfloat \
+                --disable-libstdcxx-pch \
+                --disable-clocale \
+                --disable-libstdcxx-threads \
+                --disable-libstdcxx-filesystem-ts \
+                --disable-libquadmath \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
+                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
+            $NICE make all-gcc $JMULT
+            $SUDO make install-gcc $JMULT
+        fi
+    fi
+
     #
     # Mintlib 
     #
@@ -607,7 +662,6 @@ buildgcc()
 
         # Patch mintlib at the source level
         cd "$HOMEDIR"
-        export PATH=${INSTALL_PREFIX}/bin:$PATH
         
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
             REPLY=Y
@@ -675,9 +729,9 @@ buildgcc()
             if [ "$machine" == "MinGw" ]; then
         
             #   Because MinGW/Msys has mixed forward/backward slashs in paths, convert
-            #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }'`; \
+            #   installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }'`; \
             #   to:
-            #	installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
+            #   installdir=`$(CC) --print-search-dirs | awk '{ print $$2; exit; }' | sed -e 's/\\\\/\//gI'`; \
             #   .....
             #   I need a drink...
                 $SED -i -e $'s/2; exit; }\'`/2; exit; }\' | sed -e \'s\/\\\\\\\\\\\\\\\\\/\\\\\/\/gi\' `/gI' $MINTLIBDIR/buildrules
@@ -1046,12 +1100,12 @@ buildgcc()
         #...everything...
         ##endif
    
-	    if [ -f "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ]; then
+        if [ -f "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc ]; then
             echo "#if (0)" > "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
             cat "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc >> "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
             echo "#endif" >> "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new
             mv "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc.new "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++11/cow-stdexcept.cc
-	    fi
+        fi
 
         # Seems that gcc 9.1.0 also doesn't know what ENOTSUP is, which also cascades to std::errc::not_supported
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
@@ -1079,10 +1133,10 @@ buildgcc()
         #gcc-$1/build/src/Makefile:
         #
         #AM_CXXFLAGS = \
-        #	-std=gnu++98 ******** remove this ********
-        #	$(glibcxx_compiler_pic_flag) \
-        #	$(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
-        #	$(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
+        #   -std=gnu++98 ******** remove this ********
+        #   $(glibcxx_compiler_pic_flag) \
+        #   $(XTEMPLATE_FLAGS) $(VTV_CXXFLAGS) \
+        #   $(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
         
         cd "$HOMEDIR"/build-gcc-$1
         $NICE make configure-target-libstdc++-v3 $JMULT
@@ -1248,19 +1302,19 @@ buildgcc()
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
             $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
         else
             $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
-    			$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
         fi
         $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
@@ -1275,9 +1329,11 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
-        #make install DESTDIR=$PWD/binary-package $JMULT
         make install DESTDIR=$BINPACKAGE_DIR $JMULT
-        #cd binary-package
+        if [ "$BUILD_NEWLIB" != "0"]; then
+            cd $HOMEDIR/build-gcc-newlib-$1
+            make install DESTDIR=${BINPACKAGE_DIR}-newlib
+        fi
         cd $BINPACKAGE_DIR
         # Since make install uses the non-patched type_traits file let's patch them here too
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
@@ -1286,24 +1342,25 @@ buildgcc()
         strip .$INSTALL_PREFIX/bin/*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
             $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
         else
             $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
-    			.$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
+                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
         fi
     
         find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         $TAR $TAROPTS -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
+
     fi
 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
@@ -1317,13 +1374,13 @@ buildgcc()
         #
         # on completion the target:lib variants will be:
         #
-        # m68000/		assumes no fpu
-        # m68020/		assumes 68881/2
-        # m68020/softfp		assumes no fpu
-        # m68020-60/		assumes any 0x0 cpu, 68881/2
-        # m68020-60/softfp	assumes any 0x0 cpu, no fpu
-        # m68040/		assumes internal fpu
-        # m68060/		assumes internal fpu
+        # m68000/       assumes no fpu
+        # m68020/       assumes 68881/2
+        # m68020/softfp     assumes no fpu
+        # m68020-60/        assumes any 0x0 cpu, 68881/2
+        # m68020-60/softfp  assumes any 0x0 cpu, no fpu
+        # m68040/       assumes internal fpu
+        # m68060/       assumes internal fpu
         
         
         LIBGCC=$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/$1
