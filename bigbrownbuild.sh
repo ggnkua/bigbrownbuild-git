@@ -161,7 +161,7 @@ mainbrown()
         # User mode
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=${HOME}/brown
+        INSTALL_PREFIX=/brown
     fi
 
     if [ "$machine" == "Mac" ]; then
@@ -1342,24 +1342,30 @@ buildgcc()
             $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
         fi 
     
+        if [ "$1" == "TRUNK" ]; then
+            GCCVERSION=$TRUNK_VERSION
+        else
+            GCCVERSION=$1
+        fi
+
         $NICE make all $JMULT
         $SUDO make install $JMULT
         $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
-            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper*
+            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
         else
-            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/cc1plus* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/collect2* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0 \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/liblto_plugin.so.0.0.0 \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto1 \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$1/lto-wrapper
+            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0 \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0.0.0 \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1 \
+                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper
         fi
         $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
