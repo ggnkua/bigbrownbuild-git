@@ -189,10 +189,8 @@ mainbrown()
     
     if [ "$machine" == "MinGw" ]; then
         # Msys has no idea what "sudo" and "nice" are.
-        # Also, it's not liking parallel builds that much.
         unset SUDO
         unset NICE
-        unset JMULT
         CC4=x86_64-w64-mingw32-gcc
         CXX4=x86_64-w64-mingw32-g++
         CC5=x86_64-w64-mingw32-gcc
@@ -504,6 +502,12 @@ buildgcc()
                 # No MinGW isntall I have knows what ENOTSUP is.
                 # Random internet suggestions said to replace this with ENOSYS so here we go
                 $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/simple-object-elf.c
+            fi
+            if [ "$BINUTILS" == "2.37" ]; then
+                # For some reason the following file uses type 'uint'. Twice only. This compiles cleanly
+                # on linux with gcc 6.3.0. I have 0 ideas why it doesn't here (gcc 10.2.0)
+                $SED -i -e "s/ uint / uint64_t /gI" $HOMEDIR/binutils-$BINUTILS/libiberty/rust-demangle.c
+                $SED -i -e "s/(uint)/(uint64_t)/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/rust-demangle.c
             fi
         fi
 
