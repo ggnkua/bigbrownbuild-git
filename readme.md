@@ -115,6 +115,14 @@ This is a work-in-progress script. Currently it cannot build GEMlib properly. Pa
 
 Be warned that the compilation can take a very very VERY long time! If you can spare the RAM, we really recommend using a RAM drive! Our tests have shown that imdisk (http://www.ltr-data.se/opencode.html/#ImDisk) works fine. Of course take notice that you're doing this on your own, we won't accept any liability if something goes wrong with that!!!!
 
+# Building the "barebones" examples
+
+Download and build Brownout (https://github.com/ggnkua/brownout-git / https://bitbucket.org/ggnkua/brownout-git/) and place it in the ```barebones``` directory.
+
+If you have a command prompt that is able to run ```make``` (e.g. Linux, Cygwin, MinGW etc) then just type ```make``` (make sure your build cross gcc is in the PATH). Otherwise on Windows you can just run ```build.bat``` (edit ```GCCPATH``` to point to your toolchain path first).
+
+Note that this will build only for the latest supported cross gcc version. For older versions, some simple find and replaces should be enough.
+
 # Credits
 
 The bulk of the script was written by George 'GGN' Nakos, with enhancements from:
