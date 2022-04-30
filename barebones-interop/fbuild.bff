@@ -1,0 +1,191 @@
+;
+; Define the compiler locations.
+; This scheme here assumes a relative position for the tools. Alternatively, if it finds 
+; "fbuild_toolchain.bff", it'll include that file and take the values from there.
+; Basically that file contains the values from the "else" case below, but modified for each machine.
+; That way you can avoid committing this file and each machine having its own custom settings that
+; won't appear in source control.
+#if file_exists("fbuild_toolchain.bff")
+    #include "fbuild_toolchain.bff"
+#else
+    .GCC_ROOT="toolchains\browncc-11.2"
+    .GCC_PREFIX="m68k-atarisuperbrowner-elf"
+    .GPP='$GCC_ROOT$\bin\$GCC_PREFIX$-g++.exe'
+    .GCC='$GCC_ROOT$\bin\$GCC_PREFIX$-gcc.exe'
+    .AS= '$GCC_ROOT$\bin\$GCC_PREFIX$-as.exe'
+    .RMAC="tools\rmac.exe"
+    .NCONVERT="tools\nconvert.exe"
+    .SOX="tools\sox\sox.exe"
+#endif
+
+;
+; Uncomment these if you want the linker to do LTO
+; or if you like to produce a map file as part of the build
+;
+
+;#define LTO
+;#define PRODUCE_MAP_FILE
+
+;
+; Compilers/tools definitions. These are used for the "ObjectList"/"Executable"/etc commands below
+;
+Compiler ( 'gcc' )
+{
+    .Executable=.GCC
+}
+Compiler ( 'rmac' )
+{
+    .Executable=.RMAC
+    .CompilerFamily="custom"
+}
+Compiler ( 'sox' )
+{
+    .Executable=.SOX
+    .CompilerFamily="custom"
+}
+
+#import PATH
+#import TEMP
+Settings
+{
+    .Environment    = { "PATH=$GCC_ROOT$\bin;$PATH$",
+                        "TEMP=$TEMP$"
+                      }
+}
+
+;
+; Some variables defined here to avoid spamming the commands below
+;
+.CFLAGS=''
+    +' -I.'
+    ;+' -mshort'
+    +' -DPLATFORM_ATARI_ST'
+
+.CODEGEN_FLAGS=''
+    +' -g'
+    +' -m68000'
+    +' -Os'
+    +' -fomit-frame-pointer'
+    +' -fstrict-aliasing'
+    +' -fcaller-saves'
+    +' -ffunction-sections'
+    +' -fdata-sections'
+    +' -fleading-underscore'
+#if LTO
+    + ' -flto'
+#endif
+
+;
+; File lists, these are used by ObjecList commands below
+;
+.C_SRC=
+{
+	"code/main.c",
+}
+
+.ASM_SRC=
+{
+    "code/code.s",
+    "code/replace_libc_mintlib_junk.s"
+}
+
+.SFX_LIST=
+{
+    "assets\254056__jagadamba__space-sound.wav",
+}
+
+;
+; ObjectList commands take a source folder or a file list and transform it into output files
+; depending on what the "compiler" is set to. So it can compile files, assemble files
+; or just do sound/graphics conversion.
+;
+
+ObjectList( 'c_obj' )
+{
+    .Compiler='gcc'
+    .CompilerOptions='$CFLAGS$ $CODEGEN_FLAGS$ -c %1 -o %2'
+    .CompilerOutputPath='obj'
+    .CompilerOutputExtension='.o'
+    .CompilerInputFiles=.C_SRC
+}
+
+ObjectList( 'convert_sfx_to_native' )
+{
+    .Compiler='sox'
+    .CompilerOptions='%1 --bits 8 --no-dither --channels 1 %2 rate -v -I 25033'
+    .CompilerInputFiles=.SFX_LIST
+    .CompilerOutputPath='obj'
+    .CompilerOutputExtension='.raw'
+}
+
+Exec ( 'convert_graphics' )
+{
+    .ExecExecutable=.NCONVERT
+    .ExecOutput='obj/pic.pi1'
+    .ExecArguments='-overwrite -colors 16 -out degas -o obj\%.pi1 %1'
+    .ExecInputPath="assets"
+    .ExecInputPattern="*.png"
+}
+
+ObjectList( 'asm_obj' )
+{
+    .Compiler='rmac'
+    .CompilerOptions='-fe -o %2 %1'
+    .CompilerOutputPath='obj'
+    .CompilerOutputExtension='.o'
+    .CompilerInputFiles=.ASM_SRC
+    .PreBuildDependencies={'convert_sfx_to_native','convert_graphics'}
+}
+
+;
+; This is a call to the linker for the ELF executable
+;
+
+Executable( 'game' )
+{
+    .Linker="$GCC$"
+    .Libraries={ "c_obj", "asm_obj" }
+    .LinkerLinkObjects=true
+    .LinkerOutput='test.elf'
+    .LinkerOptions='' 
+    +' %1 -o %2'
+    +' -m68000'
+    +' -Wl,--emit-relocs'
+    +' -Wl,-e_start'
+    +' -Ttext=0'
+    +' $CODEGEN_FLAGS$'
+#if PRODUCE_MAP_FILE
+    +' -Wl,-Map,test.map'
+#endif
+    +' -nostdlib -nostartfiles'
+#if LTO
+    + ' -flto'
+#endif
+}
+
+;
+; And then we have to do some post-build work to convert the ELF binary to Atari TOS PRG
+;
+
+Exec ( 'brown' )
+{
+    .ExecExecutable='$GCC_ROOT$\bin\brownout.exe'
+    .ExecInput='test.elf'
+    .ExecOutput='test.prg'
+    .ExecArguments='-s -x -p 0 -i %1 -o %2'
+}
+
+Exec ( 'emit_assembly')
+{
+    .ExecExecutable='$GCC_ROOT$\bin\$GCC_PREFIX$-objdump.exe'
+    .ExecInput='test.elf'
+    .ExecOutput='test.s'
+    .ExecArguments='-S %1'
+    .ExecUseStdOutAsOutput = true;
+}
+
+;
+; The alias to "all" target (which is default). This will convert assets, build code, linke everything, etc
+;
+
+Alias( 'all' ) { .Targets = { 'brown' } }
