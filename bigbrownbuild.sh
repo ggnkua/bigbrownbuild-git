@@ -399,16 +399,16 @@ mainbrown()
     if [ "$BUILD_4_6_4" == "1" ]; then buildgcc 4.6.4; fi
     SKIP_464_CF=0
     if [ "$BUILD_4_9_4" == "1" ]; then buildgcc 4.9.4; fi
-                                       
+
     export CC=$CC5
     export CXX=$CXX5
-                                       
+
     if [ "$BUILD_5_4_0" == "1" ]; then buildgcc 5.4.0; fi
-                                       
+
     export CC=$CC6
     export CXX=$CXX6
     if [ "$BUILD_6_2_0" == "1" ]; then buildgcc 6.2.0; fi
-                                       
+    
     export CC=$CC7
     export CXX=$CXX7
     BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
@@ -486,6 +486,13 @@ buildgcc()
     if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1 build-newlib-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
     if [ "$BUILD_NEWLIB" != "0" ]; then cp -frp newlib-4.1.0 newlib-4.1.0-$1; fi
 
+    #  ____  _             _   _ _
+    # |  _ \(_)           | | (_) |
+    # | |_) |_ _ __  _   _| |_ _| |___
+    # |  _ <| | '_ \| | | | __| | / __|
+    # | |_) | | | | | |_| | |_| | \__ \
+    # |____/|_|_| |_|\__,_|\__|_|_|___/
+
     # binutils build dir
     # Configure, build and install binutils for m68k elf
     
@@ -535,7 +542,13 @@ buildgcc()
     
     # home directory
     cd "$HOMEDIR"
-    
+
+    #   __ _  ___ ___
+    #  / _` |/ __/ __|
+    # | (_| | (_| (__
+    #  \__, |\___\___|
+    #   __/ |
+    #  |___/
     #
     # gcc build dir
     # Configure, build and install gcc without any libs for now
@@ -596,6 +609,8 @@ buildgcc()
             --enable-softfloat \
             --disable-libstdcxx-pch \
             --disable-clocale \
+            --disable-shared \
+            --disable-host-shared \
             --disable-libstdcxx-threads \
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
@@ -628,7 +643,14 @@ buildgcc()
     
    
     
-
+    #  _ _ _
+    # | (_) |
+    # | |_| |__   __ _  ___ ___
+    # | | | '_ \ / _` |/ __/ __|
+    # | | | |_) | (_| | (_| (__
+    # |_|_|_.__/ \__, |\___\___|
+    #             __/ |
+    #            |___/
     #INSTALL_PREFIX
     # Build/install libgcc
     #
@@ -652,7 +674,13 @@ buildgcc()
     fi
         
     export PATH=${INSTALL_PREFIX}/bin:$PATH
-    
+
+    #                      _ _ _
+    #                     | (_) |
+    #  _ __   _____      _| |_| |__
+    # | '_ \ / _ \ \ /\ / / | | '_ \
+    # | | | |  __/\ V  V /| | | |_) |
+    # |_| |_|\___| \_/\_/ |_|_|_.__/
     #
     # Newlib
     # This will require building a second version of gcc so we can tell it to use Newlib instead of libgcc.
@@ -699,8 +727,14 @@ buildgcc()
         fi
     fi
 
+    #  __  __ _ _   _ _______ _ _ _
+    # |  \/  (_) \ | |__   __| (_) |
+    # | \  / |_|  \| |  | |  | |_| |__
+    # | |\/| | | . ` |  | |  | | | '_ \
+    # | |  | | | |\  |  | |  | | | |_) |
+    # |_|  |_|_|_| \_|  |_|  |_|_|_.__/
     #
-    # Mintlib 
+    # Mintlib
     #
 
     if [ "$BUILD_MINTLIB" != "0" ]; then
@@ -1088,6 +1122,12 @@ buildgcc()
         fi
     fi
 
+    #  _ _ _         _      _                              ____
+    # | (_) |       | |    | |       _     _              |___ \
+    # | |_| |__  ___| |_ __| | ___ _| |_ _| |_ ________   ____) |
+    # | | | '_ \/ __| __/ _` |/ __|_   _|_   _|______\ \ / /__ <
+    # | | | |_) \__ \ || (_| | (__  |_|   |_|         \ V /___) |
+    # |_|_|_.__/|___/\__\__,_|\___|                    \_/|____/
     #
     # Build libstdc++-v3
     #
@@ -1181,7 +1221,7 @@ buildgcc()
     fi
     
     #*** configure libstdc++-v3
-    
+
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
     else
@@ -1334,6 +1374,12 @@ buildgcc()
         $SUDO make install-target-libstdc++-v3 $JMULT
     fi
     
+    #  __  __ _
+    # |  \/  (_)
+    # | \  / |_ ___  ___
+    # | |\/| | / __|/ __|
+    # | |  | | \__ \ (__
+    # |_|  |_|_|___/\___|
     # gcc build dir
     # build everything else
     # (which doesn't amount to much)
@@ -1436,6 +1482,14 @@ buildgcc()
 
     fi
 
+    #  _____                                  _
+    # |  __ \                                (_)
+    # | |__) |___  ___  _ __ __ _  __ _ _ __  _ ___  ___
+    # |  _  // _ \/ _ \| '__/ _` |/ _` | '_ \| / __|/ _ \
+    # | | \ \  __/ (_) | | | (_| | (_| | | | | \__ \  __/
+    # |_|  \_\___|\___/|_|  \__, |\__,_|_| |_|_|___/\___|
+    #                        __/ |
+    #                       |___/
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
         REPLY=Y
     else    

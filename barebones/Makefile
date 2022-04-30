@@ -21,8 +21,7 @@ USE_CFG=release
 TARGETFLAGS =	-m68000
 
 LIBPATHS =	\
-		-L/brown/lib/gcc/m68k-atarisuperbrowner-elf/11.2.0/m68000 \
-		-L/brownm68k-atarisuperbrowner-elf/lib/m68000
+		-L/brown/lib/gcc/m68k-atarisuperbrowner-elf/11.2.0/m68000
 
 LIBS =		\
 
