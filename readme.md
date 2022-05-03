@@ -30,11 +30,11 @@ Make sure you have installed the following libraries and tools.
 
 ### Linux/Windows
 
-* GMP (dev) (if you don't download prerequisites)
+* GMP (dev) (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES))
 
-* MPFR (dev) (if you don't download prerequisites)
+* MPFR (dev) (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES))
 
-* MPC (dev) (if you don't download prerequisites)
+* MPC (dev) (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES))
 
 * bison-bin
 
@@ -42,7 +42,7 @@ Make sure you have installed the following libraries and tools.
 
 * flex-dev
 
-GMP/MPFR/MPC are required for building gcc, flex and bison for building MiNTlib.
+GMP/MPFR/MPC are required for building gcc (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES)), flex and bison for building MiNTlib.
 
 ### macOS
 
