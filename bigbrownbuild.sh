@@ -1,5 +1,7 @@
+# NOTE: for all fancy ascii art text in this script use this generator: http://www.patorjk.com/software/taag/#p=display&f=Big&t=Cross
+
 set -e          #stop on any error encountered
-#set -x                  #echo all commands
+set -x                  #echo all commands
 
 mainbrown()
 {
@@ -41,7 +43,13 @@ mainbrown()
     GLOBAL_DOWNLOAD_PREREQUISITES=1
 
     # Use less RAM when compiling, for low end systems
-    USE_MIN_RAM=1
+    USE_MIN_RAM=0
+
+    # Set this to 1 if you are building a compiler for a different platform. For example you are building this
+    # on a x64 PC and want to produce a compiler that runs on ARM. Note that you are required to have the
+    # platform's cross compiler installed and change HOST AND HOST_PREFIX from the examples below to your
+    # actual compiler names
+    CROSS_COMPILING=0
 
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
@@ -90,6 +98,16 @@ mainbrown()
     CXX9=g++
     CC10=gcc
     CXX10=g++
+
+    if [ "$CROSS_COMPILING" == "1" ]; then
+        # The cross compiler we are building is supposedly called "canadian", because
+        # "host", "build" and "target" are all different. For more info (as if anyone cares)
+        # read https://crosstool-ng.github.io/docs/toolchain-types/
+        export PATH=$PATH:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin
+        HOST=--host=arm-linux-gnueabihf
+        HOST_PREFIX=arm-linux-gnueabihf-
+        BUILD="--build $(gcc -dumpmachine)"
+    fi
 
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
@@ -157,7 +175,7 @@ mainbrown()
         if [ "$machine" == "Mac" ]; then
             INSTALL_PREFIX=/opt/local/
         else
-            INSTALL_PREFIX=/home/ggn/brown
+            INSTALL_PREFIX=${HOME}/brown
         fi
     else
         # User mode
@@ -346,25 +364,25 @@ mainbrown()
             if [ "$BUILD_11_2_0" == "1" ]; then rm -rf gcc-11.2.0; fi
             if [ "$BUILD_12_1_0" == "1" ]; then rm -rf gcc-12.1.0; fi
         fi    
-        if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
-        if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
-        if [ "$BUILD_5_4_0" == "1" ]; then tar -jxvf gcc-5.4.0.tar.bz2; fi
-        if [ "$BUILD_6_2_0" == "1" ]; then tar -jxvf gcc-6.2.0.tar.bz2; fi
-        if [ "$BUILD_7_1_0" == "1" ]; then tar -jxvf gcc-7.1.0.tar.bz2; fi
-        if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxvf gcc-7.2.0.tar.xz; fi
-        if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxvf gcc-7.3.0.tar.xz; fi
-        if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxvf gcc-8.1.0.tar.xz; fi
-        if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf gcc-8.2.0.tar.xz; fi
-        if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxvf gcc-8.3.0.tar.xz; fi
-        if [ "$BUILD_9_1_0" == "1" ]; then tar -Jxvf gcc-9.1.0.tar.xz; fi
-        if [ "$BUILD_9_2_0" == "1" ]; then tar -Jxvf gcc-9.2.0.tar.xz; fi
-        if [ "$BUILD_9_3_0" == "1" ]; then tar -Jxvf gcc-9.3.0.tar.xz; fi
-        if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxvf gcc-10.1.0.tar.xz; fi
-        if [ "$BUILD_10_2_0" == "1" ]; then tar -Jxvf gcc-10.2.0.tar.xz; fi
-        if [ "$BUILD_10_3_0" == "1" ]; then tar -Jxvf gcc-10.3.0.tar.xz; fi
-        if [ "$BUILD_11_1_0" == "1" ]; then tar -Jxvf gcc-11.1.0.tar.xz; fi
-        if [ "$BUILD_11_2_0" == "1" ]; then tar -Jxvf gcc-11.2.0.tar.xz; fi
-        if [ "$BUILD_12_1_0" == "1" ]; then tar -Jxvf gcc-12.1.0.tar.xz; fi
+        if [ "$BUILD_4_6_4" == "1" ]; then tar -jxf gcc-4.6.4.tar.bz2; fi
+        if [ "$BUILD_4_9_4" == "1" ]; then tar -jxf gcc-4.9.4.tar.bz2; fi
+        if [ "$BUILD_5_4_0" == "1" ]; then tar -jxf gcc-5.4.0.tar.bz2; fi
+        if [ "$BUILD_6_2_0" == "1" ]; then tar -jxf gcc-6.2.0.tar.bz2; fi
+        if [ "$BUILD_7_1_0" == "1" ]; then tar -jxf gcc-7.1.0.tar.bz2; fi
+        if [ "$BUILD_7_2_0" == "1" ]; then tar -Jxf gcc-7.2.0.tar.xz; fi
+        if [ "$BUILD_7_3_0" == "1" ]; then tar -Jxf gcc-7.3.0.tar.xz; fi
+        if [ "$BUILD_8_1_0" == "1" ]; then tar -Jxf gcc-8.1.0.tar.xz; fi
+        if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxf gcc-8.2.0.tar.xz; fi
+        if [ "$BUILD_8_3_0" == "1" ]; then tar -Jxf gcc-8.3.0.tar.xz; fi
+        if [ "$BUILD_9_1_0" == "1" ]; then tar -Jxf gcc-9.1.0.tar.xz; fi
+        if [ "$BUILD_9_2_0" == "1" ]; then tar -Jxf gcc-9.2.0.tar.xz; fi
+        if [ "$BUILD_9_3_0" == "1" ]; then tar -Jxf gcc-9.3.0.tar.xz; fi
+        if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxf gcc-10.1.0.tar.xz; fi
+        if [ "$BUILD_10_2_0" == "1" ]; then tar -Jxf gcc-10.2.0.tar.xz; fi
+        if [ "$BUILD_10_3_0" == "1" ]; then tar -Jxf gcc-10.3.0.tar.xz; fi
+        if [ "$BUILD_11_1_0" == "1" ]; then tar -Jxf gcc-11.1.0.tar.xz; fi
+        if [ "$BUILD_11_2_0" == "1" ]; then tar -Jxf gcc-11.2.0.tar.xz; fi
+        if [ "$BUILD_12_1_0" == "1" ]; then tar -Jxf gcc-12.1.0.tar.xz; fi
         if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -388,17 +406,17 @@ mainbrown()
             if [ "$BUILD_12_1_0" == "1" ]; then cd gcc-12.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
-    if [ "$BUILD_NEWLIB" != "0" ]; then tar -zxvf newlib-4.1.0.tar.gz; fi
+    if [ "$BUILD_NEWLIB" != "0" ]; then tar -zxf newlib-4.1.0.tar.gz; fi
         if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" || [ "$BUILD_6_2_0" == "1" || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
-            tar -jxvf binutils-2.27.tar.bz2
+            tar -jxf binutils-2.27.tar.bz2
         fi
-        if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxvf binutils-2.31.tar.xz; fi
-        if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then tar -Jxvf binutils-2.32.tar.xz; fi
-        if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxvf binutils-2.34.tar.xz; fi
-        if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then tar -Jxvf binutils-2.35.tar.xz; fi
-        if [ "$BUILD_11_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxvf binutils-2.36.tar.xz; fi
-        if [ "$BUILD_11_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxvf binutils-2.37.tar.xz; fi
-        if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxvf binutils-2.38.tar.xz; fi
+        if [ "$BUILD_8_2_0" == "1" ]; then tar -Jxf binutils-2.31.tar.xz; fi
+        if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then tar -Jxf binutils-2.32.tar.xz; fi
+        if [ "$BUILD_10_1_0" == "1" ]; then tar -Jxf binutils-2.34.tar.xz; fi
+        if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then tar -Jxf binutils-2.35.tar.xz; fi
+        if [ "$BUILD_11_1_0" == "1" ]; then tar -Jxf binutils-2.36.tar.xz; fi
+        if [ "$BUILD_11_2_0" == "1" ]; then tar -Jxf binutils-2.37.tar.xz; fi
+        if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxf binutils-2.38.tar.xz; fi
     fi
    
     # 
@@ -541,22 +559,32 @@ buildgcc()
                 $SED -i -e "s/(uint)/(uint64_t)/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/rust-demangle.c
             fi
         fi
+        
+        if [ "$CROSS_COMPILING" != "0" ]; then
+
+            rm -rf "$HOMEDIR"/crosstemp-$1
+            mkdir -p "$HOMEDIR"/crosstemp-$1
+            cd "$HOMEDIR"/crosstemp-$1
+            ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=-static
+            make $JMULT
+            $SUDO make install $JMULT
+        fi
 
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
-        ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf
+        ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=-static
         make $JMULT
         $SUDO make install $JMULT
-        $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
-        $SUDO strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
+        $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
+        $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
     
         # Package up binutils
     
         make install DESTDIR=$BINPACKAGE_DIR $JMULT
         cd $BINPACKAGE_DIR
-        strip .$INSTALL_PREFIX/bin/*
-        strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
+        ${HOST_PREFIX}strip .$INSTALL_PREFIX/bin/*
+        ${HOST_PREFIX}strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
         $TAR $TAROPTS -jcvf binutils-$BINUTILS-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
@@ -621,9 +649,54 @@ buildgcc()
                 $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.\n;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
             fi
         fi
+
+        #   _____                   
+        #  / ____|                  
+        # | |     _ __ ___  ___ ___ 
+        # | |    | '__/ _ \/ __/ __|
+        # | |____| | | (_) \__ \__ \
+        #  \_____|_|  \___/|___/___/
+
+        # When building for a different architecture than the one we are compiling for, we need to
+        # build an extra version of gcc in order to compile libgcc and friends. Makes sense in hindsight
+        if [ "$CROSS_COMPILING" != "0" ]; then
+
+            rm -rf "$HOMEDIR"/crosstemp-$1
+            mkdir -p "$HOMEDIR"/crosstemp-$1
+            cd "$HOMEDIR"/crosstemp-$1
+            ../gcc-$1/configure \
+                --target=m68k-$VENDOR-elf \
+                --disable-nls \
+                --enable-languages=$LANGUAGES \
+                --enable-lto \
+                --prefix=$INSTALL_PREFIX-crosstemp-$1 \
+                --disable-libssp \
+                --enable-softfloat \
+                --disable-libstdcxx-pch \
+                --disable-clocale \
+                --disable-shared \
+                --disable-host-shared \
+                --disable-libstdcxx-threads \
+                --disable-libstdcxx-filesystem-ts \
+                --disable-libquadmath \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+                LDFLAGS=-static \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
+                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
+            $NICE make all-gcc $JMULT
+            $SUDO make install-gcc $JMULT
+            # And then export the path because libgcc will need it
+            export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin:$PATH
+        else
+            export PATH=${INSTALL_PREFIX}/bin:$PATH
+        fi
+
         mkdir -p "$HOMEDIR"/build-gcc-$1
         cd "$HOMEDIR"/build-gcc-$1
         ../gcc-$1/configure \
+            $HOST \
+            $BUILD \
             --target=m68k-$VENDOR-elf \
             --disable-nls \
             --enable-languages=$LANGUAGES \
@@ -639,6 +712,7 @@ buildgcc()
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
             --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+            LDFLAGS=-static \
             CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
             CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
             LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
@@ -665,7 +739,7 @@ buildgcc()
     # This ditches all coldfire lib building stuff:
     #        --with-arch=m68k
     
-   
+        
     
     #  _ _ _
     # | (_) |
@@ -697,8 +771,6 @@ buildgcc()
         fi
     fi
         
-    export PATH=${INSTALL_PREFIX}/bin:$PATH
-
     #                      _ _ _
     #                     | (_) |
     #  _ __   _____      _| |_| |__
@@ -721,15 +793,18 @@ buildgcc()
         if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
             mkdir -p "$HOMEDIR/build-newlib-$1/build"
             cd "$HOMEDIR/build-newlib-$1/build"
-            CC=m68k-$VENDOR-elf-gcc $HOMEDIR/newlib-4.1.0-$1/newlib/configure --target=m68k-$VENDOR-elf --build=m68k-$VENDOR-elf --host=m68k-$VENDOR-elf --prefix=${INSTALL_PREFIX}-newlib
+            CC=m68k-$VENDOR-elf-gcc $HOMEDIR/newlib-4.1.0-$1/newlib/configure $HOST $BUILD --target=m68k-$VENDOR-elf --build=m68k-$VENDOR-elf --host=m68k-$VENDOR-elf --prefix=${INSTALL_PREFIX}-newlib
             $NICE make $JMULT
             $SUDO make install
    
             # Re-configure and build gcc with "--with-newlib". Exciting.
+            # TODO: this is copypasta from gcc configure above. Probably define it once and use it in both places as it will get out of sync...
             mkdir -p "$HOMEDIR"/build-gcc-newlib-$1
             cd "$HOMEDIR"/build-gcc-newlib-$1
             ../gcc-$1/configure \
                 --with-newlib \
+                $HOST \
+                $BUILD \
                 --target=m68k-$VENDORnewlib-elf \
                 --disable-nls \
                 --enable-languages=$LANGUAGES \
@@ -743,6 +818,7 @@ buildgcc()
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
                 --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+                LDFLAGS=-static \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
                 CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
                 LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
@@ -1127,7 +1203,17 @@ buildgcc()
             fi
         
             cd $MINTLIBDIR
-        
+       
+
+            if [ "$CROSS_COMPILING" != "0" ]; then
+                # Copy libgcc etc to the "crosstemp" copy of gcc
+                # so if mintlib binaries want to lib against libgcc
+                # they will be able to do it
+                cp -R $INSTALL_PREFIX/lib $INSTALL_PREFIX-crosstemp-$1
+                cp -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include $INSTALL_PREFIX-crosstemp-$1/m68k-$VENDOR-elf
+                cp -R $INSTALL_PREFIX/m68k-$VENDOR-elf/lib $INSTALL_PREFIX-crosstemp-$1/m68k-$VENDOR-elf
+            fi
+
             # can't safely use -j with mintlib due to bison/flex dependency ordering woe
             make SHELL=/bin/bash
         
@@ -1347,7 +1433,10 @@ buildgcc()
 
         # New quirks: Starting with 12.1.0 a macro (isblank) clashes with a class member name. Beautiful
         if [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
-            $SED -i -e "s/#define isblank(c)/\/\/ lol, nope #define isblank(c)/gI" "$INSTALL_PREFIX"/m68k-atari$1-elf/include/ctype.h
+            $SED -i -e "s/#define isblank(c)/\/\/ lol, nope #define isblank(c)/gI" "$INSTALL_PREFIX"/m68k-$VENDOR-elf/include/ctype.h
+            if [ "$CROSS_COMPILING" != "0" ]; then
+                $SED -i -e "s/#define isblank(c)/\/\/ lol, nope #define isblank(c)/gI" "$INSTALL_PREFIX"-crosstemp-$1/m68k-$VENDOR-elf/include/ctype.h
+            fi
         fi
     fi
     
@@ -1423,11 +1512,6 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
-        # I dunno why this must be done.
-        # It happens on linux mint
-        if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ]; then
-            $SUDO chmod 775 "$HOMEDIR"/build-gcc-$1/gcc/b-header-vars
-        fi
         # This system include isn't picked up for some reason 
         if [ "$machine" == "Mac" ]; then
             $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
@@ -1441,15 +1525,15 @@ buildgcc()
 
         $NICE make all $JMULT
         $SUDO make install $JMULT
-        $SUDO strip $INSTALL_PREFIX/bin/*$VENDOR*
+        $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
-            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+            $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
         else
-            $SUDO strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+            $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
                 $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
@@ -1487,15 +1571,15 @@ buildgcc()
             GCCVERSION=$1
         fi
 
-        strip .$INSTALL_PREFIX/bin/*
+        ${HOST_PREFIX}strip .$INSTALL_PREFIX/bin/*
         if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+            $SUDO ${HOST_PREFIX}strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
         else
-            $SUDO strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+            $SUDO ${HOST_PREFIX}strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
@@ -1504,7 +1588,6 @@ buildgcc()
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1 \
                 .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper
         fi
-    
         find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         $TAR $TAROPTS -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
