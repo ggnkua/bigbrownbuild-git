@@ -33,7 +33,7 @@ mainbrown()
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
-    GLOBAL_BUILD_FORTRAN=0
+    GLOBAL_BUILD_FORTRAN=1
 
     # Set this to 1 if you want to tell gcc to download and
     # build prerequisite libraries if they are not installed
@@ -61,9 +61,10 @@ mainbrown()
     BUILD_10_2_0=0
     BUILD_10_3_0=0
     BUILD_11_1_0=0
-    BUILD_11_2_0=1
+    BUILD_11_2_0=0
+    BUILD_12_1_0=1
     BUILD_TRUNK=0   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
-    TRUNK_VERSION=12.0.0    # This needs to change with every major gcc release
+    TRUNK_VERSION=13.0.0    # This needs to change with every major gcc release
 
     # Should we run this as an administrator or user?
     # Administrator mode will install the compiler in
@@ -93,7 +94,7 @@ mainbrown()
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
     NICE='nice -n 19'
-    JMULT=-j1
+    JMULT=-j12
     BINPACKAGE_DIR=$PWD/binary-package
     SED=sed
     TAR=tar
@@ -162,7 +163,7 @@ mainbrown()
         # User mode
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=/brown
+        INSTALL_PREFIX=${HOME}/brown
     fi
 
     if [ "$machine" == "Mac" ]; then
@@ -185,6 +186,8 @@ mainbrown()
         CXX10=g++
         CC11=gcc
         CXX11=g++
+        CC12=gcc
+        CXX12=g++
     fi
     
     if [ "$machine" == "MinGw" ]; then
@@ -207,6 +210,8 @@ mainbrown()
         CXX10=x86_64-w64-mingw32-g++
         CC11=x86_64-w64-mingw32-gcc
         CXX11=x86_64-w64-mingw32-g++
+        CC12=x86_64-w64-mingw32-gcc
+        CXX12=x86_64-w64-mingw32-g++
         # Flex is a msys built package but we use the mingw32 compiler.
         # Instead of modifying the Makefiles (urgh) just copy the
         # flex library over where mingw's lib search path will find it.
@@ -235,6 +240,8 @@ mainbrown()
         CXX10=g++
         CC11=gcc
         CXX11=g++
+        CC12=gcc
+        CXX12=g++
     fi
 
     # Cleanup folders
@@ -251,6 +258,9 @@ mainbrown()
         rm -rf binutils-2.32
         rm -rf binutils-2.34
         rm -rf binutils-2.35
+        rm -rf binutils-2.36
+        rm -rf binutils-2.37
+        rm -rf binutils-2.38
         rm -rf mintlib-bigbrownbuild
         rm -rf build-newlib*
     fi
@@ -275,6 +285,7 @@ mainbrown()
     if [ "$BUILD_10_3_0" == "1" ]; then if [ ! -f gcc-10.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.3.0/gcc-10.3.0.tar.xz; fi; fi
     if [ "$BUILD_11_1_0" == "1" ]; then if [ ! -f gcc-11.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.1.0/gcc-11.1.0.tar.xz; fi; fi
     if [ "$BUILD_11_2_0" == "1" ]; then if [ ! -f gcc-11.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.2.0/gcc-11.2.0.tar.xz; fi; fi
+    if [ "$BUILD_12_1_0" == "1" ]; then if [ ! -f gcc-12.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.xz; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK; fi; fi
 
     if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
@@ -292,11 +303,14 @@ mainbrown()
     if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then
         if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz; fi
     fi
-    if [ "$BUILD_11_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+    if [ "$BUILD_11_1_0" == "1" ]; then
         if [ ! -f binutils-2.36.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.36.tar.xz; fi
     fi
-    if [ "$BUILD_11_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+    if [ "$BUILD_11_2_0" == "1" ]; then
         if [ ! -f binutils-2.37.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.37.tar.xz; fi
+    fi
+    if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+        if [ ! -f binutils-2.38.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.xz; fi
     fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
     if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz; fi; fi
@@ -330,6 +344,7 @@ mainbrown()
             if [ "$BUILD_10_3_0" == "1" ]; then rm -rf gcc-10.3.0; fi
             if [ "$BUILD_11_1_0" == "1" ]; then rm -rf gcc-11.1.0; fi
             if [ "$BUILD_11_2_0" == "1" ]; then rm -rf gcc-11.2.0; fi
+            if [ "$BUILD_12_1_0" == "1" ]; then rm -rf gcc-12.1.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxvf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxvf gcc-4.9.4.tar.bz2; fi
@@ -349,6 +364,7 @@ mainbrown()
         if [ "$BUILD_10_3_0" == "1" ]; then tar -Jxvf gcc-10.3.0.tar.xz; fi
         if [ "$BUILD_11_1_0" == "1" ]; then tar -Jxvf gcc-11.1.0.tar.xz; fi
         if [ "$BUILD_11_2_0" == "1" ]; then tar -Jxvf gcc-11.2.0.tar.xz; fi
+        if [ "$BUILD_12_1_0" == "1" ]; then tar -Jxvf gcc-12.1.0.tar.xz; fi
         if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -369,6 +385,7 @@ mainbrown()
             if [ "$BUILD_10_3_0" == "1" ]; then cd gcc-10.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_11_1_0" == "1" ]; then cd gcc-11.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_11_2_0" == "1" ]; then cd gcc-11.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_12_1_0" == "1" ]; then cd gcc-12.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
         fi
     if [ "$BUILD_NEWLIB" != "0" ]; then tar -zxvf newlib-4.1.0.tar.gz; fi
@@ -381,6 +398,7 @@ mainbrown()
         if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then tar -Jxvf binutils-2.35.tar.xz; fi
         if [ "$BUILD_11_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxvf binutils-2.36.tar.xz; fi
         if [ "$BUILD_11_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxvf binutils-2.37.tar.xz; fi
+        if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ] ; then tar -Jxvf binutils-2.38.tar.xz; fi
     fi
    
     # 
@@ -446,6 +464,11 @@ mainbrown()
     BINUTILS=2.37
     if [ "$BUILD_11_2_0" == "1" ]; then buildgcc 11.2.0; fi
       
+    BINUTILS=2.38
+    export CC=$CC12
+    export CXX=$CXX12
+    if [ "$BUILD_12_1_0" == "1" ]; then buildgcc 12.1.0; fi
+
     if [ "$BUILD_TRUNK" == "1" ]; then buildgcc TRUNK; fi
 
     echo "All done!"
@@ -479,6 +502,7 @@ buildgcc()
     10.3.0)   VENDOR=atariextrabrownest;;
     11.1.0)   VENDOR=atarisuperbrown;;
     11.2.0)   VENDOR=atarisuperbrowner;;
+    12.1.0)   VENDOR=atarimegabrown;;
     TRUNK)    VENDOR=ataribleedingbrown;;
     esac            # Brooooooooown
 
@@ -799,7 +823,7 @@ buildgcc()
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
            
-            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ]; then
+            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ]; then
                 # h_errno is defined in 2 sources of MiNTlib and up till gcc 9 it was
                 # fine. But not anymore O_o
                 $SED -i -e 's/int h_errno/extern int h_errno/gI' $MINTLIBDIR/socket/res_query.c
@@ -1180,7 +1204,7 @@ buildgcc()
         #libstdc++-v3/configure:
         # From v10.3.0 onwards the c++17 filesystem code will fail to build if _GLIBCXX_USE_ST_MTIM is defined, because some time structs have missing members (ummm, okay)
         # (specifically libstdc++-v3/src/filesystem/ops-common.h is the thing that complains). So let's not enable that
-        if [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/#define _GLIBCXX_USE_ST_MTIM/#define _GLIBCXX_USE_ST_MTIMLOLOL/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
         fi
 
@@ -1188,7 +1212,7 @@ buildgcc()
         # (11.1.0 onwards)
         # This file uses some FP_* defines that are simply non existent in our case. Even worse, the code that uses these is inside a template.
         # So let's try to convince it to not do that
-        if [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/switch (__builtin_fpclassify(/\/*switch (__builtin_fpclassify(/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++17/floating_to_chars.cc   # start of block
             $SED -i -e "s/return nullopt;/return nullopt;*\/{/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++17/floating_to_chars.cc                              # end of block (actually the end of the block is a } at the next line, so we add a { after the comment's end to balance the braces
         fi
@@ -1212,7 +1236,7 @@ buildgcc()
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
         # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
         #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
-        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
@@ -1320,6 +1344,11 @@ buildgcc()
     
         # Tentative: patch the source file as well
         $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/gcc-$1/libstdc++-v3/include/std/type_traits
+
+        # New quirks: Starting with 12.1.0 a macro (isblank) clashes with a class member name. Beautiful
+        if [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
+            $SED -i -e "s/#define isblank(c)/\/\/ lol, nope #define isblank(c)/gI" "$INSTALL_PREFIX"/m68k-atari$1-elf/include/ctype.h
+        fi
     fi
     
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
@@ -1343,12 +1372,12 @@ buildgcc()
             # Same as libstc++v3
             $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libgfortran/configure
 
-            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "TRUNK" ]; then
+            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
                 # Some weird inconsistency in gf_vsnprintf - let's patch it up
                 $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
                 $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
             fi
-            if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "TRUNK" ]; then
+            if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "TRUNK" ]; then
                 # Starting with 9.2.0 onwards, async execution was added. Most likely our capabilities don't allow this
                 # so we don't get the define SA_RESTART in our signal.h. So let's just silently define it (its value seems
                 # to be uniformally the same) and move on
