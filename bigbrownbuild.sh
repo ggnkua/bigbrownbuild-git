@@ -1,7 +1,7 @@
 # NOTE: for all fancy ascii art text in this script use this generator: http://www.patorjk.com/software/taag/#p=display&f=Big&t=Cross
 
 set -e          #stop on any error encountered
-set -x                  #echo all commands
+#set -x                  #echo all commands
 
 mainbrown()
 {
@@ -580,13 +580,12 @@ buildgcc()
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
     
         # Package up binutils
-    
-        make install DESTDIR=$BINPACKAGE_DIR $JMULT
-        cd $BINPACKAGE_DIR
-        ${HOST_PREFIX}strip .$INSTALL_PREFIX/bin/*
-        ${HOST_PREFIX}strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
-        gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
-        $TAR $TAROPTS -jcvf binutils-$BINUTILS-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
+        #make install DESTDIR=$BINPACKAGE_DIR $JMULT
+        #cd $BINPACKAGE_DIR
+        #${HOST_PREFIX}strip .$INSTALL_PREFIX/bin/*
+        #${HOST_PREFIX}strip .$INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
+        #gzip -f -9 .$INSTALL_PREFIX/share/man/*/*.1
+        #$TAR $TAROPTS -jcvf binutils-$BINUTILS-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
     fi
     
     # Clean install dir
@@ -649,13 +648,6 @@ buildgcc()
                 $SED -i '1s;^;#define COMMON_LVB_REVERSE_VIDEO   0x4000 \/\/ DBCS: Reverse fore\/back ground attribute.\n#define COMMON_LVB_UNDERSCORE      0x8000 \/\/ DBCS: Underscore.\n;' $HOMEDIR/gcc-$1/gcc/pretty-print.c
             fi
         fi
-
-        #   _____                   
-        #  / ____|                  
-        # | |     _ __ ___  ___ ___ 
-        # | |    | '__/ _ \/ __/ __|
-        # | |____| | | (_) \__ \__ \
-        #  \_____|_|  \___/|___/___/
 
         # When building for a different architecture than the one we are compiling for, we need to
         # build an extra version of gcc in order to compile libgcc and friends. Makes sense in hindsight
@@ -1178,7 +1170,7 @@ buildgcc()
             $SED -i -e "s/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT -fleading-underscore/gI" $MINTLIBDIR/checkrules
             $SED -i -e "s/-std=gnu89/-std=gnu89 -fleading-underscore/gI" $MINTLIBDIR/configvars
         
-            # Furhter targets (020+, coldfire)
+            # Furthter targets (020+, coldfire)
             $SED -i -e "s/sp@+/%sp@+/gI" $MINTLIBDIR/mintlib/checkcpu.S
             $SED -i -e "s/\tsp/\t%sp/gI" $MINTLIBDIR/mintlib/checkcpu.S
             
@@ -1227,7 +1219,7 @@ buildgcc()
             fi
         
             # Create lib binary package
-            make bin-dist
+            #make bin-dist
         
         fi
     fi
@@ -1525,74 +1517,85 @@ buildgcc()
 
         $NICE make all $JMULT
         $SUDO make install $JMULT
+        
+        # Since make install uses the non-patched type_traits file let's patch them here too
+        # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
+        pushd .
+        cd $INSTALL_PREFIX
+        for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i; done
+
         $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
-        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
-            $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
-        else
-            $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0 \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0.0.0 \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1 \
-                $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper
-        fi
+        cd $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION
+        for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do ${SUDO} ${HOST_PREFIX}strip $i; done
+        popd
+
+        #if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
+        #    $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
+        #else
+        #    $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0 \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0.0.0 \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1 \
+        #        $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper
+        #fi
         $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
         
     fi
     
-    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        REPLY=Y
-    else    
-        read -p "Package up gcc binaries?" -n 1 -r
-        echo
-    fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then    
-        make install DESTDIR=$BINPACKAGE_DIR $JMULT
-        if [ "$BUILD_NEWLIB" != "0"]; then
-            cd $HOMEDIR/build-gcc-newlib-$1
-            make install DESTDIR=${BINPACKAGE_DIR}-newlib
-        fi
-        cd $BINPACKAGE_DIR
-        # Since make install uses the non-patched type_traits file let's patch them here too
-        # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
-        for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
-    
-        if [ "$1" == "TRUNK" ]; then
-            GCCVERSION=$TRUNK_VERSION
-        else
-            GCCVERSION=$1
-        fi
+    #if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+    #    REPLY=Y
+    #else    
+    #    read -p "Package up gcc binaries?" -n 1 -r
+    #    echo
+    #fi
+    #if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
+    #then    
+    #    make install DESTDIR=$BINPACKAGE_DIR $JMULT
+    #    if [ "$BUILD_NEWLIB" != "0"]; then
+    #        cd $HOMEDIR/build-gcc-newlib-$1
+    #        make install DESTDIR=${BINPACKAGE_DIR}-newlib
+    #    fi
+    #    cd $BINPACKAGE_DIR
+    #    # Since make install uses the non-patched type_traits file let's patch them here too
+    #    # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
+    #    for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i;done
+    #
+    #    if [ "$1" == "TRUNK" ]; then
+    #        GCCVERSION=$TRUNK_VERSION
+    #    else
+    #        GCCVERSION=$1
+    #    fi
 
-        ${HOST_PREFIX}strip .$INSTALL_PREFIX/bin/*
-        if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
-            $SUDO ${HOST_PREFIX}strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
-        else
-            $SUDO ${HOST_PREFIX}strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0 \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0.0.0 \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1 \
-                .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper
-        fi
-        find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        $TAR $TAROPTS -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
+    #    ${HOST_PREFIX}strip .$INSTALL_PREFIX/bin/*
+    #    if [ "$machine" == "Cygwin" ] || [ "$machine" != "MinGw" ] || [ "$machine" != "Mac" ]; then
+    #        $SUDO ${HOST_PREFIX}strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper*
+    #    else
+    #        $SUDO ${HOST_PREFIX}strip .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/cc1plus* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/collect2* \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0 \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/liblto_plugin.so.0.0.0 \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto1 \
+    #            .$INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION/lto-wrapper
+    #    fi
+    #    find .$INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
+    #    find .$INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
+    #    #$TAR $TAROPTS -jcvf gcc-$VENDOR-bin.tar.bz2 .$INSTALL_PREFIX
 
-    fi
+    #fi
 
     #  _____                                  _
     # |  __ \                                (_)
@@ -1694,6 +1697,53 @@ buildgcc()
         $SUDO rm -rf $LIBGCC/m68060/softfp 
         
         # crt0.o, gcrt0.o are 68k asm and don't need relocated
+    fi
+
+    #  ____                                      _   
+    # |  _ \                                    | |  
+    # | |_) |_ __ _____      ___ __   ___  _   _| |_ 
+    # |  _ <| '__/ _ \ \ /\ / / '_ \ / _ \| | | | __|
+    # | |_) | | | (_) \ V  V /| | | | (_) | |_| | |_ 
+    # |____/|_|  \___/ \_/\_/ |_| |_|\___/ \__,_|\__|
+                                                
+    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        REPLY=Y
+    else    
+        read -p "Build and install brownout?" -n 1 -r
+        echo
+    fi
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+        cd "$HOMEDIR"
+
+        rm -rf brownout-git
+        git clone https://github.com/ggnkua/brownout-git
+        
+        cd brownout-git
+        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout.exe -Wl,-Bstatic -static
+        ${HOST_PREFIX}strip brownout.exe
+        
+        cp brownout.exe ${INSTALL_PREFIX}/bin
+    fi
+
+    #  _____           _         _                            
+    # |  __ \         | |       | |                           
+    # | |__) |_ _  ___| | ____ _| | ____ _  ___   _   _ _ __  
+    # |  ___/ _` |/ __| |/ / _` | |/ / _` |/ _ \ | | | | '_ \ 
+    # | |  | (_| | (__|   < (_| |   < (_| |  __/ | |_| | |_) |
+    # |_|   \__,_|\___|_|\_\__,_|_|\_\__, |\___|  \__,_| .__/ 
+    #                                 __/ |            | |    
+    #                                |___/             |_|
+
+    
+    if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        REPLY=Y
+    else    
+        read -p "Create an archive with all the goodies?" -n 1 -r
+        echo
+    fi
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+        cd "$HOMEDIR"
+        $TAR $TAROPTS -Jcf brown-$VENDOR-$1.tar.xz -C $INSTALL_PREFIX .
     fi
 
     # The end, just be a good citizen and go back to the directory we were called from
