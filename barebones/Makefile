@@ -1,4 +1,11 @@
 
+VASM = ./vasmm68k_mot.exe -Felf -showcrit -noesc
+TOOLCHAIN_NAME = m68k-atarimegabrown-elf
+TOOLCHAIN_PREFIX = $(TOOLCHAIN_NAME)-
+TOOLCHAIN_VERSION = 12.1.0
+
+# -----------------------------------------------------------------------------
+
 # =============================================================================
 #	Use minimal/barebones CRT & library code (i.e. avoiding MiNTlib)
 # =============================================================================
@@ -21,9 +28,9 @@ USE_CFG=release
 TARGETFLAGS =	-m68000
 
 LIBPATHS =	\
-		-L/brown/lib/gcc/m68k-atarisuperbrowner-elf/11.2.0/m68000
+		-L/home/ggn/brown/lib/gcc/$(TOOLCHAIN_NAME)/$(TOOLCHAIN_VERSION)/m68000
 
-LIBS =		\
+LIBS =		-lc
 
 INCPATHS =	\
 
@@ -76,7 +83,7 @@ else
 #  implements __cxa_atexit/__cxa_finalize needed by C++ static init. missing
 #  from MiNTlib and reused for bare-bones builds on both compilers.
 
-CRTSEQ_G = /brown/m68k-atarisuperbrowner-elf/lib/crt0.o
+CRTSEQ_G = /brown/$(TOOLCHAIN_NAME)/lib/crt0.o
 CRTSEQ_S = \
 	$(LIBCXX)/browncrti.o \
 	$(LIBCXX)/browncrt++.o \
@@ -90,11 +97,6 @@ LIBS = -lgcc -lc
 
 # -----------------------------------------------------------------------------
 endif
-# -----------------------------------------------------------------------------
-
-VASM = ./vasmm68k_mot.exe -Felf -showcrit -noesc
-TOOLCHAIN_PREFIX = /brown/bin/m68k-atarisuperbrowner-elf-
-
 # -----------------------------------------------------------------------------
 
 CC = $(TOOLCHAIN_PREFIX)gcc
@@ -190,12 +192,12 @@ clean:
 # -----------------------------------------------------------------------------
 ifeq ($(USE_CFG),release)
 # -----------------------------------------------------------------------------
-	./brownout.exe -p 0 -i $*.elf -o $*.tos
+	brownout.exe -p 0 -i $*.elf -o $*.tos
 # -----------------------------------------------------------------------------
 else
 # -----------------------------------------------------------------------------
 	$(TOOLCHAIN_PREFIX)objdump -h $*.elf
-	./brownout.exe -s -x -p 0 -i $*.elf -o $*.tos
+	brownout.exe -s -x -p 0 -i $*.elf -o $*.tos
 # -----------------------------------------------------------------------------
 endif
 # -----------------------------------------------------------------------------
@@ -216,9 +218,9 @@ endif
 $(LIBCXX)/brownmint++.o: $(LIBCXX)/brownmint++.c
 	$(TOOLCHAIN_PREFIX)gcc -Wall -m68000 -O2 -std=gnu89 -fleading-underscore -nostdinc \
 	-I$(LIBCXX) \
-	-I/usr/lib/gcc/m68k-atarisuperbrowner-elf/11.2.0/include \
-	-I/usr/lib/gcc/m68k-atarisuperbrowner-elf/11.2.0/include-fixed \
-	-I/usr/m68k-atarisuperbrowner-elf/include \
+	-I/usr/lib/gcc/$(TOOLCHAIN_NAME)/$(TOOLCHAIN_VERSION)/include \
+	-I/usr/lib/gcc/$(TOOLCHAIN_NAME)/$(TOOLCHAIN_VERSION)/include-fixed \
+	-I/usr/$(TOOLCHAIN_NAME)/include \
 	-DHAVE_CONFIG_H -D_LIBC -D_REENTRANT \
 	-c $< -o $@
 

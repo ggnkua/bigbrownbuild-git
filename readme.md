@@ -96,12 +96,20 @@ The actual names of the compilers used to build our set of gccs. The names aretu
 
 Also you might be able to build all gcc versions using one compiler. In Ubuntu 17.10 so many problems were encountered in Ubuntu (including Internal Compiler Errors) that this is now in full pendantic mode. Again, your mileage may vary!
 
+### CROSS_COMPILING
+
+At first this sounds redundant given that the script produces a cross compiler to begin with. This setting should be enabled if the cross compiler is not going to be executed in a different platform than it is built.
+
+For example: We want to build a 68k cross compiler on a x86 PC that will execute on an ARM processor.
+
 ### Other notes
 The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments
 
 # Testing
 
 Inside the folder ```barebones``` there exist test projects to verify that your gcc installation is sane. Just type ```make``` on installations that have make installed or run ```build.bat``` under Windows (especially if you built the toolchain(s) using MinGW).
+
+There is also a different example in the folder ```barebones-interop```. This illustrates how to set up a project to work with C and assembly. Consult the ```readme.md``` inside that folder for more information.
 
 # bigbrowngemlib.sh
 
