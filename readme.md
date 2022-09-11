@@ -48,11 +48,11 @@ GMP/MPFR/MPC are required for building gcc (if you don't download prerequisites,
 
 Use Macports and install:
 
-* gmp
+* gmp (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES))
 
-* mpfr
+* mpfr (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES))
 
-* libmpc
+* libmpc (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES))
 
 * bison
 
@@ -61,6 +61,8 @@ Use Macports and install:
 * gsed
 
 * gnutar
+
+* wget
 
 # Installation
 
