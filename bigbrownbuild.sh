@@ -141,6 +141,7 @@ mainbrown()
         *)          machine="UNKNOWN:${unameOut}"
     esac
     echo Host machine: $machine
+    host_arch=`uname -m`
   
     if [ "$machine" == "msys" ]; then
         # msys default compilers generate binaries that are dependent
@@ -182,6 +183,14 @@ mainbrown()
         SUDO=
         #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
         INSTALL_PREFIX=${HOME}/brown
+    fi
+
+    # As per https://stackoverflow.com/questions/3801011/ld-library-not-found-for-lcrt0-o-on-osx-10-6-with-gcc-clang-static-flag/3801032#3801032
+    # you can't build static binaries on Apple silicon platforms. Fantastic
+    if [ "$machine" == "Mac" ] && [ $"host_arch" == "arm64" ]; then
+        STATIC=
+    else
+        STATIC=-static
     fi
 
     if [ "$machine" == "Mac" ]; then
@@ -565,14 +574,14 @@ buildgcc()
             rm -rf "$HOMEDIR"/crosstemp-$1
             mkdir -p "$HOMEDIR"/crosstemp-$1
             cd "$HOMEDIR"/crosstemp-$1
-            ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=-static
+            ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC
             make $JMULT
             $SUDO make install $JMULT
         fi
 
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
-        ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=-static
+        ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=$STATIC
         make $JMULT
         $SUDO make install $JMULT
         $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
@@ -1504,8 +1513,8 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
     then    
-        # This system include isn't picked up for some reason 
-        if [ "$machine" == "Mac" ]; then
+        # This system include isn't picked up for some reason (in some systems)
+        if [ "$machine" == "Mac" ] && [ -f /opt/local/include/gmp.h]; then
             $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
         fi 
     
@@ -1719,10 +1728,15 @@ buildgcc()
         git clone https://github.com/ggnkua/brownout-git
         
         cd brownout-git
-        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout.exe -Wl,-Bstatic -static
-        ${HOST_PREFIX}strip brownout.exe
+        if [ "$machine" == "Mac" ] || [ "$machine" == "Mac" ]; then
+            EXT=".exe"
+        else
+            EXT=
+        fi
+        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout$EXT -Wl,-Bstatic $STATIC
+        ${HOST_PREFIX}strip brownout$EXT
         
-        cp brownout.exe ${INSTALL_PREFIX}/bin
+        cp brownout$EXT ${INSTALL_PREFIX}/bin
     fi
 
     #  _____           _         _                            
