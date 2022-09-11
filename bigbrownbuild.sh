@@ -276,6 +276,7 @@ mainbrown()
 
     # Cleanup folders
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Cleaning up build dirs from previous build"
         CLEANUP=Y
     else    
         read -p "Cleanup build dirs from previous build?" -n 1 -r
@@ -349,6 +350,7 @@ mainbrown()
     # Unpack all the things
     cd "$HOMEDIR"
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Unpacking gcc, binutils, Newlib and mintlib"
         REPLY=Y
     else    
         read -p "Unpack gcc, binutils, Newlib and mintlib?" -n 1 -r
@@ -551,6 +553,7 @@ buildgcc()
     # Configure, build and install binutils for m68k elf
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Configuring build, install and package up binutils"
         REPLY=Y
     else    
         read -p "Configure build, install and package up binutils?" -n 1 -r
@@ -577,16 +580,16 @@ buildgcc()
             rm -rf "$HOMEDIR"/crosstemp-$1
             mkdir -p "$HOMEDIR"/crosstemp-$1
             cd "$HOMEDIR"/crosstemp-$1
-            ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC
-            make $JMULT
-            $SUDO make install $JMULT
+            ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_cross_config.log
+            make $JMULT &> binutils_cross_build.log
+            $SUDO make install $JMULT &> binutils_cross_install.log
         fi
 
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
-        ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=$STATIC
-        make $JMULT
-        $SUDO make install $JMULT
+        ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_config.log
+        make $JMULT &> binutils_build.log
+        $SUDO make install $JMULT &> binutils_install.log
         $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
         $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
         $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
@@ -620,19 +623,18 @@ buildgcc()
     WL=
     
     if [ "$USE_MIN_RAM" == "1" ]; then
-        export CFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
-        export CXXFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
-        export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768"
-        export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768"
-    else
-        export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore"
-        export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore"
+        MIN_RAM_CFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
+        export CFLAGS=$MIN_RAM_CFLAGS
+        export CXXFLAGS=$MIN_RAM_CFLAGS
     fi
+    export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
+    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS"
     export LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
     # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
     #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Configuring, builing and installing gcc (without libs)"
         REPLY=Y
     else    
         read -p "Configure, build and install gcc (without libs)?" -n 1 -r
@@ -673,13 +675,13 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=-static \
-                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
-                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
-            $NICE make all-gcc $JMULT
-            $SUDO make install-gcc $JMULT
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_cross_config.log
+            $NICE make all-gcc $JMULT &> gcc_cross_compile.log
+            $SUDO make install-gcc $JMULT &> gcc_cross_install.log
             # And then export the path because libgcc will need it
             export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin:$PATH
         else
@@ -705,13 +707,13 @@ buildgcc()
             --disable-libstdcxx-threads \
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
-            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
             LDFLAGS=-static \
-            CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
-            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
-            LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
-        $NICE make all-gcc $JMULT
-        $SUDO make install-gcc $JMULT
+            CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+            LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_configure.log
+        $NICE make all-gcc $JMULT &> gcc_build.log
+        $SUDO make install-gcc $JMULT  &> gcc_install.log
     
         # In some linux distros (linux mint for example) it was observed
         # that make install-gcc didn't set the read permission for users
@@ -750,14 +752,15 @@ buildgcc()
     cd "$HOMEDIR"/build-gcc-$1
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Building and installing libgcc"
         REPLY=Y
     else    
         read -p "Build and install libgcc?" -n 1 -r
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
-        make all-target-libgcc $JMULT
-        $SUDO make install-target-libgcc $JMULT
+        make all-target-libgcc $JMULT &> gcc_libc_build.log
+        $SUDO make install-target-libgcc $JMULT &> gcc_libc_install.log
     
         # Some extra permissions
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]; then
@@ -779,6 +782,7 @@ buildgcc()
 
     if [ "$BUILD_NEWLIB" != "0" ]; then
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+            echo "Building and installing newlib (and custom gcc)"
             REPLY=Y
         else    
             read -p "Build and install newlib (and custom gcc)?" -n 1 -r
@@ -788,8 +792,8 @@ buildgcc()
             mkdir -p "$HOMEDIR/build-newlib-$1/build"
             cd "$HOMEDIR/build-newlib-$1/build"
             CC=m68k-$VENDOR-elf-gcc $HOMEDIR/newlib-4.1.0-$1/newlib/configure $HOST $BUILD --target=m68k-$VENDOR-elf --build=m68k-$VENDOR-elf --host=m68k-$VENDOR-elf --prefix=${INSTALL_PREFIX}-newlib
-            $NICE make $JMULT
-            $SUDO make install
+            $NICE make $JMULT &> newlib_build.log
+            $SUDO make install &> newlib_install.log
    
             # Re-configure and build gcc with "--with-newlib". Exciting.
             # TODO: this is copypasta from gcc configure above. Probably define it once and use it in both places as it will get out of sync...
@@ -811,13 +815,13 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=-static \
-                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore --param ggc-min-expand=20 --param ggc-min-heapsize=32768" \
-                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
-            $NICE make all-gcc $JMULT
-            $SUDO make install-gcc $JMULT
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_newlib_configure
+            $NICE make all-gcc $JMULT &> gcc_newlib_build
+            $SUDO make install-gcc $JMULT &> gcc_newlib_install
         fi
     fi
 
@@ -837,6 +841,7 @@ buildgcc()
         cd "$HOMEDIR"
         
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+            echo "Source patching and building mintlib"
             REPLY=Y
         else    
             read -p "Source patch and build mintlib?" -n 1 -r
@@ -1209,12 +1214,12 @@ buildgcc()
             fi
 
             # can't safely use -j with mintlib due to bison/flex dependency ordering woe
-            make SHELL=/bin/bash
+            make SHELL=/bin/bash &> mintlib_build.log
         
             # Install the lib.
             # For some reason math.h isn't installed so we do it by hand
             # ¯\_(ツ)_/¯ 
-            $SUDO make install
+            $SUDO make install &> mintlib_install.log
             $SUDO cp include/math.h $INSTALL_PREFIX/m68k-$VENDOR-elf/include
             if [ "$machine" == "Mac" ]; then
                 $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
@@ -1245,6 +1250,7 @@ buildgcc()
     fi
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Patching libstdc++v3 at the source level (meaning the gcc-$1 files will be tinkered)"
         REPLY=Y
     else    
         read -p "Patch libstdc++v3 at the source level (meaning the gcc-$1 files will be tinkered)?" -n 1 -r
@@ -1323,6 +1329,7 @@ buildgcc()
     #*** configure libstdc++-v3
 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Patching libstdc++v3's configure scripts"
         REPLY=Y
     else
         read -p "Patch libstdc++v3's configure scripts?" -n 1 -r
@@ -1340,7 +1347,7 @@ buildgcc()
         #   $(WARN_CXXFLAGS) $(OPTIMIZE_CXXFLAGS) $(CONFIG_CXXFLAGS)
         
         cd "$HOMEDIR"/build-gcc-$1
-        $NICE make configure-target-libstdc++-v3 $JMULT
+        $NICE make configure-target-libstdc++-v3 $JMULT &> gcc_libstdc++_configure.log
      
         #$SED -i -e "s/-std=gnu++98//gI" "$HOMEDIR"/gcc-$1/build/src/Makefile
         $SED -i -e "s/-std=gnu++98//gI" "$HOMEDIR"/build-gcc-$1/m68k-$VENDOR-elf/libstdc++-v3/src/Makefile
@@ -1433,6 +1440,7 @@ buildgcc()
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
     if [ "$BUILD_FORTRAN" == "1" ]; then
         if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+            echo "Configuring, source patching and building glibfortran"
             REPLY=Y
         else    
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
@@ -1463,14 +1471,15 @@ buildgcc()
                 $SED -i -e "s/#include <string.h>/#include <string.h>\n#define SA_RESTART        0x10000000/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/execute_command_line.c
             fi
         
-            make configure-target-libgfortran $JMULT
-            $NICE make $JMULT all-target-libgfortran
-            make install-target-libgfortran $JMULT
+            make configure-target-libgfortran $JMULT &> gcc_libfortran_configure.log
+            $NICE make $JMULT all-target-libgfortran &> gcc_libfortran_build.log
+            make install-target-libgfortran $JMULT &> gcc_libfortran_install.log
         fi
     fi 
     #*** build it
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Building and installing libstdc++v3"
         REPLY=Y
     else    
         read -p "Build and install libstdc++v3?" -n 1 -r
@@ -1478,8 +1487,8 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         cd "$HOMEDIR"/build-gcc-$1
-        make all-target-libstdc++-v3 $JMULT
-        $SUDO make install-target-libstdc++-v3 $JMULT
+        make all-target-libstdc++-v3 $JMULT &> gcc_libstdc++_build.log
+        $SUDO make install-target-libstdc++-v3 $JMULT &> gcc_libstdc++_install.log
     fi
     
     #  __  __ _
@@ -1495,6 +1504,7 @@ buildgcc()
     cd "$HOMEDIR"/build-gcc-$1
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Building and installing the rest"
         REPLY=Y
     else    
         read -p "Build and install the rest?" -n 1 -r
@@ -1513,8 +1523,8 @@ buildgcc()
             GCCVERSION=$1
         fi
 
-        $NICE make all $JMULT
-        $SUDO make install $JMULT
+        $NICE make all $JMULT &> gcc_misc_build.log
+        $SUDO make install $JMULT &> gcc_install_build.log
         
         # Since make install uses the non-patched type_traits file let's patch them here too
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
@@ -1541,6 +1551,7 @@ buildgcc()
     #                        __/ |
     #                       |___/
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Reorganising MiNTlib folders"
         REPLY=Y
     else    
         read -p "Reorganise MiNTlib folders?" -n 1 -r
@@ -1642,6 +1653,7 @@ buildgcc()
     # |____/|_|  \___/ \_/\_/ |_| |_|\___/ \__,_|\__|
                                                 
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Building and installing brownout"
         REPLY=Y
     else    
         read -p "Build and install brownout?" -n 1 -r
@@ -1676,6 +1688,7 @@ buildgcc()
 
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+        echo "Creating an archive with all the goodies"
         REPLY=Y
     else    
         read -p "Create an archive with all the goodies?" -n 1 -r
