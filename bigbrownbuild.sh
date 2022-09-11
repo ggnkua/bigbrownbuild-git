@@ -98,6 +98,10 @@ mainbrown()
     CXX9=g++
     CC10=gcc
     CXX10=g++
+    CC11=gcc
+    CXX11=g++
+    CC12=gcc
+    CXX12=g++
 
     if [ "$CROSS_COMPILING" == "1" ]; then
         # The cross compiler we are building is supposedly called "canadian", because
@@ -1728,7 +1732,7 @@ buildgcc()
         git clone https://github.com/ggnkua/brownout-git
         
         cd brownout-git
-        if [ "$machine" == "Mac" ] || [ "$machine" == "Mac" ]; then
+        if [ "$machine" == "MinGw" ] || [ "$machine" == "Cygwin" ]; then
             EXT=".exe"
         else
             EXT=
