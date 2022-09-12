@@ -105,7 +105,7 @@ At first this sounds redundant given that the script produces a cross compiler t
 For example: We want to build a 68k cross compiler on a x86 PC that will execute on an ARM processor.
 
 ### Other notes
-The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments
+The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments. Log files are written inside each build folder for each version of gcc built. So for example there's ```build-binutils-2.38/binutils_configure.log``, ```build-gcc-12.1.0/gcc_build.log``` and so on.
 
 # Testing
 

@@ -553,10 +553,10 @@ buildgcc()
     # Configure, build and install binutils for m68k elf
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        echo "Configuring building, installing and packaging up binutils"
+        echo "Configuring build and installing binutils"
         REPLY=Y
     else    
-        read -p "Configure build, install and package up binutils?" -n 1 -r
+        read -p "Configure build and install binutils?" -n 1 -r
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
@@ -670,13 +670,11 @@ buildgcc()
                 --enable-softfloat \
                 --disable-libstdcxx-pch \
                 --disable-clocale \
-                --disable-shared \
-                --disable-host-shared \
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
                 --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
-                LDFLAGS=-static \
+                LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
                 CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_cross_config.log
@@ -702,8 +700,6 @@ buildgcc()
             --enable-softfloat \
             --disable-libstdcxx-pch \
             --disable-clocale \
-            --disable-shared \
-            --disable-host-shared \
             --disable-libstdcxx-threads \
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
@@ -1530,15 +1526,18 @@ buildgcc()
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
         pushd .
         cd $INSTALL_PREFIX
-        for i in `find . -name type_traits`; do echo Patching $i; $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i; done
+        for i in `find . -name type_traits`; do
+            echo Patching $i >> gcc_type_traits.log
+            $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i
+        done
 
         $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
         cd $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION
         for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do ${SUDO} ${HOST_PREFIX}strip $i; done
         popd
 
-        $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
-        $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';'
+        $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &> binary_strip.log
+        $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &>> binary_strip.log
         
     fi
     
