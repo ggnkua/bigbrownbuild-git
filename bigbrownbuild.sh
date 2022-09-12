@@ -190,10 +190,12 @@ mainbrown()
 
     # As per https://stackoverflow.com/questions/3801011/ld-library-not-found-for-lcrt0-o-on-osx-10-6-with-gcc-clang-static-flag/3801032#3801032
     # you can't build static binaries on Apple silicon platforms. Fantastic
-    if [ "$machine" == "Mac" ] && [ $"host_arch" == "arm64" ]; then
+    if [ "$machine" == "Mac" ] && [ "$host_arch" == "arm64" ]; then
         STATIC=
+        STATIC_LINK=
     else
         STATIC=-static
+        STATIC_LINK=-Wl,-Bstatic
     fi
 
     if [ "$machine" == "Mac" ]; then
@@ -704,7 +706,7 @@ buildgcc()
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
             --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
-            LDFLAGS=-static \
+            LDFLAGS=$STATIC \
             CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
             CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
             LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_configure.log
@@ -812,7 +814,7 @@ buildgcc()
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
                 --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
-                LDFLAGS=-static \
+                LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
                 CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_newlib_configure
@@ -1670,7 +1672,7 @@ buildgcc()
         else
             EXT=
         fi
-        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout$EXT -Wl,-Bstatic $STATIC
+        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout$EXT $STATIC_LINK $STATIC
         ${HOST_PREFIX}strip brownout$EXT
         
         cp brownout$EXT ${INSTALL_PREFIX}/bin
