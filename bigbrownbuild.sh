@@ -317,7 +317,7 @@ mainbrown()
     if [ "$BUILD_11_1_0" == "1" ]; then if [ ! -f gcc-11.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.1.0/gcc-11.1.0.tar.xz; fi; fi
     if [ "$BUILD_11_2_0" == "1" ]; then if [ ! -f gcc-11.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.2.0/gcc-11.2.0.tar.xz; fi; fi
     if [ "$BUILD_12_1_0" == "1" ]; then if [ ! -f gcc-12.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.xz; fi; fi
-    if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK; fi; fi
+    if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK --quiet; fi; fi
 
     if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
         if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
@@ -343,7 +343,7 @@ mainbrown()
     if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
         if [ ! -f binutils-2.38.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.xz; fi
     fi
-    if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git; fi
+    if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git --quiet; fi
     if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz; fi; fi
     # requires GMP, MPFR and MPC
     
@@ -397,7 +397,7 @@ mainbrown()
         if [ "$BUILD_11_1_0" == "1" ]; then tar -Jxf gcc-11.1.0.tar.xz; fi
         if [ "$BUILD_11_2_0" == "1" ]; then tar -Jxf gcc-11.2.0.tar.xz; fi
         if [ "$BUILD_12_1_0" == "1" ]; then tar -Jxf gcc-12.1.0.tar.xz; fi
-        if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD && cd ..; fi
+        if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD --quiet && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
             if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
@@ -553,7 +553,7 @@ buildgcc()
     # Configure, build and install binutils for m68k elf
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        echo "Configuring build, install and package up binutils"
+        echo "Configuring building, installing and packaging up binutils"
         REPLY=Y
     else    
         read -p "Configure build, install and package up binutils?" -n 1 -r
@@ -1663,7 +1663,7 @@ buildgcc()
         cd "$HOMEDIR"
 
         rm -rf brownout-git
-        git clone https://github.com/ggnkua/brownout-git
+        git clone https://github.com/ggnkua/brownout-git --quiet
         
         cd brownout-git
         if [ "$machine" == "MinGw" ] || [ "$machine" == "Cygwin" ]; then
