@@ -287,9 +287,9 @@ mainbrown()
         if [ "$BUILD_11_1_0" == "1" ]; then
             if [ ! -f binutils-2.36.tar.xz ]; then rm -rf binutils-2.36; fi; fi
         if [ "$BUILD_11_2_0" == "1" ]; then
-            if [ ! -f binutils-2.37.tar.xz ]; then wget rm -rf binutils-2.37; fi; fi
+            if [ ! -f binutils-2.37.tar.xz ]; then rm -rf binutils-2.37; fi; fi
         if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
-            if [ ! -f binutils-2.38.tar.xz ]; then wget rm -rf binutils-2.38; fi; fi
+            if [ ! -f binutils-2.38.tar.xz ]; then rm -rf binutils-2.38; fi; fi
         rm -rf mintlib-bigbrownbuild
         rm -rf build-newlib*
     fi
