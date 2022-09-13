@@ -84,10 +84,6 @@ Set this to 1 to download prerequisite libs such as MPC and MPFR automatically (
 
 Which gccs to build. 1=Build, anything else=Don't build. Can be toggled individually.
 
-### RUN_MODE
-
-Should we run this as an administrator or user? Administrator mode will install the compiler in the system's folders and will require root priviledges.
-
 ### BUILD_MINTLIB
 
 Only set this to nonzero when you do want to build mintlib. Note that if you don't build mintlib then libstdc++v3 will also fail to build, so you are advised to keep this on.
@@ -104,8 +100,12 @@ At first this sounds redundant given that the script produces a cross compiler t
 
 For example: We want to build a 68k cross compiler on a x86 PC that will execute on an ARM processor.
 
+### INSTALL_PREFIX
+
+Where the compiler(s) will be installed. Defaults to ${HOME}/brown. Take care that you don't choose a path that requires root privileges. (In this case you will need to run the script as root)
+
 ### Other notes
-The script will install things to ```$INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments. Log files are written inside each build folder for each version of gcc built. So for example there's ```build-binutils-2.38/binutils_configure.log``, ```build-gcc-12.1.0/gcc_build.log``` and so on.
+The script will install things to ```INSTALL_PREFIX``` and might need root privileges. Also it'll use ```$JMULT``` cores while building. If this is not to your liking then edit this script and change ```INSTALL_PREFIX``` to the path you would like to install to (including home folder) and ```SUDO``` to nothing if you don't need root rights. Also ```JMULT``` for number of build cores. Examples are inside the script's comments. Log files are written inside each build folder for each version of gcc built. So for example there's ```build-binutils-2.38/binutils_configure.log``, ```build-gcc-12.1.0/gcc_build.log``` and so on.
 
 # Testing
 

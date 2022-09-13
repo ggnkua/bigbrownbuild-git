@@ -1,7 +1,8 @@
 # NOTE: for all fancy ascii art text in this script use this generator: http://www.patorjk.com/software/taag/#p=display&f=Big&t=Cross
 
-set -e          #stop on any error encountered
+#set -e                  #stop on any error encountered
 #set -x                  #echo all commands
+set -Eeo pipefail       #enable error trapping
 
 mainbrown()
 {
@@ -16,6 +17,12 @@ mainbrown()
         exit
     fi  
 
+    #
+    # Where the compiler(s) will be installed. Feel free to change. If you specify a path that requires root
+    # privileges, then this script must be run as root!
+    #
+    INSTALL_PREFIX=${HOME}/brown
+    
     #
     # Ensure flex and bison is installed
     # Don't look at me about what this does, I just copied it from stack overflow...
@@ -71,7 +78,7 @@ mainbrown()
     BUILD_11_1_0=0
     BUILD_11_2_0=0
     BUILD_12_1_0=1
-    BUILD_TRUNK=0   # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
+    BUILD_TRUNK=0           # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
     TRUNK_VERSION=13.0.0    # This needs to change with every major gcc release
 
     # Should we run this as an administrator or user?
@@ -173,21 +180,6 @@ mainbrown()
         fi
     fi
   
-    if [ "$RUN_MODE" == "Admin" ]; then
-        # Administrator mode
-        SUDO=sudo
-        if [ "$machine" == "Mac" ]; then
-            INSTALL_PREFIX=/opt/local/
-        else
-            INSTALL_PREFIX=${HOME}/brown
-        fi
-    else
-        # User mode
-        SUDO=
-        #INSTALL_PREFIX=${HOME}/localINSTALL_PREFIX
-        INSTALL_PREFIX=${HOME}/brown
-    fi
-
     # As per https://stackoverflow.com/questions/3801011/ld-library-not-found-for-lcrt0-o-on-osx-10-6-with-gcc-clang-static-flag/3801032#3801032
     # you can't build static binaries on Apple silicon platforms. Fantastic
     if [ "$machine" == "Mac" ] && [ "$host_arch" == "arm64" ]; then
@@ -223,8 +215,6 @@ mainbrown()
     fi
     
     if [ "$machine" == "MinGw" ]; then
-        # Msys has no idea what "sudo" and "nice" are.
-        unset SUDO
         unset NICE
         CC4=x86_64-w64-mingw32-gcc
         CXX4=x86_64-w64-mingw32-g++
@@ -252,7 +242,6 @@ mainbrown()
     fi
     if [ "$machine" == "Cygwin" ]; then
         # Disable some stuff for cygwin as well
-        unset SUDO
         unset NICE
         # This is probably safe for cygwin, but only been tested
         # when building gcc 7.x
@@ -285,77 +274,77 @@ mainbrown()
         echo
     fi
     if [ "$CLEANUP" == "Y" ] || [ "$CLEANUP" == "y" ]; then
-        rm -rf binary-package 
-        rm -rf binutils-2.27
-        rm -rf binutils-2.31
-        rm -rf binutils-2.32
-        rm -rf binutils-2.34
-        rm -rf binutils-2.35
-        rm -rf binutils-2.36
-        rm -rf binutils-2.37
-        rm -rf binutils-2.38
+        if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
+            if [ ! -f binutils-2.27.tar.bz2 ]; then rm -rf binutils-2.27; fi; fi
+        if [ "$BUILD_8_2_0" == "1" ]; then
+            if [ ! -f binutils-2.31.tar.xz ]; then rm -rf binutils-2.31; fi; fi
+        if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then
+            if [ ! -f binutils-2.32.tar.xz ]; then rm -rf binutils-2.32; fi; fi
+        if [ "$BUILD_10_1_0" == "1" ]; then
+            if [ ! -f binutils-2.34.tar.xz ]; then rm -rf binutils-2.34; fi; fi
+        if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then
+            if [ ! -f binutils-2.35.tar.xz ]; then rm -rf binutils-2.35; fi; fi
+        if [ "$BUILD_11_1_0" == "1" ]; then
+            if [ ! -f binutils-2.36.tar.xz ]; then rm -rf binutils-2.36; fi; fi
+        if [ "$BUILD_11_2_0" == "1" ]; then
+            if [ ! -f binutils-2.37.tar.xz ]; then wget rm -rf binutils-2.37; fi; fi
+        if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+            if [ ! -f binutils-2.38.tar.xz ]; then wget rm -rf binutils-2.38; fi; fi
         rm -rf mintlib-bigbrownbuild
         rm -rf build-newlib*
     fi
     
     # Get all the things
-    
-    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.6.4/gcc-4.6.4.tar.bz2; fi; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.9.4/gcc-4.9.4.tar.bz2; fi; fi
-    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-5.4.0/gcc-5.4.0.tar.bz2; fi; fi
-    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-6.2.0/gcc-6.2.0.tar.bz2; fi; fi
-    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.1.0/gcc-7.1.0.tar.bz2; fi; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.2.0/gcc-7.2.0.tar.xz; fi; fi
-    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz; fi; fi
-    if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz; fi; fi
-    if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz; fi; fi
-    if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz; fi; fi
-    if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz; fi; fi
-    if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz; fi; fi
-    if [ "$BUILD_9_3_0" == "1" ]; then if [ ! -f gcc-9.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.3.0/gcc-9.3.0.tar.xz; fi; fi
-    if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz; fi; fi
-    if [ "$BUILD_10_2_0" == "1" ]; then if [ ! -f gcc-10.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz; fi; fi
-    if [ "$BUILD_10_3_0" == "1" ]; then if [ ! -f gcc-10.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.3.0/gcc-10.3.0.tar.xz; fi; fi
-    if [ "$BUILD_11_1_0" == "1" ]; then if [ ! -f gcc-11.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.1.0/gcc-11.1.0.tar.xz; fi; fi
-    if [ "$BUILD_11_2_0" == "1" ]; then if [ ! -f gcc-11.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.2.0/gcc-11.2.0.tar.xz; fi; fi
-    if [ "$BUILD_12_1_0" == "1" ]; then if [ ! -f gcc-12.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.xz; fi; fi
+   
+    echo "Downloading all relevant archives" 
+    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.6.4/gcc-4.6.4.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.9.4/gcc-4.9.4.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-5.4.0/gcc-5.4.0.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-6.2.0/gcc-6.2.0.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.1.0/gcc-7.1.0.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.2.0/gcc-7.2.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_9_3_0" == "1" ]; then if [ ! -f gcc-9.3.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.3.0/gcc-9.3.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_10_2_0" == "1" ]; then if [ ! -f gcc-10.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_10_3_0" == "1" ]; then if [ ! -f gcc-10.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.3.0/gcc-10.3.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_11_1_0" == "1" ]; then if [ ! -f gcc-11.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.1.0/gcc-11.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_11_2_0" == "1" ]; then if [ ! -f gcc-11.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.2.0/gcc-11.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_12_1_0" == "1" ]; then if [ ! -f gcc-12.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.xz --quiet; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK --quiet; fi; fi
 
     if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
-        if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2; fi
-    fi
+        if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2 --quiet; fi; fi
     if [ "$BUILD_8_2_0" == "1" ]; then
-        if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz --quiet; fi; fi
     if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then
-        if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz --quiet; fi; fi
     if [ "$BUILD_10_1_0" == "1" ]; then
-        if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz --quiet; fi; fi
     if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then
-        if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz --quiet; fi; fi
     if [ "$BUILD_11_1_0" == "1" ]; then
-        if [ ! -f binutils-2.36.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.36.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.36.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.36.tar.xz --quiet; fi; fi
     if [ "$BUILD_11_2_0" == "1" ]; then
-        if [ ! -f binutils-2.37.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.37.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.37.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.37.tar.xz --quiet; fi; fi
     if [ "$BUILD_12_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
-        if [ ! -f binutils-2.38.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.xz; fi
-    fi
+        if [ ! -f binutils-2.38.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.xz --quiet; fi; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git --quiet; fi
-    if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz; fi; fi
+    if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz --quiet; fi; fi
     # requires GMP, MPFR and MPC
     
     # Unpack all the things
     cd "$HOMEDIR"
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        echo "Unpacking gcc, binutils, Newlib and mintlib"
+        echo "Unpacking binutils, gcc, Newlib"
         REPLY=Y
     else    
-        read -p "Unpack gcc, binutils, Newlib and mintlib?" -n 1 -r
+        read -p "Unpack binutils, gcc, Newlib?" -n 1 -r
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
@@ -401,26 +390,26 @@ mainbrown()
         if [ "$BUILD_12_1_0" == "1" ]; then tar -Jxf gcc-12.1.0.tar.xz; fi
         if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD --quiet && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
-            if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_5_4_0" == "1" ]; then cd gcc-5.4.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_6_2_0" == "1" ]; then cd gcc-6.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_7_1_0" == "1" ]; then cd gcc-7.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_9_1_0" == "1" ]; then cd gcc-9.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_9_2_0" == "1" ]; then cd gcc-9.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_9_3_0" == "1" ]; then cd gcc-9.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_10_1_0" == "1" ]; then cd gcc-10.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_10_2_0" == "1" ]; then cd gcc-10.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_10_3_0" == "1" ]; then cd gcc-10.3.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_11_1_0" == "1" ]; then cd gcc-11.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_11_2_0" == "1" ]; then cd gcc-11.2.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_12_1_0" == "1" ]; then cd gcc-12.1.0;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
-            if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites;cd "$HOMEDIR"; fi
+            if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_4_9_4" == "1" ]; then cd gcc-4.9.4;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_5_4_0" == "1" ]; then cd gcc-5.4.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_6_2_0" == "1" ]; then cd gcc-6.2.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_7_1_0" == "1" ]; then cd gcc-7.1.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_7_2_0" == "1" ]; then cd gcc-7.2.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_7_3_0" == "1" ]; then cd gcc-7.3.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_1_0" == "1" ]; then cd gcc-8.1.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_2_0" == "1" ]; then cd gcc-8.2.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_8_3_0" == "1" ]; then cd gcc-8.3.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_9_1_0" == "1" ]; then cd gcc-9.1.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_9_2_0" == "1" ]; then cd gcc-9.2.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_9_3_0" == "1" ]; then cd gcc-9.3.0;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
+            if [ "$BUILD_10_1_0" == "1" ]; then cd gcc-10.1.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_10_2_0" == "1" ]; then cd gcc-10.2.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_10_3_0" == "1" ]; then cd gcc-10.3.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_11_1_0" == "1" ]; then cd gcc-11.1.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_11_2_0" == "1" ]; then cd gcc-11.2.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_12_1_0" == "1" ]; then cd gcc-12.1.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
         fi
     if [ "$BUILD_NEWLIB" != "0" ]; then tar -zxf newlib-4.1.0.tar.gz; fi
         if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
@@ -515,6 +504,9 @@ buildgcc()
 {
     # Construct compiler vendor name
 
+    echo Building gcc $1...
+    echo
+
     VENDOR=atari$1
 
     case "$1" in    # Brown up the names
@@ -555,10 +547,10 @@ buildgcc()
     # Configure, build and install binutils for m68k elf
     
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        echo "Configuring build and installing binutils"
+        echo "Configuring, building and installing binutils"
         REPLY=Y
     else    
-        read -p "Configure build and install binutils?" -n 1 -r
+        read -p "Configure, build and install binutils?" -n 1 -r
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
@@ -584,17 +576,17 @@ buildgcc()
             cd "$HOMEDIR"/crosstemp-$1
             ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_cross_config.log
             make $JMULT &> binutils_cross_build.log
-            $SUDO make install $JMULT &> binutils_cross_install.log
+            make install $JMULT &> binutils_cross_install.log
         fi
 
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
         ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_config.log
         make $JMULT &> binutils_build.log
-        $SUDO make install $JMULT &> binutils_install.log
-        $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
-        $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
-        $SUDO gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
+        make install $JMULT &> binutils_install.log
+        ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
+        ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
+        gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
     
     fi
     
@@ -622,7 +614,6 @@ buildgcc()
     else
         LANGUAGES=c,c++
     fi
-    WL=
     
     if [ "$USE_MIN_RAM" == "1" ]; then
         MIN_RAM_CFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
@@ -631,7 +622,7 @@ buildgcc()
     fi
     export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
     export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS"
-    export LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0"
+    export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
     #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
     
@@ -679,9 +670,9 @@ buildgcc()
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
                 CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
-                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_cross_config.log
+                LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
-            $SUDO make install-gcc $JMULT &> gcc_cross_install.log
+            make install-gcc $JMULT &> gcc_cross_install.log
             # And then export the path because libgcc will need it
             export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin:$PATH
         else
@@ -709,18 +700,18 @@ buildgcc()
             LDFLAGS=$STATIC \
             CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
             CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
-            LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_configure.log
+            LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_configure.log
         $NICE make all-gcc $JMULT &> gcc_build.log
-        $SUDO make install-gcc $JMULT  &> gcc_install.log
+        make install-gcc $JMULT  &> gcc_install.log
     
         # In some linux distros (linux mint for example) it was observed
         # that make install-gcc didn't set the read permission for users
         # so gcc couldn't work properly. No idea how to fix this propery
         # which means - botch time!                                     
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]; then
-            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/
-            $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/
-            $SUDO chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/
+            chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/
+            chmod 755 -R $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/
+            chmod 755 -R $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/
         fi
     
     fi
@@ -758,11 +749,11 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         make all-target-libgcc $JMULT &> gcc_libc_build.log
-        $SUDO make install-target-libgcc $JMULT &> gcc_libc_install.log
+        make install-target-libgcc $JMULT &> gcc_libc_install.log
     
         # Some extra permissions
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]; then
-            $SUDO chmod 755 -R $INSTALL_PREFIX/libexec/
+            chmod 755 -R $INSTALL_PREFIX/libexec/
         fi
     fi
         
@@ -789,9 +780,9 @@ buildgcc()
         if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
             mkdir -p "$HOMEDIR/build-newlib-$1/build"
             cd "$HOMEDIR/build-newlib-$1/build"
-            CC=m68k-$VENDOR-elf-gcc $HOMEDIR/newlib-4.1.0-$1/newlib/configure $HOST $BUILD --target=m68k-$VENDOR-elf --build=m68k-$VENDOR-elf --host=m68k-$VENDOR-elf --prefix=${INSTALL_PREFIX}-newlib
+            CC=m68k-$VENDOR-elf-gcc $HOMEDIR/newlib-4.1.0-$1/newlib/configure $HOST $BUILD --target=m68k-$VENDOR-elf --build=m68k-$VENDOR-elf --host=m68k-$VENDOR-elf --prefix=${INSTALL_PREFIX}-newlib &> newlib_config.log
             $NICE make $JMULT &> newlib_build.log
-            $SUDO make install &> newlib_install.log
+            make install &> newlib_install.log
    
             # Re-configure and build gcc with "--with-newlib". Exciting.
             # TODO: this is copypasta from gcc configure above. Probably define it once and use it in both places as it will get out of sync...
@@ -817,9 +808,9 @@ buildgcc()
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
                 CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
-                LDFLAGS_FOR_TARGET="${WL}--emit-relocs -Ttext=0" &> gcc_newlib_configure
+                LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_newlib_configure
             $NICE make all-gcc $JMULT &> gcc_newlib_build
-            $SUDO make install-gcc $JMULT &> gcc_newlib_install
+            make install-gcc $JMULT &> gcc_newlib_install
         fi
     fi
 
@@ -1217,10 +1208,10 @@ buildgcc()
             # Install the lib.
             # For some reason math.h isn't installed so we do it by hand
             # ¯\_(ツ)_/¯ 
-            $SUDO make install &> mintlib_install.log
-            $SUDO cp include/math.h $INSTALL_PREFIX/m68k-$VENDOR-elf/include
+            make install &> mintlib_install.log
+            cp include/math.h $INSTALL_PREFIX/m68k-$VENDOR-elf/include
             if [ "$machine" == "Mac" ]; then
-                $SUDO chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
+                chmod g+r $INSTALL_PREFIX/m68k-$VENDOR-elf/include/math.h
             fi
         fi
     fi
@@ -1235,15 +1226,13 @@ buildgcc()
     # Build libstdc++-v3
     #
     
-    # *** create local build dir
-    
     cd "$HOMEDIR"/gcc-$1
     
     # Some more permissions need to be fixed here
     if [ "$machine" != "Cygwin" ] && [ "$machine" != "MinGw" ] && [ "$machine" != "Mac" ]; then
         if [ "$BUILD_MINTLIB" != "0" ]; then
-            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include/
-            $SUDO chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/share/
+            chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include/
+            chmod 755 -R $INSTALL_PREFIX/m68k-$VENDOR-elf/share/
         fi
     fi
     
@@ -1444,7 +1433,7 @@ buildgcc()
             read -p "Configure, source patch and build glibfortran?" -n 1 -r
             echo
         fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
             # From what I could see libgfortran only has some function re-declarations
             # This might be possible to fix by passing proper configuration options
             # during configuration, but lolwtfwhocares - let's patch some files! 
@@ -1453,7 +1442,7 @@ buildgcc()
             $SED -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/time_1.h
             $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
             $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
-            $SED -i -e "s/${WL}--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
+            $SED -i -e "s/--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
             # Same as libstc++v3
             $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libgfortran/configure
 
@@ -1486,7 +1475,7 @@ buildgcc()
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         cd "$HOMEDIR"/build-gcc-$1
         make all-target-libstdc++-v3 $JMULT &> gcc_libstdc++_build.log
-        $SUDO make install-target-libstdc++-v3 $JMULT &> gcc_libstdc++_install.log
+        make install-target-libstdc++-v3 $JMULT &> gcc_libstdc++_install.log
     fi
     
     #  __  __ _
@@ -1508,8 +1497,7 @@ buildgcc()
         read -p "Build and install the rest?" -n 1 -r
         echo
     fi
-    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]
-    then    
+    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then    
         # This system include isn't picked up for some reason (in some systems)
         if [ "$machine" == "Mac" ] && [ -f /opt/local/include/gmp.h]; then
             $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
@@ -1522,24 +1510,24 @@ buildgcc()
         fi
 
         $NICE make all $JMULT &> gcc_misc_build.log
-        $SUDO make install $JMULT &> gcc_install_build.log
+        make install $JMULT &> gcc_install_build.log
         
         # Since make install uses the non-patched type_traits file let's patch them here too
         # (yes this could have been done before even configuring stdlib++v3 - anyone wants to try?)
         pushd .
         cd $INSTALL_PREFIX
         for i in `find . -name type_traits`; do
-            echo Patching $i >> gcc_type_traits.log
+            echo Patching $i >> "$HOMEDIR"/build-gcc-$1/gcc_type_traits.log
             $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i
         done
 
-        $SUDO ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
+        ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
         cd $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION
-        for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do ${SUDO} ${HOST_PREFIX}strip $i; done
+        for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do ${HOST_PREFIX}strip $i; done
         popd
 
-        $SUDO find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &> binary_strip.log
-        $SUDO find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &>> binary_strip.log
+        find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &> binary_strip.log
+        find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &>> binary_strip.log
         
     fi
     
@@ -1579,54 +1567,54 @@ buildgcc()
         #-------------------------------------------------------------------------------
         
         # make subdir for gcc default cpu (020)
-        $SUDO mkdir -p $LIBGCC/m68020
-        $SUDO cp -r $LIBGCC/*.o $LIBGCC/m68020/.
-        $SUDO cp -r $LIBGCC/*.a $LIBGCC/m68020/.
-        $SUDO cp -r $LIBGCC/softfp $LIBGCC/m68020
+        mkdir -p $LIBGCC/m68020
+        cp -r $LIBGCC/*.o $LIBGCC/m68020/.
+        cp -r $LIBGCC/*.a $LIBGCC/m68020/.
+        cp -r $LIBGCC/softfp $LIBGCC/m68020
         
         #-------------------------------------------------------------------------------
         
         # make subdir for gcc cpu (020-60)
         # we aren't generating 060-clean versions yet so we use the
         # soft-float 020 version as a safe compromise
-        $SUDO mkdir -p $LIBGCC/m68020-60
-        $SUDO cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
-        $SUDO cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
-        $SUDO cp -r $LIBGCC/softfp $LIBGCC/m68020-60
+        mkdir -p $LIBGCC/m68020-60
+        cp -r $LIBGCC/softfp/*.o $LIBGCC/m68020-60/.
+        cp -r $LIBGCC/softfp/*.a $LIBGCC/m68020-60/.
+        cp -r $LIBGCC/softfp $LIBGCC/m68020-60
         
         #-------------------------------------------------------------------------------
         #-------------------------------------------------------------------------------
         
         # make subdir for libc++ default cpu (020)
-        $SUDO mkdir -p $LIBCXX/m68020
-        $SUDO mkdir -p $LIBCXX/m68020/softfp
-        $SUDO cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
-        $SUDO cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
-        $SUDO cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
-        $SUDO cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
+        mkdir -p $LIBCXX/m68020
+        mkdir -p $LIBCXX/m68020/softfp
+        cp -r $LIBCXX/libstdc++.* $LIBCXX/m68020/.
+        cp -r $LIBCXX/libsupc++.* $LIBCXX/m68020/.
+        cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020/softfp/.
+        cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020/softfp/.
         
         #-------------------------------------------------------------------------------
         
         # transfer libc to correct subdirs (68k)
-        $SUDO mv $LIBCXX/libc.a $LIBCXX/m68000/.
-        $SUDO mv $LIBCXX/libiio.a $LIBCXX/m68000/.
-        $SUDO mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
+        mv $LIBCXX/libc.a $LIBCXX/m68000/.
+        mv $LIBCXX/libiio.a $LIBCXX/m68000/.
+        mv $LIBCXX/librpcsvc.a $LIBCXX/m68000/.
         
         # publish 020/fpu version of libc as default
-        $SUDO cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
-        $SUDO cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
-        $SUDO cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
+        cp -r $LIBCXX/m68020/libc.a $LIBCXX/.
+        cp -r $LIBCXX/m68020/libiio.a $LIBCXX/.
+        cp -r $LIBCXX/m68020/librpcsvc.a $LIBCXX/.
         
         # publish 020/softfp version of libc as default softfp
-        $SUDO cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
-        $SUDO cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
-        $SUDO rm -rf $LIBCXX/m68020-20_soft
+        cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/softfp/.
+        cp $LIBCXX/m68020-20_soft/*.a $LIBCXX/m68020/softfp/.
+        rm -rf $LIBCXX/m68020-20_soft
         
         # transfer libc to correct subdirs (020-60)
-        $SUDO mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
+        mv $LIBCXX/m68020-60_soft $LIBCXX/m68020-60/softfp
         
-        $SUDO cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
-        $SUDO cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
+        cp -r $LIBCXX/softfp/libstdc++.* $LIBCXX/m68020-60/softfp/.
+        cp -r $LIBCXX/softfp/libsupc++.* $LIBCXX/m68020-60/softfp/.
         
         #-------------------------------------------------------------------------------
         # 68040,060
@@ -1634,14 +1622,14 @@ buildgcc()
         # we prefer not to transfer transfer 020/fpu libs to 040-060 because emulated 
         # fpu ops may be generated. better to build a 040/060 variant of libstdc++
         # as a safe compromise for now we use the 020/softfp variant
-        $SUDO cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
-        $SUDO cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
+        cp -r $LIBCXX/m68020/softfp/libstdc++.* $LIBCXX/m68020-60/.
+        cp -r $LIBCXX/m68020/softfp/libsupc++.* $LIBCXX/m68020-60/.
         
         # we don't bother with LC versions of 040/060 so...
-        $SUDO rm -rf $LIBCXX/m68040/softfp 
-        $SUDO rm -rf $LIBCXX/m68060/softfp 
-        $SUDO rm -rf $LIBGCC/m68040/softfp 
-        $SUDO rm -rf $LIBGCC/m68060/softfp 
+        rm -rf $LIBCXX/m68040/softfp 
+        rm -rf $LIBCXX/m68060/softfp 
+        rm -rf $LIBGCC/m68040/softfp 
+        rm -rf $LIBGCC/m68060/softfp 
         
         # crt0.o, gcrt0.o are 68k asm and don't need relocated
     fi
@@ -1704,5 +1692,49 @@ buildgcc()
     cd "$HOMEDIR"
 }
 
+# Error handling
+# Borrowed a few things from (https://citizen428.net/blog/bash-error-handling-with-trap/) and https://wiki-dev.bash-hackers.org/commands/builtin/caller
+
+function notify
+{
+    problem_function="$(caller 0|awk '{print $2}')"
+    problem_step=${problem_function/_*/}
+    echo
+    echo
+    echo "****************************************"
+    echo Oops, something exploded while building!
+    echo The error happened while ${problem_function} was executing ${BASH_COMMAND}
+    echo
+    echo 'You may inspect the following logfiles for further info:'
+    if [ "$CROSS_COMPILING" != "0" ]; then    
+        echo binutils_cross_config.log, binutils_cross_build.log, binutils_cross_install.log
+    fi
+    echo binutils_config.log, binutils_build.log, binutils_install.log
+    if [ "$CROSS_COMPILING" != "0" ]; then    
+        echo gcc_cross_config.log, gcc_cross_compile.log, gcc_cross_install.log
+    fi
+    echo gcc_configure.log, gcc_build.log, gcc_install.log, gcc_libc_build.log, gcc_libc_install.log
+    if [ "$BUILD_NEWLIB" != "0" ]; then
+        echo newlib_config.log, newlib_build.log, newlib_install.log
+    fi
+    echo mintlib_build.log, mintlib_install.log
+    echo gcc_libstdc++_configure.log
+    if [ "$BUILD_FORTRAN" == "1" ]; then
+        echo gcc_libfortran_configure.log, gcc_libfortran_build.log, gcc_libfortran_install.log
+    fi
+    echo gcc_libstdc++_build.log, gcc_libstdc++_install.log
+    echo gcc_misc_build.log, gcc_install_build.log
+    echo gcc_type_traits.log, gcc_type_traits.log
+    echo binary_strip.log, binary_strip.log
+    echo 
+    exit 1
+}
+
+
+#
+# Entry point
+#
+
+trap notify ERR
 mainbrown "$@"
 
