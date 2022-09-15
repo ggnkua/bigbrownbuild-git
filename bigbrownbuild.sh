@@ -1530,7 +1530,16 @@ buildgcc()
         find $INSTALL_PREFIX/lib/gcc/m68k-$VENDOR-elf/* -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &>> binary_strip.log
         
     fi
-    
+   
+    #
+    # On Windows, remove the linux bfd plugin from the installation directory
+    # There are many lol resources to read why this is needed, but the best one is by far https://github.com/msys2/MINGW-packages/issues/7890
+    # (tl;dr: ar breaks otherwise and this is a workaround)
+    #
+    if [ "$machine" == "Cygwin" ] || [ "$machine" == "MinGw" ]; then
+        rm -f $INSTALL_PREFIX/lib/bfd-plugins/libdep.a
+    fi
+
     #  _____                                  _
     # |  __ \                                (_)
     # | |__) |___  ___  _ __ __ _  __ _ _ __  _ ___  ___
