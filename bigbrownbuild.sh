@@ -182,7 +182,7 @@ mainbrown()
   
     # As per https://stackoverflow.com/questions/3801011/ld-library-not-found-for-lcrt0-o-on-osx-10-6-with-gcc-clang-static-flag/3801032#3801032
     # you can't build static binaries on Apple silicon platforms. Fantastic
-    if [ "$machine" == "Mac" ] && [ "$host_arch" == "arm64" ]; then
+    if [ "$machine" == "Mac" ]; then
         STATIC=
         STATIC_LINK=
     else
