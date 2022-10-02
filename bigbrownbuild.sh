@@ -210,8 +210,8 @@ mainbrown()
         CXX10=g++
         CC11=gcc
         CXX11=g++
-        CC12=gcc
-        CXX12=g++
+        CC12=gcc-12
+        CXX12=g++-12
     fi
     
     if [ "$machine" == "MinGw" ]; then
@@ -1499,7 +1499,7 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then    
         # This system include isn't picked up for some reason (in some systems)
-        if [ "$machine" == "Mac" ] && [ -f /opt/local/include/gmp.h]; then
+        if [ "$machine" == "Mac" ] && [ -f /opt/local/include/gmp.h ]; then
             $SED -i -e "s/<gmp.h>/\"\/opt\/local\/include\/gmp.h\"/gI" "$HOMEDIR"/gcc-$1/gcc/system.h 
         fi 
     
@@ -1523,7 +1523,11 @@ buildgcc()
 
         ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
         cd $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION
-        for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do ${HOST_PREFIX}strip $i; done
+        if [ "$machine" != "Mac" ]; then
+            for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do ${HOST_PREFIX}strip $i; done
+        else
+            for i in `find . -maxdepth 1 -perm -111 -type f | grep -v .la | grep -v .so`; do ${HOST_PREFIX}strip $i; done
+        fi
         popd
 
         find $INSTALL_PREFIX/m68k-$VENDOR-elf/lib -name '*.a' -print -exec m68k-$VENDOR-elf-strip -S -x '{}' ';' &> binary_strip.log
