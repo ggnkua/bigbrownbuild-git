@@ -1211,8 +1211,6 @@ buildgcc()
                 # so if mintlib binaries want to lib against libgcc
                 # they will be able to do it
                 cp -R $INSTALL_PREFIX/lib $INSTALL_PREFIX-crosstemp-$1
-                cp -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include $INSTALL_PREFIX-crosstemp-$1/m68k-$VENDOR-elf
-                cp -R $INSTALL_PREFIX/m68k-$VENDOR-elf/lib $INSTALL_PREFIX-crosstemp-$1/m68k-$VENDOR-elf
             fi
 
             # can't safely use -j with mintlib due to bison/flex dependency ordering woe
@@ -1257,7 +1255,14 @@ buildgcc()
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
-    
+
+        if [ "$CROSS_COMPILING" != "0" ]; then
+            # Copy libgcc etc to the "crosstemp" copy of gcc
+            # so if mintlib binaries want to lib against libgcc
+            # they will be able to do it
+            cp -R $INSTALL_PREFIX/m68k-$VENDOR-elf/include $INSTALL_PREFIX-crosstemp-$1/m68k-$VENDOR-elf
+            cp -R $INSTALL_PREFIX/m68k-$VENDOR-elf/lib $INSTALL_PREFIX-crosstemp-$1/m68k-$VENDOR-elf
+        fi
         # edit file gcc-$1/libstdc++-v3/configure - comment out the line:
         ##as_fn_error "No support for this host/target combination." "$LINENO" 5
         # see comment below for gcc 9.1.0
