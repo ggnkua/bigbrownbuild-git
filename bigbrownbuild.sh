@@ -450,8 +450,8 @@ mainbrown()
 
     # This might be needed as gcc 7.2 doesn't seem to build 4.6.4...
     # Note that these exports are ubuntu 17.10 specific, you might need to change them depending on your distro!
-    export CC=$CC4
-    export CXX=$CXX4
+    #export CC=$CC4
+    #export CXX=$CXX4
     BINUTILS=2.27
     # Building Fortran for old gcc versions doesn't seem to work so it's disabled for now...
     BUILD_FORTRAN=0
@@ -461,24 +461,24 @@ mainbrown()
     SKIP_464_CF=0
     if [ "$BUILD_4_9_4" == "1" ]; then buildgcc 4.9.4; fi
 
-    export CC=$CC5
-    export CXX=$CXX5
+    #export CC=$CC5
+    #export CXX=$CXX5
 
     if [ "$BUILD_5_4_0" == "1" ]; then buildgcc 5.4.0; fi
 
-    export CC=$CC6
-    export CXX=$CXX6
+    #export CC=$CC6
+    #export CXX=$CXX6
     if [ "$BUILD_6_2_0" == "1" ]; then buildgcc 6.2.0; fi
     
-    export CC=$CC7
-    export CXX=$CXX7
+    #export CC=$CC7
+    #export CXX=$CXX7
     BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
     if [ "$BUILD_7_1_0" == "1" ]; then buildgcc 7.1.0; fi
     if [ "$BUILD_7_2_0" == "1" ]; then buildgcc 7.2.0; fi
     if [ "$BUILD_7_3_0" == "1" ]; then buildgcc 7.3.0; fi
 
-    export CC=$CC8
-    export CXX=$CXX8
+    #export CC=$CC8
+    #export CXX=$CXX8
     BUILD_FORTRAN=$GLOBAL_BUILD_FORTRAN
     if [ "$BUILD_8_1_0" == "1" ]; then buildgcc 8.1.0; fi
     BINUTILS=2.31
@@ -486,30 +486,30 @@ mainbrown()
     BINUTILS=2.32
     if [ "$BUILD_8_3_0" == "1" ]; then buildgcc 8.3.0; fi
 
-    export CC=$CC9
-    export CXX=$CXX9
+    #export CC=$CC9
+    #export CXX=$CXX9
     if [ "$BUILD_9_1_0" == "1" ]; then buildgcc 9.1.0; fi
     if [ "$BUILD_9_2_0" == "1" ]; then buildgcc 9.2.0; fi
     if [ "$BUILD_9_3_0" == "1" ]; then buildgcc 9.3.0; fi
     
     BINUTILS=2.34
-    export CC=$CC10
-    export CXX=$CXX10
+    #export CC=$CC10
+    #export CXX=$CXX10
     if [ "$BUILD_10_1_0" == "1" ]; then buildgcc 10.1.0; fi
     BINUTILS=2.35
     if [ "$BUILD_10_2_0" == "1" ]; then buildgcc 10.2.0; fi
     if [ "$BUILD_10_3_0" == "1" ]; then buildgcc 10.3.0; fi
 
     BINUTILS=2.36
-    export CC=$CC11
-    export CXX=$CXX11
+    #export CC=$CC11
+    #export CXX=$CXX11
     if [ "$BUILD_11_1_0" == "1" ]; then buildgcc 11.1.0; fi
     BINUTILS=2.37
     if [ "$BUILD_11_2_0" == "1" ]; then buildgcc 11.2.0; fi
       
     BINUTILS=2.38
-    export CC=$CC12
-    export CXX=$CXX12
+    #export CC=$CC12
+    #export CXX=$CXX12
     if [ "$BUILD_12_1_0" == "1" ]; then buildgcc 12.1.0; fi
     BINUTILS=2.39
     if [ "$BUILD_12_2_0" == "1" ]; then buildgcc 12.2.0; fi
@@ -562,6 +562,23 @@ buildgcc()
     # Clean build folders if requested
     if [ "$CLEANUP" == "Y" ]; then rm -rf build-gcc-$1 build-binutils-$1 mintlib-bigbrownbuild-$1 build-newlib-$1; cp -frp mintlib-bigbrownbuild mintlib-bigbrownbuild-$1; fi
     if [ "$BUILD_NEWLIB" != "0" ]; then cp -frp newlib-4.1.0 newlib-4.1.0-$1; fi
+    
+    # Fortran is enabled now, but there are still issues when compiling
+    # a program with it...
+    if [ "$BUILD_FORTRAN" == "1" ]; then
+        LANGUAGES=c,c++,fortran
+    else
+        LANGUAGES=c,c++
+    fi
+    
+    if [ "$USE_MIN_RAM" == "1" ]; then
+        MIN_RAM_CFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
+        export CFLAGS=$MIN_RAM_CFLAGS
+        export CXXFLAGS=$MIN_RAM_CFLAGS
+    fi
+    export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
+    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS"
+    export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 
     #  ____  _             _   _ _
     # |  _ \(_)           | | (_) |
@@ -595,20 +612,50 @@ buildgcc()
                 $SED -i -e "s/(uint)/(uint64_t)/gI" $HOMEDIR/binutils-$BINUTILS/libiberty/rust-demangle.c
             fi
         fi
-        
+                
         if [ "$CROSS_COMPILING" != "0" ]; then
-
+            echo "Building temp local bintools..."
             rm -rf "$HOMEDIR"/crosstemp-$1
             mkdir -p "$HOMEDIR"/crosstemp-$1
             cd "$HOMEDIR"/crosstemp-$1
             ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_cross_config.log
             make $JMULT &> binutils_cross_build.log
             make install $JMULT &> binutils_cross_install.log
+
+            #echo "Building temp local gcc..."
+            rm -rf "$HOMEDIR"/crosstemp-$1
+            mkdir -p "$HOMEDIR"/crosstemp-$1
+            cd "$HOMEDIR"/crosstemp-$1
+            ../gcc-$1/configure \
+                --target=m68k-$VENDOR-elf \
+                --disable-nls \
+                --enable-languages=$LANGUAGES \
+                --enable-lto \
+                --prefix=$INSTALL_PREFIX-crosstemp-$1 \
+                --disable-libssp \
+                --enable-softfloat \
+                --disable-libstdcxx-pch \
+                --disable-clocale \
+                --disable-libstdcxx-threads \
+                --disable-libstdcxx-filesystem-ts \
+                --disable-libquadmath \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+                LDFLAGS=$STATIC \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
+            $NICE make all-gcc $JMULT &> gcc_cross_compile.log
+            make install-gcc $JMULT &> gcc_cross_install.log
+            # And then export the path because libgcc will need it
+            export PATH=$PATH:$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin
+
+            #export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:$PATH
         fi
 
+        echo "Building the actual cross binutils..."        
         mkdir -p "$HOMEDIR"/build-binutils-$1
         cd "$HOMEDIR"/build-binutils-$1
-        ../binutils-$BINUTILS/configure $HOST $BUILD --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_config.log
+        ../binutils-$BINUTILS/configure $HOST $BUILD --target=m68k-$VENDOR-elf --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX LDFLAGS=$STATIC &> binutils_config.log
         make $JMULT &> binutils_build.log
         make install $JMULT &> binutils_install.log
         ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
@@ -634,22 +681,6 @@ buildgcc()
     # Export flags for target compiler as well as pass them on configuration time.
     # Who knows, maybe one of the two will actually work!
     
-    # Fortran is enabled now, but there are still issues when compiling
-    # a program with it...
-    if [ "$BUILD_FORTRAN" == "1" ]; then
-        LANGUAGES=c,c++,fortran
-    else
-        LANGUAGES=c,c++
-    fi
-    
-    if [ "$USE_MIN_RAM" == "1" ]; then
-        MIN_RAM_CFLAGS="--param ggc-min-expand=10 --param ggc-min-heapsize=32768"
-        export CFLAGS=$MIN_RAM_CFLAGS
-        export CXXFLAGS=$MIN_RAM_CFLAGS
-    fi
-    export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
-    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS"
-    export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
     # TODO: This should build all target for all 000/020/040/060 and fpu/softfpu combos but it doesn't.
     #export MULTILIB_OPTIONS="m68000/m68020/m68040/m68060 msoft-float"
     
@@ -676,30 +707,30 @@ buildgcc()
         # When building for a different architecture than the one we are compiling for, we need to
         # build an extra version of gcc in order to compile libgcc and friends. Makes sense in hindsight
         if [ "$CROSS_COMPILING" != "0" ]; then
-
-            rm -rf "$HOMEDIR"/crosstemp-$1
-            mkdir -p "$HOMEDIR"/crosstemp-$1
-            cd "$HOMEDIR"/crosstemp-$1
-            ../gcc-$1/configure \
-                --target=m68k-$VENDOR-elf \
-                --disable-nls \
-                --enable-languages=$LANGUAGES \
-                --enable-lto \
-                --prefix=$INSTALL_PREFIX-crosstemp-$1 \
-                --disable-libssp \
-                --enable-softfloat \
-                --disable-libstdcxx-pch \
-                --disable-clocale \
-                --disable-libstdcxx-threads \
-                --disable-libstdcxx-filesystem-ts \
-                --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
-                LDFLAGS=$STATIC \
-                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
-                LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
-            $NICE make all-gcc $JMULT &> gcc_cross_compile.log
-            make install-gcc $JMULT &> gcc_cross_install.log
+#
+#            #rm -rf "$HOMEDIR"/crosstemp-$1
+#            mkdir -p "$HOMEDIR"/crosstemp-$1
+#            cd "$HOMEDIR"/crosstemp-$1
+#            ../gcc-$1/configure \
+#                --target=m68k-$VENDOR-elf \
+#                --disable-nls \
+#                --enable-languages=$LANGUAGES \
+#                --enable-lto \
+#                --prefix=$INSTALL_PREFIX-crosstemp-$1 \
+#                --disable-libssp \
+#                --enable-softfloat \
+#                --disable-libstdcxx-pch \
+#                --disable-clocale \
+#                --disable-libstdcxx-threads \
+#                --disable-libstdcxx-filesystem-ts \
+#                --disable-libquadmath \
+#                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+#                LDFLAGS=$STATIC \
+#                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+#                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+#                LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
+#            $NICE make all-gcc $JMULT &> gcc_cross_compile.log
+#            make install-gcc $JMULT &> gcc_cross_install.log
             # And then export the path because libgcc will need it
             export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin:$PATH
         else
