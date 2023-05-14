@@ -42,7 +42,7 @@ Make sure you have installed the following libraries and tools.
 
 * flex-dev
 
-* texinfo (definitely needed when building TRUNK version of the compiler, might also be needed for stable versions)
+* texinfo
 
 GMP/MPFR/MPC are required for building gcc (if you don't download prerequisites, see [GLOBAL_DOWNLOAD_PREREQUISITES](#GLOBAL_DOWNLOAD_PREREQUISITES)), flex and bison for building MiNTlib.
 
