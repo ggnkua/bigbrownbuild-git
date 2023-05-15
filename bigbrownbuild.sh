@@ -713,7 +713,7 @@ buildgcc()
 
         cd "$HOMEDIR"/build-gcc-$1
         make all-target-libgcc $JMULT &> libgcc_build.log
-        $SUDO make install-target-libgcc $JMULT
+        $SUDO make install-target-libgcc $JMULT &> libgcc_build.log
     
         # Some extra permissions
         if [ "$machine" != "Cygwin" ] && [ "$machine" != "Mac" ]; then
@@ -773,8 +773,8 @@ buildgcc()
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
                 CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_newlib_configure
-            $NICE make all-gcc $JMULT &> gcc_newlib_build
-            make install-gcc $JMULT &> gcc_newlib_install
+            $NICE make all-gcc $JMULT &> gcc_newlib_build.log
+            make install-gcc $JMULT &> gcc_newlib_install.log
         fi
     fi
 
