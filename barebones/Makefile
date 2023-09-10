@@ -1,6 +1,6 @@
 
 VASM = ./vasmm68k_mot.exe -Felf -showcrit -noesc
-TOOLCHAIN_NAME = m68k-atarimegabrown-elf
+TOOLCHAIN_NAME = m68k-atariturbobrowner-elf
 TOOLCHAIN_PREFIX = $(TOOLCHAIN_NAME)-
 TOOLCHAIN_VERSION = 12.1.0
 
@@ -180,6 +180,7 @@ clean:
 	-rm -f $(OBJECTS_O)
 	-rm -rf *.o
 	-rm -rf *.lst
+	-rm -rf libcxx/*.o
 
 
 # =============================================================================

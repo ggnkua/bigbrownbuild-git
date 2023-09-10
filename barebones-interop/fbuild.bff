@@ -8,8 +8,8 @@
 #if file_exists("fbuild_toolchain.bff")
     #include "fbuild_toolchain.bff"
 #else
-    .GCC_ROOT="toolchains\browncc-11.2"
-    .GCC_PREFIX="m68k-atarisuperbrowner-elf"
+    .GCC_ROOT="toolchains\browncc-13.2"
+    .GCC_PREFIX="m68k-atariturbobrowner-elf"
     .GPP='$GCC_ROOT$\bin\$GCC_PREFIX$-g++.exe'
     .GCC='$GCC_ROOT$\bin\$GCC_PREFIX$-gcc.exe'
     .AS= '$GCC_ROOT$\bin\$GCC_PREFIX$-as.exe'

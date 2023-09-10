@@ -9,8 +9,8 @@ set PROJNAME3=ctest
 set OUTPUT_FOLDER=auto
 
 set GCCPATH=c:\msys64\brown
-set GPP=%GCCPATH%\bin\m68k-atarisuperbrowner-elf-g++
-set GCC=%GCCPATH%\bin\m68k-atarisuperbrowner-elf-gcc
+set GPP=%GCCPATH%\bin\m68k-atariturbobrowner-elf-g++
+set GCC=%GCCPATH%\bin\m68k-atariturbobrowner-elf-gcc
 set COMMONFLAGS=-c -m68000 -Ofast -fomit-frame-pointer -fstrict-aliasing -fcaller-saves -flto -ffunction-sections -fdata-sections -fleading-underscore -D__ATARI__ -D__M68000__ -DELF_CONFIG_STACK=16384 -Wall
 set CPPFLAGS=%COMMONFLAGS% -x c++ -std=c++0x -fno-exceptions -fno-rtti -fno-threadsafe-statics -Wno-reorder
 set CFLAGS=%COMMONFLAGS%
@@ -49,7 +49,7 @@ for %%I in (%CFILES%) do call :checkrun "obj\%%I.o" "%%I.c" "%GCC% %CFLAGS% %INC
 
 rem Assemble .s files
 for %%I in (%ASMFILES%) do call :checkrun "obj\%%I.o" "%%I.s" "%ASM% %ASMFLAGS% -L obj\%%I.o.lst -o obj\%%I.o %%I.s"
-for %%I in (%GASFILES%) do call :checkrun "obj\%%I.o" "%%I.gas" "%GCCPATH%\bin\m68k-atarisuperbrowner-elf-as -o obj\%%I.o %%I.gas"
+for %%I in (%GASFILES%) do call :checkrun "obj\%%I.o" "%%I.gas" "%GCCPATH%\bin\m68k-atariturbobrowner-elf-as -o obj\%%I.o %%I.gas"
 
 rem Link
 del %OUTPUT_FOLDER%\%PROJNAME%.tos 2>NUL
