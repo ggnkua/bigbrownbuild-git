@@ -523,44 +523,44 @@ buildgcc()
         # Patch Text start to be 0x00000000 instead of 0x80000000
         $SED -i -e "s/TEXT_START_ADDR=0x80000000/TEXT_START_ADDR=0x00000000/gI" binutils-$BINUTILS/ld/emulparams/m68kelf.sh
                 
-        #if [ "$CROSS_COMPILING" != "0" ]; then
-        #    echo "Building temp local bintools..."
-        #    rm -rf "$HOMEDIR"/crosstemp-$1
-        #    mkdir -p "$HOMEDIR"/crosstemp-$1
-        #    cd "$HOMEDIR"/crosstemp-$1
-        #    ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_cross_config.log
-        #    make $JMULT &> binutils_cross_build.log
-        #    make install $JMULT &> binutils_cross_install.log
+        if [ "$CROSS_COMPILING" != "0" ]; then
+            echo "Building temp local bintools..."
+            rm -rf "$HOMEDIR"/crosstemp-$1
+            mkdir -p "$HOMEDIR"/crosstemp-$1
+            cd "$HOMEDIR"/crosstemp-$1
+            ../binutils-$BINUTILS/configure --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX-crosstemp-$1 --target=m68k-$VENDOR-elf LDFLAGS=$STATIC &> binutils_cross_config.log
+            make $JMULT &> binutils_cross_build.log
+            make install $JMULT &> binutils_cross_install.log
 
-        #    #echo "Building temp local gcc..."
-        #    rm -rf "$HOMEDIR"/crosstemp-$1
-        #    mkdir -p "$HOMEDIR"/crosstemp-$1
-        #    cd "$HOMEDIR"/crosstemp-$1
-        #    ../gcc-$1/configure \
-        #        --target=m68k-$VENDOR-elf \
-        #        --disable-nls \
-        #        --enable-languages=$LANGUAGES \
-        #        --enable-lto \
-        #        --prefix=$INSTALL_PREFIX-crosstemp-$1 \
-        #        --disable-libssp \
-        #        --enable-softfloat \
-        #        --disable-libstdcxx-pch \
-        #        --disable-clocale \
-        #        --disable-libstdcxx-threads \
-        #        --disable-libstdcxx-filesystem-ts \
-        #        --disable-libquadmath \
-        #        --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
-        #        LDFLAGS=$STATIC \
-        #        CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-        #        CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
-        #        LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
-        #    $NICE make all-gcc $JMULT &> gcc_cross_compile.log
-        #    make install-gcc $JMULT &> gcc_cross_install.log
-        #    # And then export the path because libgcc will need it
-        #    export PATH=$PATH:$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin
+            #echo "Building temp local gcc..."
+            rm -rf "$HOMEDIR"/crosstemp-$1
+            mkdir -p "$HOMEDIR"/crosstemp-$1
+            cd "$HOMEDIR"/crosstemp-$1
+            ../gcc-$1/configure \
+                --target=m68k-$VENDOR-elf \
+                --disable-nls \
+                --enable-languages=$LANGUAGES \
+                --enable-lto \
+                --prefix=$INSTALL_PREFIX-crosstemp-$1 \
+                --disable-libssp \
+                --enable-softfloat \
+                --disable-libstdcxx-pch \
+                --disable-clocale \
+                --disable-libstdcxx-threads \
+                --disable-libstdcxx-filesystem-ts \
+                --disable-libquadmath \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+                LDFLAGS=$STATIC \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
+            $NICE make all-gcc $JMULT &> gcc_cross_compile.log
+            make install-gcc $JMULT &> gcc_cross_install.log
+            # And then export the path because libgcc will need it
+            export PATH=$PATH:$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin
 
-        #    #export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:$PATH
-        #fi
+            #export PATH=$INSTALL_PREFIX-crosstemp-$1/bin:$PATH
+        fi
 
         echo "Building the actual cross binutils..."        
         mkdir -p "$HOMEDIR"/build-binutils-$1
