@@ -42,6 +42,7 @@ mainbrown()
     # Set this to 0 if you don't want to build fortran at all.
     # For now this is only enabled for gcc 7.x anyway.
     # If anyone wants to test this on older gccs, be my guest
+    # Fortran does NOT work when CROSS_COMPILING=1 for now!
     GLOBAL_BUILD_FORTRAN=0
 
     # Set this to 1 if you want to tell gcc to download and
@@ -436,8 +437,8 @@ buildgcc()
 {
     # Construct compiler vendor name
 
+    echo ----------------------
     echo Building gcc $1...
-    echo
 
     VENDOR=atari$1
 
@@ -1408,41 +1409,45 @@ buildgcc()
     
     # Build Fortran (not guaranteed to work for gccs earlier than 7)
     if [ "$BUILD_FORTRAN" == "1" ]; then
-        if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-            echo "Configuring, source patching and building glibfortran"
-            REPLY=Y
-        else    
-            read -p "Configure, source patch and build glibfortran?" -n 1 -r
-            echo
-        fi
-        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
-            # From what I could see libgfortran only has some function re-declarations
-            # This might be possible to fix by passing proper configuration options
-            # during configuration, but lolwtfwhocares - let's patch some files! 
-            $SED -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/c99_functions.c
-            $SED -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/date_and_time.c
-            $SED -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/time_1.h
-            $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
-            $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
-            $SED -i -e "s/--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
-            # Same as libstc++v3
-            $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libgfortran/configure
+        if [ "$CROSS_COMPILING" != "0" ]; then
+            echo Fortran does not work with cross compiling yet!
+        else
+            if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
+                echo "Configuring, source patching and building glibfortran"
+                REPLY=Y
+            else    
+                read -p "Configure, source patch and build glibfortran?" -n 1 -r
+                echo
+            fi
+            if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+                # From what I could see libgfortran only has some function re-declarations
+                # This might be possible to fix by passing proper configuration options
+                # during configuration, but lolwtfwhocares - let's patch some files! 
+                $SED -i -e "s/eps = nextafter/eps = __builtin_nextafter/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/c99_functions.c
+                $SED -i -e "s/#ifndef HAVE_GMTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/date_and_time.c
+                $SED -i -e "s/#ifndef HAVE_LOCALTIME_R/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/time_1.h
+                $SED -i -e "s/#ifndef HAVE_STRNLEN/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
+                $SED -i -e "s/#ifndef HAVE_STRNDUP/#if 0/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/string.c
+                $SED -i -e "s/--emit-relocs//gI" "$HOMEDIR"/build-gcc-$1/Makefile
+                # Same as libstc++v3
+                $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libgfortran/configure
 
-            if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
-                # Some weird inconsistency in gf_vsnprintf - let's patch it up
-                $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
-                $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
+                if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+                    # Some weird inconsistency in gf_vsnprintf - let's patch it up
+                    $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
+                    $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
+                fi
+                if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+                    # Starting with 9.2.0 onwards, async execution was added. Most likely our capabilities don't allow this
+                    # so we don't get the define SA_RESTART in our signal.h. So let's just silently define it (its value seems
+                    # to be uniformally the same) and move on
+                    $SED -i -e "s/#include <string.h>/#include <string.h>\n#define SA_RESTART        0x10000000/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/execute_command_line.c
+                fi
+            
+                make configure-target-libgfortran $JMULT &> gcc_libfortran_configure.log
+                $NICE make $JMULT all-target-libgfortran &> gcc_libfortran_build.log
+                make install-target-libgfortran $JMULT &> gcc_libfortran_install.log
             fi
-            if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
-                # Starting with 9.2.0 onwards, async execution was added. Most likely our capabilities don't allow this
-                # so we don't get the define SA_RESTART in our signal.h. So let's just silently define it (its value seems
-                # to be uniformally the same) and move on
-                $SED -i -e "s/#include <string.h>/#include <string.h>\n#define SA_RESTART        0x10000000/gI" "$HOMEDIR"/gcc-$1/libgfortran/intrinsics/execute_command_line.c
-            fi
-        
-            make configure-target-libgfortran $JMULT &> gcc_libfortran_configure.log
-            $NICE make $JMULT all-target-libgfortran &> gcc_libfortran_build.log
-            make install-target-libgfortran $JMULT &> gcc_libfortran_install.log
         fi
     fi 
     #*** build it
