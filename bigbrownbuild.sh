@@ -216,7 +216,7 @@ mainbrown()
         if [ "$BUILD_13_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
             if [ ! -f binutils-2.40.tar.xz ]; then rm -rf binutils-2.40; fi; fi
         if [ "$BUILD_13_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
-            if [ ! -f binutils-2.40.tar.xz ]; then rm -rf binutils-2.41; fi; fi
+            if [ ! -f binutils-2.41.tar.xz ]; then rm -rf binutils-2.41; fi; fi
         rm -rf mintlib-bigbrownbuild
         rm -rf build-newlib*
     fi
