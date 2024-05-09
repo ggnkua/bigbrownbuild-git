@@ -81,9 +81,10 @@ mainbrown()
     BUILD_12_1_0=0
     BUILD_12_2_0=0
     BUILD_13_1_0=0
-    BUILD_13_2_0=1
+    BUILD_13_2_0=0
+    BUILD_14_1_0=1
     BUILD_TRUNK=0           # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
-    TRUNK_VERSION=14.0.0    # This needs to change with every major gcc release
+    TRUNK_VERSION=15.0.0    # This needs to change with every major gcc release
 
     if [ "$CROSS_COMPILING" == "1" ]; then
         # The cross compiler we are building is supposedly called "canadian", because
@@ -213,10 +214,12 @@ mainbrown()
             if [ ! -f binutils-2.38.tar.xz ]; then rm -rf binutils-2.38; fi; fi
         if [ "$BUILD_12_2_0" == "1" ]; then
             if [ ! -f binutils-2.39.tar.xz ]; then rm -rf binutils-2.39; fi; fi
-        if [ "$BUILD_13_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+        if [ "$BUILD_13_1_0" == "1" ]; then
             if [ ! -f binutils-2.40.tar.xz ]; then rm -rf binutils-2.40; fi; fi
-        if [ "$BUILD_13_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+        if [ "$BUILD_13_2_0" == "1" ]; then
             if [ ! -f binutils-2.41.tar.xz ]; then rm -rf binutils-2.41; fi; fi
+        if [ "$BUILD_14_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+            if [ ! -f binutils-2.41.tar.xz ]; then rm -rf binutils-2.42; fi; fi
         rm -rf mintlib-bigbrownbuild
         rm -rf build-newlib*
     fi
@@ -246,6 +249,7 @@ mainbrown()
     if [ "$BUILD_12_2_0" == "1" ]; then if [ ! -f gcc-12.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz --quiet; fi; fi
     if [ "$BUILD_13_1_0" == "1" ]; then if [ ! -f gcc-13.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-13.1.0/gcc-13.1.0.tar.xz --quiet; fi; fi
     if [ "$BUILD_13_2_0" == "1" ]; then if [ ! -f gcc-13.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_14_1_0" == "1" ]; then if [ ! -f gcc-14.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-14.1.0/gcc-14.1.0.tar.xz --quiet; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK --quiet; fi; fi
 
     if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
@@ -268,8 +272,10 @@ mainbrown()
         if [ ! -f binutils-2.39.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.39.tar.xz --quiet; fi; fi
     if [ "$BUILD_13_1_0" == "1" ]; then
         if [ ! -f binutils-2.40.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.40.tar.xz --quiet; fi; fi
-    if [ "$BUILD_13_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+    if [ "$BUILD_13_2_0" == "1" ]; then
         if [ ! -f binutils-2.41.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.41.tar.xz --quiet; fi; fi
+    if [ "$BUILD_14_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
+        if [ ! -f binutils-2.42.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz --quiet; fi; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git --quiet; fi
     if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz --quiet; fi; fi
     # requires GMP, MPFR and MPC
@@ -277,10 +283,10 @@ mainbrown()
     # Unpack all the things
     cd "$HOMEDIR"
     if [ "$GLOBAL_OVERRIDE" == "A" ] || [ "$GLOBAL_OVERRIDE" == "a" ]; then
-        echo "Unpacking binutils, gcc, Newlib"
+        echo "Unpacking binutils, gcc (, Newlib)"
         REPLY=Y
     else    
-        read -p "Unpack binutils, gcc, Newlib?" -n 1 -r
+        read -p "Unpack binutils, gcc (, Newlib)?" -n 1 -r
         echo
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
@@ -307,6 +313,7 @@ mainbrown()
             if [ "$BUILD_12_2_0" == "1" ]; then rm -rf gcc-12.2.0; fi
             if [ "$BUILD_13_1_0" == "1" ]; then rm -rf gcc-13.1.0; fi
             if [ "$BUILD_13_2_0" == "1" ]; then rm -rf gcc-13.2.0; fi
+            if [ "$BUILD_14_1_0" == "1" ]; then rm -rf gcc-14.1.0; fi
         fi    
         if [ "$BUILD_4_6_4" == "1" ]; then tar -jxf gcc-4.6.4.tar.bz2; fi
         if [ "$BUILD_4_9_4" == "1" ]; then tar -jxf gcc-4.9.4.tar.bz2; fi
@@ -330,6 +337,7 @@ mainbrown()
         if [ "$BUILD_12_2_0" == "1" ]; then tar -Jxf gcc-12.2.0.tar.xz; fi
         if [ "$BUILD_13_1_0" == "1" ]; then tar -Jxf gcc-13.1.0.tar.xz; fi
         if [ "$BUILD_13_2_0" == "1" ]; then tar -Jxf gcc-13.2.0.tar.xz; fi
+        if [ "$BUILD_14_1_0" == "1" ]; then tar -Jxf gcc-14.1.0.tar.xz; fi
         if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK && git reset --hard HEAD --quiet && cd ..; fi
         if [ "$GLOBAL_DOWNLOAD_PREREQUISITES" == "1" ]; then
             if [ "$BUILD_4_6_4" == "1" ]; then cd gcc-4.6.4;./contrib/download_prerequisites &> prerequisites.log; cd "$HOMEDIR"; fi
@@ -354,6 +362,7 @@ mainbrown()
             if [ "$BUILD_12_2_0" == "1" ]; then cd gcc-12.2.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
             if [ "$BUILD_13_1_0" == "1" ]; then cd gcc-13.1.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
             if [ "$BUILD_13_2_0" == "1" ]; then cd gcc-13.2.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
+            if [ "$BUILD_14_1_0" == "1" ]; then cd gcc-14.1.0;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
             if [ "$BUILD_TRUNK" == "1" ]; then cd gcc-TRUNK;./contrib/download_prerequisites &> prerequisites.log;cd "$HOMEDIR"; fi
         fi
     if [ "$BUILD_NEWLIB" != "0" ]; then tar -zxf newlib-4.1.0.tar.gz; fi
@@ -369,7 +378,8 @@ mainbrown()
         if [ "$BUILD_12_1_0" == "1" ]; then tar -Jxf binutils-2.38.tar.xz; fi
         if [ "$BUILD_12_2_0" == "1" ]; then tar -Jxf binutils-2.39.tar.xz; fi
         if [ "$BUILD_13_1_0" == "1" ]; then tar -Jxf binutils-2.40.tar.xz; fi
-        if [ "$BUILD_13_2_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then tar -Jxf binutils-2.41.tar.xz; fi
+        if [ "$BUILD_13_2_0" == "1" ]; then tar -Jxf binutils-2.41.tar.xz; fi
+        if [ "$BUILD_14_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then tar -Jxf binutils-2.42.tar.xz; fi
     fi
    
     # 
@@ -425,6 +435,9 @@ mainbrown()
     BINUTILS=2.41
     if [ "$BUILD_13_2_0" == "1" ]; then buildgcc 13.2.0; fi
 
+    BINUTILS=2.42
+    if [ "$BUILD_14_1_0" == "1" ]; then buildgcc 14.1.0; fi
+
     if [ "$BUILD_TRUNK" == "1" ]; then buildgcc TRUNK; fi
 
     echo "All done!"
@@ -465,6 +478,7 @@ buildgcc()
     12.2.0)   VENDOR=atarimegabrowner;;
     13.1.0)   VENDOR=atariturbobrown;;
     13.2.0)   VENDOR=atariturbobrowner;;
+    14.1.0)   VENDOR=atarisubliminalbrown;;
     TRUNK)    VENDOR=ataribleedingbrown;;
     esac            # Brooooooooown
 
@@ -484,7 +498,7 @@ buildgcc()
         export CXXFLAGS=$MIN_RAM_CFLAGS
     fi
     export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
-    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS"
+    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS"
     export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 
     #  ____  _             _   _ _
@@ -549,10 +563,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
             make install-gcc $JMULT &> gcc_cross_install.log
@@ -635,10 +649,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
             make install-gcc $JMULT &> gcc_cross_install.log
@@ -666,10 +680,10 @@ buildgcc()
             --disable-libstdcxx-threads \
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
-            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
             LDFLAGS=$STATIC \
             CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
             LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_configure.log
         $NICE make all-gcc $JMULT &> gcc_build.log
         make install-gcc $JMULT &> gcc_install.log
@@ -782,10 +796,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fno-rtti -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions -fno-rtti $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_newlib_configure
             $NICE make all-gcc $JMULT &> gcc_newlib_build.log
             make install-gcc $JMULT &> gcc_newlib_install.log
@@ -865,7 +879,7 @@ buildgcc()
                 $SED -i -e "s/WITH_V4E_LIB/#WITH_V4E_LIB  #disabled since we get Internal Compiler Error :(/gI" $MINTLIBDIR/configvars
             fi
            
-            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ] || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ]; then
+            if [ "$1" == "TRUNK" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ] || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ]; then
                 # h_errno is defined in 2 sources of MiNTlib and up till gcc 9 it was
                 # fine. But not anymore O_o
                 $SED -i -e 's/int h_errno/extern int h_errno/gI' $MINTLIBDIR/socket/res_query.c
@@ -1256,7 +1270,7 @@ buildgcc()
         #libstdc++-v3/configure:
         # From v10.3.0 onwards the c++17 filesystem code will fail to build if _GLIBCXX_USE_ST_MTIM is defined, because some time structs have missing members (ummm, okay)
         # (specifically libstdc++-v3/src/filesystem/ops-common.h is the thing that complains). So let's not enable that
-        if [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ] || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ] || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/#define _GLIBCXX_USE_ST_MTIM/#define _GLIBCXX_USE_ST_MTIMLOLOL/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
         fi
 
@@ -1264,7 +1278,7 @@ buildgcc()
         # (11.1.0 onwards)
         # This file uses some FP_* defines that are simply non existent in our case. Even worse, the code that uses these is inside a template.
         # So let's try to convince it to not do that
-        if [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ] || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ] || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/switch (__builtin_fpclassify(/\/*switch (__builtin_fpclassify(/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++17/floating_to_chars.cc   # start of block
             $SED -i -e "s/return nullopt;/return nullopt;*\/{/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/src/c++17/floating_to_chars.cc                              # end of block (actually the end of the block is a } at the next line, so we add a { after the comment's end to balance the braces
         fi
@@ -1288,7 +1302,7 @@ buildgcc()
         # The later should be changed to std::errc::function_not_supported which corresponds to ENOSYS
         # files gcc-9.1.0/libstdc++-v3/src/filesystem/ops-common.h
         #       gcc-9.1.0/libstdc++-v3/src/c++17/fs_ops.cc
-        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/ENOTSUP/ENOSYS/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
@@ -1399,7 +1413,7 @@ buildgcc()
         $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" "$HOMEDIR"/gcc-$1/libstdc++-v3/include/std/type_traits
 
         # New quirks: Starting with 12.1.0 a macro (isblank) clashes with a class member name. Beautiful
-        if [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+        if [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
             $SED -i -e "s/#define isblank(c)/\/\/ lol, nope #define isblank(c)/gI" "$INSTALL_PREFIX"/m68k-$VENDOR-elf/include/ctype.h
             if [ "$CROSS_COMPILING" != "0" ]; then
                 $SED -i -e "s/#define isblank(c)/\/\/ lol, nope #define isblank(c)/gI" "$INSTALL_PREFIX"-crosstemp-$1/m68k-$VENDOR-elf/include/ctype.h
@@ -1432,12 +1446,12 @@ buildgcc()
                 # Same as libstc++v3
                 $SED -i -e "s/  as_fn_error .* \"Link tests are not allowed after GCC_NO_EXECUTABLES.*/  \$as_echo \"lolol\"/gI" "$HOMEDIR"/gcc-$1/libgfortran/configure
 
-                if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+                if [ "$1" == "9.1.0" ] || [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
                     # Some weird inconsistency in gf_vsnprintf - let's patch it up
                     $SED -i -e "s/written = vsprintf(buffer, format, ap)/written = vsprintf(str, format, ap)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
                     $SED -i -e "s/write (STDERR_FILENO, buffer, size - 1)/write (STDERR_FILENO, str, size - 1)/gI" "$HOMEDIR"/gcc-$1/libgfortran/runtime/error.c
                 fi
-                if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "TRUNK" ]; then
+                if [ "$1" == "9.2.0" ] || [ "$1" == "9.3.0" ] || [ "$1" == "10.1.0" ] || [ "$1" == "10.2.0" ] || [ "$1" == "10.3.0" ] || [ "$1" == "11.1.0" ] || [ "$1" == "11.2.0" ] || [ "$1" == "12.1.0" ] || [ "$1" == "12.2.0" ]  || [ "$1" == "13.1.0" ] || [ "$1" == "13.2.0" ] || [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
                     # Starting with 9.2.0 onwards, async execution was added. Most likely our capabilities don't allow this
                     # so we don't get the define SA_RESTART in our signal.h. So let's just silently define it (its value seems
                     # to be uniformally the same) and move on
