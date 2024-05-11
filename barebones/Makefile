@@ -1,8 +1,8 @@
 
 VASM = ./vasmm68k_mot.exe -Felf -showcrit -noesc
-TOOLCHAIN_NAME = m68k-atariturbobrowner-elf
+TOOLCHAIN_NAME = m68k-atarisubliminalbrown-elf
 TOOLCHAIN_PREFIX = $(TOOLCHAIN_NAME)-
-TOOLCHAIN_VERSION = 12.1.0
+TOOLCHAIN_VERSION = 14.1.0
 
 # -----------------------------------------------------------------------------
 

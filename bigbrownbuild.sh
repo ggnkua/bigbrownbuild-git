@@ -389,7 +389,8 @@ mainbrown()
     BINUTILS=2.27
     # Building Fortran for old gcc versions doesn't seem to work so it's disabled for now...
     BUILD_FORTRAN=0
-   
+    NO_RTTI="-fno-rtti"
+
     SKIP_464_CF=$GLOBAL_SKIP_464_CF     # Enabled only for 4.6.4
     if [ "$BUILD_4_6_4" == "1" ]; then buildgcc 4.6.4; fi
     SKIP_464_CF=0
@@ -435,6 +436,7 @@ mainbrown()
     BINUTILS=2.41
     if [ "$BUILD_13_2_0" == "1" ]; then buildgcc 13.2.0; fi
 
+    NO_RTTI=
     BINUTILS=2.42
     if [ "$BUILD_14_1_0" == "1" ]; then buildgcc 14.1.0; fi
 
@@ -498,7 +500,7 @@ buildgcc()
         export CXXFLAGS=$MIN_RAM_CFLAGS
     fi
     export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
-    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS"
+    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS"
     export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 
     #  ____  _             _   _ _
@@ -563,10 +565,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
             make install-gcc $JMULT &> gcc_cross_install.log
@@ -582,8 +584,8 @@ buildgcc()
         ../binutils-$BINUTILS/configure $HOST $BUILD --target=m68k-$VENDOR-elf --disable-multilib --disable-nls --enable-lto --prefix=$INSTALL_PREFIX LDFLAGS=$STATIC &> binutils_config.log
         make $JMULT &> binutils_build.log
         make install $JMULT &> binutils_install.log
-        ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
-        ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/*
+        ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR* || true &> binutils_install.log
+        ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/* &> binutils_install.log
         gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
     
     fi
@@ -649,10 +651,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
             make install-gcc $JMULT &> gcc_cross_install.log
@@ -680,10 +682,10 @@ buildgcc()
             --disable-libstdcxx-threads \
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
-            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
+            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
             LDFLAGS=$STATIC \
             CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
+            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
             LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_configure.log
         $NICE make all-gcc $JMULT &> gcc_build.log
         make install-gcc $JMULT &> gcc_install.log
@@ -736,7 +738,7 @@ buildgcc()
         if [ "$CROSS_COMPILING" != "0" ]; then
             cd "$HOMEDIR"/crosstemp-$1
             make all-target-libgcc $JMULT &> libgcc_build.log
-            $SUDO make install-target-libgcc $JMULT
+            $SUDO make install-target-libgcc $JMULT &> libgcc_build.log
         fi
 
         cd "$HOMEDIR"/build-gcc-$1
@@ -796,10 +798,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
                 CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_newlib_configure
             $NICE make all-gcc $JMULT &> gcc_newlib_build.log
             make install-gcc $JMULT &> gcc_newlib_install.log
@@ -1307,6 +1309,16 @@ buildgcc()
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/filesystem/ops-common.h
             $SED -i -e "s/::not_supported/::function_not_supported/gI" $HOMEDIR/gcc-$1/libstdc++-v3/src/c++17/fs_ops.cc
         fi
+
+#        #libstdc++-v3/configure:
+#        # From v14.1.0 onwards the bit that tries to check for extra compiler flags fails with a
+#        # very cryptic "compiler flags start with a -" mesage. This should have stated line number, but nope
+#        # So... let's silence this. BUT: THIS ONLY BLOWS UP WITH CROSS COMPILING!
+#        if [ "$CROSS_COMPILING" == "1"]; then
+#            if [ "$1" == "14.1.0" ] || [ "$1" == "TRUNK" ]; then
+#                $SED -i -e "s/as_fn_error .. \"compiler flags start with a -/# Nope, lol/gI" "$HOMEDIR"/gcc-$1/libstdc++-v3/configure
+#            fi
+#        fi
     
     fi
     
@@ -1522,7 +1534,7 @@ buildgcc()
             $SED -i -e "s/__UINT_LEAST16_TYPE__/__XXX_UINT_LEAST16_TYPE__/I" $i
         done
 
-        ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR*
+        ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR* || true
         cd $INSTALL_PREFIX/libexec/gcc/m68k-$VENDOR-elf/$GCCVERSION
         if [ "$machine" != "Mac" ]; then
             for i in `find . -maxdepth 1 -type f -executable -print | grep -v .la`; do 
@@ -1678,7 +1690,7 @@ buildgcc()
         else
             EXT=
         fi
-        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout$EXT $STATIC_LINK $STATIC
+        ${HOST_PREFIX}g++ -O3 -std=gnu++11 brownout.cpp -Isimpleopt -I. -o brownout$EXT $STATIC_LINK $STATIC &> build_brownout.log
         ${HOST_PREFIX}strip brownout$EXT
         
         cp brownout$EXT ${INSTALL_PREFIX}/bin
