@@ -91,7 +91,7 @@ mainbrown()
         # The cross compiler we are building is supposedly called "canadian", because
         # "host", "build" and "target" are all different. For more info (as if anyone cares)
         # read https://crosstool-ng.github.io/docs/toolchain-types/
-        export PATH=$PATH:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin
+        export PATH=$PATH:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/7.1.1:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:/home/ggn/brown-crosstemp-14.2.0/m68k-atarisubliminalbrowner-elf/include/c++/14.2.0
         HOST=--host=arm-linux-gnueabihf
         HOST_PREFIX=arm-linux-gnueabihf-
         BUILD="--build $(gcc -dumpmachine)"
@@ -600,7 +600,11 @@ buildgcc()
         ${HOST_PREFIX}strip $INSTALL_PREFIX/bin/*$VENDOR* || true &> binutils_install.log
         ${HOST_PREFIX}strip $INSTALL_PREFIX/m68k-$VENDOR-elf/bin/* &> binutils_install.log
         gzip -f -9 $INSTALL_PREFIX/share/man/*/*.1
-    
+    else
+        if [ "$CROSS_COMPILING" != "0" ]; then
+            export PATH=$PATH:$INSTALL_PREFIX-crosstemp-$1/bin:${INSTALL_PREFIX}/bin
+        fi
+
     fi
     
     # home directory
@@ -1500,7 +1504,15 @@ buildgcc()
     fi
     if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         cd "$HOMEDIR"/build-gcc-$1
+        if [ "$BUILD_14_2_0" != "0" ]; then
+            # Since v14.2.0, libstdc++ won't build cleanly for canadian builds, due to some path not propagating,
+            # or the library needing header files that are inside the cross tools' path (fenv.h at least).
+            # If we add this path before the lib is built, other things start blowing up, so we add it before building
+            # and then remove it just to be on the safe side
+            export CPATH=/home/ggn/brown-crosstemp-14.2.0/m68k-atarisubliminalbrowner-elf/include/c++/14.2.0
+        fi
         make all-target-libstdc++-v3 $JMULT &> gcc_libstdc++_build.log
+        export CPATH=
         make install-target-libstdc++-v3 $JMULT &> gcc_libstdc++_install.log
     fi
     
