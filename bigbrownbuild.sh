@@ -106,7 +106,7 @@ mainbrown()
     # Some global stuff that are platform dependent
     HOMEDIR=$PWD
     NICE='nice -n 19'
-    JMULT=-j12
+    JMULT=-j16
     SED=sed
     TAR=tar
     TAROPTS='--owner=0 --group=0'
@@ -879,7 +879,9 @@ buildgcc()
         if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
         
             MINTLIBDIR="$HOMEDIR"/mintlib-bigbrownbuild-$1
-        
+       
+            # Replace obsolte call
+            $SED -i -e "s/#include \"syscalldefs.h\"/#include \"syscalldefs.h\"\r#define bzero(ptr, size) memset((ptr), 0, (size))/gI" $MINTLIBDIR/syscall/pars.y
             # Create missing targets
             cp -R $MINTLIBDIR/lib/ $MINTLIBDIR/lib_mshort
             cp -R $MINTLIBDIR/lib020/ $MINTLIBDIR/lib020_soft
