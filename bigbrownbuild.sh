@@ -36,6 +36,13 @@ mainbrown()
     # User definable stuff
     #
 
+    # Choose weather to have symbols with a leading underscore or without one.
+    # Since this script's inception (for various legacy reasons) the whole toolchain
+    # was built with leading underscores enabled. But there is probably no reason
+    # for going the other way these days. In any case, you can choose which way to go here
+    LEADING_UNDERSCORES=-fleading-underscore
+    #LEADING_UNDERSCORES=-fno-leading-underscore
+
     # Set this to "A" if you want a completely automated run
     GLOBAL_OVERRIDE=A
 
@@ -85,7 +92,7 @@ mainbrown()
     BUILD_14_1_0=0
     BUILD_14_2_0=0
     BUILD_15_1_0=0
-    BUILD_15_2_0=1
+    BUILD_15_2_0=0
     BUILD_16_1_0=1
     BUILD_TRUNK=0           # NOTE: requires 'makeinfo' (installed by package texinfo on ubuntu, at least)
     TRUNK_VERSION=17.0.0    # This needs to change with every major gcc release
@@ -97,7 +104,7 @@ mainbrown()
         export CROSS_PATH=
         if [ "$BUILD_14_2_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-14.2.0/m68k-atarisubliminalbrowner-elf/include/c++/14.2.0; fi
         if [ "$BUILD_15_1_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-15.1.0/m68k-atarisuperlativebrown-elf/include/c++/15.1.0; fi
-        if [ "$BUILD_15_2_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-15.2.0/m68k-atarisuperlativebrown-elf/include/c++/15.2.0; fi
+        if [ "$BUILD_15_2_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-15.2.0/m68k-atarisuperlativebrowner-elf/include/c++/15.2.0; fi
         if [ "$BUILD_16_1_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-16.1.0/m68k-atariexaltedbrown-elf/include/c++/16.1.0; fi
         export PATH=$PATH:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/7.1.1:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:$CROSS_PATH
         HOST=--host=arm-linux-gnueabihf
@@ -233,9 +240,8 @@ mainbrown()
             if [ ! -f binutils-2.43.tar.xz ]; then rm -rf binutils-2.43; fi; fi
         if [ "$BUILD_15_1_0" == "1" ]; then
             if [ ! -f binutils-2.44.tar.xz ]; then rm -rf binutils-2.44; fi; fi
-        if [ "$BUILD_16_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
             # See comment below about 2.46.0
-            if [ ! -f binutils-2.46.0.tar.xz ]; then rm -rf binutils-2.46; fi; fi
+        if [ "$BUILD_16_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then rm -rf binutils-2.46; fi
         rm -rf mintlib-bigbrownbuild
         rm -rf build-newlib*
     fi
@@ -565,8 +571,8 @@ buildgcc()
         export CFLAGS=$MIN_RAM_CFLAGS
         export CXXFLAGS=$MIN_RAM_CFLAGS
     fi
-    export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS"
-    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS"
+    export CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic $MIN_RAM_CFLAGS"
+    export CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS"
     export LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0"
 
     #  ____  _             _   _ _
@@ -631,10 +637,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} ${LEADING_UNDERSCORE} -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
-                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
             make install-gcc $JMULT &> gcc_cross_install.log
@@ -724,10 +730,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} ${LEADING_UNDERSCORE} -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
-                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_cross_config.log
             $NICE make all-gcc $JMULT &> gcc_cross_compile.log
             make install-gcc $JMULT &> gcc_cross_install.log
@@ -755,10 +761,10 @@ buildgcc()
             --disable-libstdcxx-threads \
             --disable-libstdcxx-filesystem-ts \
             --disable-libquadmath \
-            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
+            --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} ${LEADING_UNDERSCORE} -fno-plt -fno-pic' \
             LDFLAGS=$STATIC \
-            CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
+            CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+            CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
             LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_configure.log
         $NICE make all-gcc $JMULT &> gcc_build.log
         make install-gcc $JMULT &> gcc_install.log
@@ -871,10 +877,10 @@ buildgcc()
                 --disable-libstdcxx-threads \
                 --disable-libstdcxx-filesystem-ts \
                 --disable-libquadmath \
-                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} -fleading-underscore -fno-plt -fno-pic' \
+                --enable-cxx-flags='-O2 -fomit-frame-pointer -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} ${LEADING_UNDERSCORE} -fno-plt -fno-pic' \
                 LDFLAGS=$STATIC \
-                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
-                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer -fleading-underscore -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
+                CFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic $MIN_RAM_CFLAGS" \
+                CXXFLAGS_FOR_TARGET="-O2 -fomit-frame-pointer ${LEADING_UNDERSCORE} -fno-plt -fno-pic -fno-threadsafe-statics -fno-exceptions ${NO_RTTI} $MIN_RAM_CFLAGS" \
                 LDFLAGS_FOR_TARGET="--emit-relocs -Ttext=0" &> gcc_newlib_configure
             $NICE make all-gcc $JMULT &> gcc_newlib_build.log
             make install-gcc $JMULT &> gcc_newlib_install.log
@@ -1228,12 +1234,12 @@ buildgcc()
             $SED -i -e "s/d7/%d7/gI" $MINTLIBDIR/unix/vfork.S
             $SED -i -e "s/d6/%d6/gI" $MINTLIBDIR/unix/vfork.S
         
-            # Even though -fleading-underscore is enforced in gcc, it still needs setting in these makefiles
+            # Even though ${LEADING_UNDERSCORE} is enforced in gcc, it still needs setting in these makefiles
             # Go. Figure.
             # (TODO: unless of course it doesn't any more)
-            $SED -i -e "s/srcdir)\/time/srcdir)\/time -fleading-underscore/gI" $MINTLIBDIR/tz/Makefile
-            $SED -i -e "s/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT -fleading-underscore/gI" $MINTLIBDIR/checkrules
-            $SED -i -e "s/-std=gnu89/-std=gnu89 -fleading-underscore/gI" $MINTLIBDIR/configvars
+            $SED -i -e "s/srcdir)\/time/srcdir)\/time ${LEADING_UNDERSCORE}/gI" $MINTLIBDIR/tz/Makefile
+            $SED -i -e "s/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT/TESTDEFS = -D_GNU_SOURCE -D_REENTRANT ${LEADING_UNDERSCORE}/gI" $MINTLIBDIR/checkrules
+            $SED -i -e "s/-std=gnu89/-std=gnu89 ${LEADING_UNDERSCORE}/gI" $MINTLIBDIR/configvars
         
             # Furthter targets (020+, coldfire)
             $SED -i -e "s/sp@+/%sp@+/gI" $MINTLIBDIR/mintlib/checkcpu.S

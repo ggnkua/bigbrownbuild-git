@@ -1,6 +1,6 @@
 
-VASM = ./vasmm68k_mot.exe -Felf -showcrit -noesc
-TOOLCHAIN_NAME = m68k-atarisuperlativebrowner-elf
+VASM = vasmm68k_mot -Felf -showcrit -noesc
+TOOLCHAIN_NAME = m68k-atariexaltedbrown-elf
 TOOLCHAIN_PREFIX = $(TOOLCHAIN_NAME)-
 TOOLCHAIN_VERSION = 15.2.0
 
@@ -193,12 +193,12 @@ clean:
 # -----------------------------------------------------------------------------
 ifeq ($(USE_CFG),release)
 # -----------------------------------------------------------------------------
-	brownout.exe -p 0 -i $*.elf -o $*.tos
+	brownout -p 0 -i $*.elf -o $*.tos
 # -----------------------------------------------------------------------------
 else
 # -----------------------------------------------------------------------------
 	$(TOOLCHAIN_PREFIX)objdump -h $*.elf
-	brownout.exe -s -x -p 0 -i $*.elf -o $*.tos
+	brownout -s -x -p 0 -i $*.elf -o $*.tos
 # -----------------------------------------------------------------------------
 endif
 # -----------------------------------------------------------------------------
