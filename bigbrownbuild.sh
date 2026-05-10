@@ -40,8 +40,8 @@ mainbrown()
     # Since this script's inception (for various legacy reasons) the whole toolchain
     # was built with leading underscores enabled. But there is probably no reason
     # for going the other way these days. In any case, you can choose which way to go here
-    LEADING_UNDERSCORES=-fleading-underscore
-    #LEADING_UNDERSCORES=-fno-leading-underscore
+    LEADING_UNDERSCORE=-fleading-underscore
+    #LEADING_UNDERSCORE=-fno-leading-underscore
 
     # Set this to "A" if you want a completely automated run
     GLOBAL_OVERRIDE=A
