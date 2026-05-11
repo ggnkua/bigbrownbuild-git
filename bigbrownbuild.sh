@@ -64,7 +64,7 @@ mainbrown()
     # on a x64 PC and want to produce a compiler that runs on ARM. Note that you are required to have the
     # platform's cross compiler installed and change HOST AND HOST_PREFIX from the examples below to your
     # actual compiler names
-    CROSS_COMPILING=0
+    CROSS_COMPILING=1
 
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
@@ -105,7 +105,7 @@ mainbrown()
         if [ "$BUILD_14_2_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-14.2.0/m68k-atarisubliminalbrowner-elf/include/c++/14.2.0; fi
         if [ "$BUILD_15_1_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-15.1.0/m68k-atarisuperlativebrown-elf/include/c++/15.1.0; fi
         if [ "$BUILD_15_2_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-15.2.0/m68k-atarisuperlativebrowner-elf/include/c++/15.2.0; fi
-        if [ "$BUILD_16_1_0" != "0" ]; then export CROSS_PATH=/home/ggn/brown-crosstemp-16.1.0/m68k-atariexaltedbrown-elf/include/c++/16.1.0; fi
+        if [ "$BUILD_16_1_0" != "0" ]; then export CROSS_PATH=/home/ggn/bigbrownbuild-git/build-gcc-16.1.0/m68k-atariexaltedbrown-elf/libstdc++-v3/include; fi
         export PATH=$PATH:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/7.1.1:/home/ggn/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:$CROSS_PATH
         HOST=--host=arm-linux-gnueabihf
         HOST_PREFIX=arm-linux-gnueabihf-
@@ -1582,7 +1582,16 @@ buildgcc()
             export CPATH=/home/ggn/brown-crosstemp-15.2.0/m68k-atarisuperlativebrowner-elf/include/c++/15.2.0
         fi
         if [ "$1" == "16.1.0" ]; then
-            export CPATH=/home/ggn/brown-crosstemp-16.1.0/m68k-atariexaltedbrowner-elf/include/c++/16.1.0
+            # There's probably something broken with the above. floating_from_chars.cc and and floating_to_chars.cc have not changed at all since 15.2.0, and yet
+            # trying to compile the sources produced errors because stuff like SIZE_MAX were not defined, causing the build to fail. But still, this compiled fine
+            # with 15.2.0 (and probably 15.1.0) when I applied the changes blindly from 14.2.0. The even weirder thing is those CPATH pathnames probably don't exist
+            # (or they changed something in gcc16) so the path isn't even valid.
+            # Oh well. We just inject a header file that has this (and possibly other needed) define and move on with our lives.
+            # CROSS_PATH above probably has no effect either, but let's keep it there for symmetery
+            #echo PATH=$PATH
+            export CPATH=/home/ggn/bigbrownbuild-git/build-gcc-16.1.0/m68k-atariexaltedbrown-elf/libstdc++-v3/include
+            sed -i -e "s/# include \"fast_float\/fast_float.h\"/#include <stdint-gcc.h>\n# include \"fast_float\/fast_float.h\"/gI" "$HOMEDIR"/gcc-16.1.0/libstdc++-v3/src/c++17/floating_from_chars.cc
+            sed -i -e "s/#include \"ryu\/common.h\"/#include <stdint-gcc.h>\n#include \"ryu\/common.h\"/gI" "$HOMEDIR"/gcc-16.1.0/libstdc++-v3/src/c++17/floating_to_chars.cc
         fi
         make all-target-libstdc++-v3 $JMULT &> gcc_libstdc++_build.log
         export CPATH=
