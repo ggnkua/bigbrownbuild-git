@@ -707,7 +707,7 @@ buildgcc()
         fi
 
         # Add some of the defines that the old Atari gcc ports used to have back in the day
-        $SED -i -e "s/builtin_define_std (\"mc68000\");/builtin_define_std (\"mc68000\"); builtin_define_std (\"atari_os\");/gI" $HOMEDIR/gcc-$1/gcc/config/m68k/m68k.h
+        $SED -i -e "s/builtin_define_std (\"mc68000\");/builtin_define_std (\"mc68000\"); builtin_define_std (\"atari_os\"); builtin_define_std (\"BROWNCC\");/gI" $HOMEDIR/gcc-$1/gcc/config/m68k/m68k.h
 
         # When building for a different architecture than the one we are compiling for, we need to
         # build an extra version of gcc in order to compile libgcc and friends. Makes sense in hindsight
