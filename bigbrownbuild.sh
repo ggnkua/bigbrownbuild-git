@@ -29,8 +29,9 @@ mainbrown()
     # (https://stackoverflow.com/a/677212)
     #
 
-    #command -v bison >/dev/null 2>&1 || { echo >&2 "I require bison but it's not installed.  Aborting."; exit 1; }
-    #command -v flex >/dev/null 2>&1 || { echo >&2 "I require flex but it's not installed.  Aborting."; exit 1; }
+    command -v bison >/dev/null 2>&1 || { echo >&2 "Building requires bison but it's not installed.  Aborting."; exit 1; }
+    command -v flex >/dev/null 2>&1 || { echo >&2 "Building requires flex but it's not installed.  Aborting."; exit 1; }
+    command -v g++ >/dev/null 2>&1 || { echo >&2 "Building requires g++ but it's not installed.  Aborting."; exit 1; }
 
     #   
     # User definable stuff
@@ -64,7 +65,12 @@ mainbrown()
     # on a x64 PC and want to produce a compiler that runs on ARM. Note that you are required to have the
     # platform's cross compiler installed and change HOST AND HOST_PREFIX from the examples below to your
     # actual compiler names
-    CROSS_COMPILING=1
+    CROSS_COMPILING=0
+
+    # Where we're downloading the GNU archives (gcc, binutils, etc) from
+    GNU_MIRROR=https://fosszone.csd.auth.gr/gnu
+    #GNU_MIRROR=https://ftp.gnu.org/gnu
+
 
     # Which gccs to build. 1=Build, anything else=Don't build
     BUILD_4_6_4=0  # Produces Internal Compiler Error when built with gcc 4.8.5?
@@ -252,70 +258,70 @@ mainbrown()
     # Get all the things
    
     echo "Downloading all relevant archives" 
-    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.6.4/gcc-4.6.4.tar.bz2  --quiet; fi; fi
-    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-4.9.4/gcc-4.9.4.tar.bz2  --quiet; fi; fi
-    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-5.4.0/gcc-5.4.0.tar.bz2  --quiet; fi; fi
-    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-6.2.0/gcc-6.2.0.tar.bz2  --quiet; fi; fi
-    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ];  then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.1.0/gcc-7.1.0.tar.bz2  --quiet; fi; fi
-    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.2.0/gcc-7.2.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_9_3_0" == "1" ]; then if [ ! -f gcc-9.3.0.tar.xz ];   then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-9.3.0/gcc-9.3.0.tar.xz   --quiet; fi; fi
-    if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_10_2_0" == "1" ]; then if [ ! -f gcc-10.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_10_3_0" == "1" ]; then if [ ! -f gcc-10.3.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-10.3.0/gcc-10.3.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_11_1_0" == "1" ]; then if [ ! -f gcc-11.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.1.0/gcc-11.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_11_2_0" == "1" ]; then if [ ! -f gcc-11.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-11.2.0/gcc-11.2.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_12_1_0" == "1" ]; then if [ ! -f gcc-12.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_12_2_0" == "1" ]; then if [ ! -f gcc-12.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_13_1_0" == "1" ]; then if [ ! -f gcc-13.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-13.1.0/gcc-13.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_13_2_0" == "1" ]; then if [ ! -f gcc-13.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_14_1_0" == "1" ]; then if [ ! -f gcc-14.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-14.1.0/gcc-14.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_14_2_0" == "1" ]; then if [ ! -f gcc-14.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_15_1_0" == "1" ]; then if [ ! -f gcc-15.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-15.1.0/gcc-15.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_15_2_0" == "1" ]; then if [ ! -f gcc-15.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-15.2.0/gcc-15.2.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_16_1_0" == "1" ]; then if [ ! -f gcc-16.1.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-16.1.0/gcc-16.1.0.tar.xz --quiet; fi; fi
-    if [ "$BUILD_16_2_0" == "1" ]; then if [ ! -f gcc-16.2.0.tar.xz ]; then wget ftp://ftp.gnu.org/pub/pub/gnu/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_4_6_4" == "1" ]; then if [ ! -f gcc-4.6.4.tar.bz2 ];  then wget $GNU_MIRROR/gcc/gcc-4.6.4/gcc-4.6.4.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_4_9_4" == "1" ]; then if [ ! -f gcc-4.9.4.tar.bz2 ];  then wget $GNU_MIRROR/gcc/gcc-4.9.4/gcc-4.9.4.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_5_4_0" == "1" ]; then if [ ! -f gcc-5.4.0.tar.bz2 ];  then wget $GNU_MIRROR/gcc/gcc-5.4.0/gcc-5.4.0.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_6_2_0" == "1" ]; then if [ ! -f gcc-6.2.0.tar.bz2 ];  then wget $GNU_MIRROR/gcc/gcc-6.2.0/gcc-6.2.0.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_7_1_0" == "1" ]; then if [ ! -f gcc-7.1.0.tar.bz2 ];  then wget $GNU_MIRROR/gcc/gcc-7.1.0/gcc-7.1.0.tar.bz2  --quiet; fi; fi
+    if [ "$BUILD_7_2_0" == "1" ]; then if [ ! -f gcc-7.2.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-7.2.0/gcc-7.2.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_7_3_0" == "1" ]; then if [ ! -f gcc-7.3.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-7.3.0/gcc-7.3.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_8_1_0" == "1" ]; then if [ ! -f gcc-8.1.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-8.1.0/gcc-8.1.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_8_2_0" == "1" ]; then if [ ! -f gcc-8.2.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-8.2.0/gcc-8.2.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_8_3_0" == "1" ]; then if [ ! -f gcc-8.3.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-8.3.0/gcc-8.3.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_9_1_0" == "1" ]; then if [ ! -f gcc-9.1.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-9.1.0/gcc-9.1.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_9_2_0" == "1" ]; then if [ ! -f gcc-9.2.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_9_3_0" == "1" ]; then if [ ! -f gcc-9.3.0.tar.xz ];   then wget $GNU_MIRROR/gcc/gcc-9.3.0/gcc-9.3.0.tar.xz   --quiet; fi; fi
+    if [ "$BUILD_10_1_0" == "1" ]; then if [ ! -f gcc-10.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-10.1.0/gcc-10.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_10_2_0" == "1" ]; then if [ ! -f gcc-10.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-10.2.0/gcc-10.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_10_3_0" == "1" ]; then if [ ! -f gcc-10.3.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-10.3.0/gcc-10.3.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_11_1_0" == "1" ]; then if [ ! -f gcc-11.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-11.1.0/gcc-11.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_11_2_0" == "1" ]; then if [ ! -f gcc-11.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-11.2.0/gcc-11.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_12_1_0" == "1" ]; then if [ ! -f gcc-12.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-12.1.0/gcc-12.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_12_2_0" == "1" ]; then if [ ! -f gcc-12.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-12.2.0/gcc-12.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_13_1_0" == "1" ]; then if [ ! -f gcc-13.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-13.1.0/gcc-13.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_13_2_0" == "1" ]; then if [ ! -f gcc-13.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-13.2.0/gcc-13.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_14_1_0" == "1" ]; then if [ ! -f gcc-14.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-14.1.0/gcc-14.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_14_2_0" == "1" ]; then if [ ! -f gcc-14.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_15_1_0" == "1" ]; then if [ ! -f gcc-15.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-15.1.0/gcc-15.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_15_2_0" == "1" ]; then if [ ! -f gcc-15.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-15.2.0/gcc-15.2.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_16_1_0" == "1" ]; then if [ ! -f gcc-16.1.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-16.1.0/gcc-16.1.0.tar.xz --quiet; fi; fi
+    if [ "$BUILD_16_2_0" == "1" ]; then if [ ! -f gcc-16.2.0.tar.xz ]; then wget $GNU_MIRROR/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz --quiet; fi; fi
     if [ "$BUILD_TRUNK" == "1" ]; then if [ ! -d gcc-TRUNK ]; then git clone git://gcc.gnu.org/git/gcc.git gcc-TRUNK --quiet; fi; fi
 
     if [ "$BUILD_4_6_4" == "1" ] || [ "$BUILD_4_9_4" == "1" ] || [ "$BUILD_5_4_0" == "1" ] || [ "$BUILD_6_2_0" == "1" ] || [ "$BUILD_7_1_0" == "1" ] || [ "$BUILD_7_2_0" == "1" ] || [ "$BUILD_7_3_0" == "1" ] || [ "$BUILD_8_1_0" == "1" ]; then
-        if [ ! -f binutils-2.27.tar.bz2 ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.27.tar.bz2 --quiet; fi; fi
+        if [ ! -f binutils-2.27.tar.bz2 ]; then wget $GNU_MIRROR/binutils/binutils-2.27.tar.bz2 --quiet; fi; fi
     if [ "$BUILD_8_2_0" == "1" ]; then
-        if [ ! -f binutils-2.31.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.31.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.31.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.31.tar.xz --quiet; fi; fi
     if [ "$BUILD_8_3_0" == "1" ] || [ "$BUILD_9_1_0" == "1" ] || [ "$BUILD_9_2_0" == "1" ] || [ "$BUILD_9_3_0" == "1" ]; then
-        if [ ! -f binutils-2.32.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.32.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.32.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.32.tar.xz --quiet; fi; fi
     if [ "$BUILD_10_1_0" == "1" ]; then
-        if [ ! -f binutils-2.34.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.34.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.34.tar.xz --quiet; fi; fi
     if [ "$BUILD_10_2_0" == "1" ] || [ "$BUILD_10_3_0" == "1" ]; then
-        if [ ! -f binutils-2.35.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.35.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.35.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.35.tar.xz --quiet; fi; fi
     if [ "$BUILD_11_1_0" == "1" ]; then
-        if [ ! -f binutils-2.36.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.36.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.36.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.36.tar.xz --quiet; fi; fi
     if [ "$BUILD_11_2_0" == "1" ]; then
-        if [ ! -f binutils-2.37.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.37.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.37.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.37.tar.xz --quiet; fi; fi
     if [ "$BUILD_12_1_0" == "1" ]; then
-        if [ ! -f binutils-2.38.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.38.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.38.tar.xz --quiet; fi; fi
     if [ "$BUILD_12_2_0" == "1" ]; then
-        if [ ! -f binutils-2.39.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.39.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.39.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.39.tar.xz --quiet; fi; fi
     if [ "$BUILD_13_1_0" == "1" ]; then
-        if [ ! -f binutils-2.40.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.40.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.40.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.40.tar.xz --quiet; fi; fi
     if [ "$BUILD_13_2_0" == "1" ]; then
-        if [ ! -f binutils-2.41.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.41.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.41.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.41.tar.xz --quiet; fi; fi
     if [ "$BUILD_14_1_0" == "1" ]; then
-        if [ ! -f binutils-2.42.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.42.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.42.tar.xz --quiet; fi; fi
     if [ "$BUILD_14_2_0" == "1" ]; then
-        if [ ! -f binutils-2.43.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.43.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.43.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.43.tar.xz --quiet; fi; fi
     if [ "$BUILD_15_1_0" == "1" ]; then
-        if [ ! -f binutils-2.44.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.44.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.44.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.44.tar.xz --quiet; fi; fi
     if [ "$BUILD_15_2_0" == "1" ]; then
-        if [ ! -f binutils-2.45.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.45.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.45.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.45.tar.xz --quiet; fi; fi
     if [ "$BUILD_16_1_0" == "1" ] || [ "$BUILD_TRUNK" == "1" ]; then
-        if [ ! -f binutils-2.46.0.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.46.0.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.46.0.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.46.0.tar.xz --quiet; fi; fi
     if [ "$BUILD_16_2_0" == "1" ]; then
-        if [ ! -f binutils-2.47.tar.xz ]; then wget http://ftp.gnu.org/gnu/binutils/binutils-2.47.tar.xz --quiet; fi; fi
+        if [ ! -f binutils-2.47.tar.xz ]; then wget $GNU_MIRROR/binutils/binutils-2.47.tar.xz --quiet; fi; fi
     if [ ! -d mintlib-bigbrownbuild ]; then git clone https://github.com/ggnkua/mintlib-bigbrownbuild.git --quiet; fi
     if [ "$BUILD_NEWLIB" != "0" ]; then if [ ! -f newlib-4.1.0.tar.gz ]; then wget ftp://sourceware.org/pub/newlib/newlib-4.1.0.tar.gz --quiet; fi; fi
     # requires GMP, MPFR and MPC
@@ -534,6 +540,9 @@ buildgcc()
 
     echo ----------------------
     echo Building gcc $1...
+    if [ "$CROSS_COMPILING" == "1" ]; then
+        echo "Canadian build active, oh yeah!"
+    fi
 
     VENDOR=atari$1
 
@@ -1861,27 +1870,7 @@ function notify
     echo Oops, something exploded while building!
     echo The error happened while ${problem_function} was executing ${BASH_COMMAND}
     echo
-    echo 'You may inspect the following logfiles for further info:'
-    if [ "$CROSS_COMPILING" != "0" ]; then    
-        echo binutils_cross_config.log, binutils_cross_build.log, binutils_cross_install.log
-    fi
-    echo binutils_config.log, binutils_build.log, binutils_install.log
-    if [ "$CROSS_COMPILING" != "0" ]; then    
-        echo gcc_cross_config.log, gcc_cross_compile.log, gcc_cross_install.log
-    fi
-    echo gcc_configure.log, gcc_build.log, gcc_install.log, gcc_libc_build.log, gcc_libc_install.log
-    if [ "$BUILD_NEWLIB" != "0" ]; then
-        echo newlib_config.log, newlib_build.log, newlib_install.log
-    fi
-    echo mintlib_build.log, mintlib_install.log
-    echo gcc_libstdc++_configure.log
-    if [ "$BUILD_FORTRAN" == "1" ]; then
-        echo gcc_libfortran_configure.log, gcc_libfortran_build.log, gcc_libfortran_install.log
-    fi
-    echo gcc_libstdc++_build.log, gcc_libstdc++_install.log
-    echo gcc_misc_build.log, gcc_install_build.log
-    echo gcc_type_traits.log, gcc_type_traits.log
-    echo binary_strip.log, binary_strip.log
+    echo 'You may inspect the logfiles for further info:'
     echo 
     exit 1
 }

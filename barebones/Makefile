@@ -1,8 +1,8 @@
 
 VASM = vasmm68k_mot -Felf -showcrit -noesc
-TOOLCHAIN_NAME = m68k-atariexaltedbrown-elf
+TOOLCHAIN_NAME = m68k-atariexaltedbrowner-elf
 TOOLCHAIN_PREFIX = $(TOOLCHAIN_NAME)-
-TOOLCHAIN_VERSION = 15.2.0
+TOOLCHAIN_VERSION = 16.2.0
 
 # -----------------------------------------------------------------------------
 

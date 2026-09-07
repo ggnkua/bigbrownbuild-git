@@ -6,3 +6,5 @@ mintlib-bigbrownbuild*
 *.xz
 binutils-*
 newlib*
+brownout-git*
+barebones/*
