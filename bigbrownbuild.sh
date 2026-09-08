@@ -113,7 +113,7 @@ mainbrown()
         if [ "$BUILD_15_1_0" != "0" ]; then export CROSS_PATH=$HOME/brown-crosstemp-15.1.0/m68k-atarisuperlativebrown-elf/include/c++/15.1.0; fi
         if [ "$BUILD_15_2_0" != "0" ]; then export CROSS_PATH=$HOME/brown-crosstemp-15.2.0/m68k-atarisuperlativebrowner-elf/include/c++/15.2.0; fi
         if [ "$BUILD_16_1_0" != "0" ]; then export CROSS_PATH=$HOME/bigbrownbuild-git/build-gcc-16.1.0/m68k-atariexaltedbrown-elf/libstdc++-v3/include; fi
-        if [ "$BUILD_16_2_0" != "0" ]; then export CROSS_PATH=$HOME/bigbrownbuild-git/build-gcc-16.2.0/m68k-atariexaltedbrown-elf/libstdc++-v3/include; fi
+        if [ "$BUILD_16_2_0" != "0" ]; then export CROSS_PATH=$HOME/bigbrownbuild-git/build-gcc-16.2.0/m68k-atariexaltedbrowner-elf/libstdc++-v3/include; fi
         export PATH=$PATH:$HOME/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:$HOME/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/7.1.1:$HOME/gcc-linaro-7.1.1-2017.05-x86_64_arm-linux-gnueabihf/bin:$CROSS_PATH
         HOST=--host=arm-linux-gnueabihf
         HOST_PREFIX=arm-linux-gnueabihf-
@@ -1616,10 +1616,17 @@ buildgcc()
             sed -i -e "s/#include \"ryu\/common.h\"/#include <stdint-gcc.h>\n#include \"ryu\/common.h\"/gI" "$HOMEDIR"/gcc-16.1.0/libstdc++-v3/src/c++17/floating_to_chars.cc
         fi
         if [ "$1" == "16.2.0" ]; then
-            # Adding this provisionally - it might not be required any more, but will have to check
-            export CPATH=$HOME/bigbrownbuild-git/build-gcc-16.2.0/m68k-atariexaltedbrown-elf/libstdc++-v3/include
+            # Even more broken-ness in 16.2.0. Applying the above, the build will fail when
+            # trying to include fenv.h (which does an #include_next "fenv.h") fails
+            # (perhaps it's detecting an include loop?)
+            # One way to solve this has been found to be to comment out that #include <fenv.h>
+            # and then the build passes (but with some warnings and errors).
+            # It's really not a great solution, but for the use case that Canadian builds have for the moment
+            # it will have to do
+            export CPATH=$HOME/bigbrownbuild-git/build-gcc-16.2.0/m68k-atariexaltedbrowner-elf/libstdc++-v3/include
             sed -i -e "s/# include \"fast_float\/fast_float.h\"/#include <stdint-gcc.h>\n# include \"fast_float\/fast_float.h\"/gI" "$HOMEDIR"/gcc-16.2.0/libstdc++-v3/src/c++17/floating_from_chars.cc
             sed -i -e "s/#include \"ryu\/common.h\"/#include <stdint-gcc.h>\n#include \"ryu\/common.h\"/gI" "$HOMEDIR"/gcc-16.2.0/libstdc++-v3/src/c++17/floating_to_chars.cc
+            sed -i -e "s/# include <fenv.h>/\/\/ #include <fenv.h>/gI" "$HOMEDIR"/build-gcc-16.2.0/m68k-atariexaltedbrowner-elf/libstdc++-v3/include/cfenv
         fi
         make all-target-libstdc++-v3 $JMULT &> gcc_libstdc++_build.log
         export CPATH=
